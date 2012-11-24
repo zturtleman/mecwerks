@@ -51,6 +51,7 @@ vmCvar_t	g_dmflags;
 vmCvar_t	g_fraglimit;
 vmCvar_t	g_timelimit;
 vmCvar_t	g_capturelimit;
+vmCvar_t    g_scorelimit;
 vmCvar_t	g_friendlyFire;
 vmCvar_t	g_password;
 vmCvar_t	g_needpass;
@@ -121,8 +122,10 @@ static cvarTable_t		gameCvarTable[] = {
 	// change anytime vars
 	{ &g_dmflags, "dmflags", "0", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qtrue  },
 	{ &g_fraglimit, "fraglimit", "20", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
+	{ &g_scorelimit, "scorelimit", "5000", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
 	{ &g_timelimit, "timelimit", "0", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
 	{ &g_capturelimit, "capturelimit", "8", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
+    
 
 	{ &g_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO, 0, qfalse  },
 
@@ -1432,6 +1435,39 @@ void CheckExitRules( void ) {
 		}
 	}
 
+    if ( g_gametype.integer == GT_FRENZY && g_scorelimit.integer ) {
+		/*
+        if ( level.teamScores[TEAM_RED] >= g_scorelimit.integer ) {
+			trap_SendServerCommand( -1, "print \"Red hit the scorelimit.\n\"" );
+			LogExit( "Scorelimit hit." );
+			return;
+		}
+        
+		if ( level.teamScores[TEAM_BLUE] >= g_scorelimit.integer ) {
+			trap_SendServerCommand( -1, "print \"Blue hit the scorelimit.\n\"" );
+			LogExit( "Fraglimit hit." );
+			return;
+		}
+        // team frenzy not yet implemented
+        */
+		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+			cl = level.clients + i;
+			if ( cl->pers.connected != CON_CONNECTED ) {
+				continue;
+			}
+			if ( cl->sess.sessionTeam != TEAM_FREE ) {
+				continue;
+			}
+            
+			if ( cl->ps.persistant[PERS_SCORE] >= g_scorelimit.integer ) {
+				LogExit( "Scorelimit hit." );
+				trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " hit the scorelimit.\n\"",
+                                               cl->pers.netname ) );
+				return;
+			}
+		}
+	}
+    
 	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer ) {
 		if ( level.teamScores[TEAM_RED] >= g_fraglimit.integer ) {
 			trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );

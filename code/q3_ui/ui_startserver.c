@@ -673,6 +673,7 @@ typedef struct {
 	menuradiobutton_s	dedicated;
 	menufield_s			timelimit;
 	menufield_s			fraglimit;
+	menufield_s			scorelimit;
 	menufield_s			flaglimit;
 	menuradiobutton_s	friendlyfire;
 	menufield_s			hostname;
@@ -770,6 +771,7 @@ ServerOptions_Start
 static void ServerOptions_Start( void ) {
 	int		timelimit;
 	int		fraglimit;
+    int     scorelimit;
 	int		maxclients;
 	int		localClients;
 	int		publicserver;
@@ -784,6 +786,7 @@ static void ServerOptions_Start( void ) {
 
 	timelimit	 = atoi( s_serveroptions.timelimit.field.buffer );
 	fraglimit	 = atoi( s_serveroptions.fraglimit.field.buffer );
+	scorelimit	 = atoi( s_serveroptions.scorelimit.field.buffer );
 	flaglimit	 = atoi( s_serveroptions.flaglimit.field.buffer );
 	publicserver = s_serveroptions.publicserver.curvalue;
 	dedicated	 = s_serveroptions.dedicated.curvalue;
@@ -819,7 +822,7 @@ static void ServerOptions_Start( void ) {
         break;
             
     case GT_FRENZY:
-        trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit * 1000 ); // increase points for scoring frenzy
+        trap_Cvar_SetValue( "ui_ffa_scorelimit", scorelimit );
         trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
         break;
     
@@ -867,6 +870,7 @@ static void ServerOptions_Start( void ) {
 	trap_Cvar_SetValue( "dedicated", Com_Clamp( 0, 1, dedicated ) );
 	trap_Cvar_SetValue ("timelimit", Com_Clamp( 0, timelimit, timelimit ) );
 	trap_Cvar_SetValue ("fraglimit", Com_Clamp( 0, fraglimit, fraglimit ) );
+	trap_Cvar_SetValue ("scorelimit", Com_Clamp( 0, scorelimit, scorelimit ) );
 	trap_Cvar_SetValue ("capturelimit", Com_Clamp( 0, flaglimit, flaglimit ) );
 	trap_Cvar_SetValue( "g_friendlyfire", friendlyfire );
 	trap_Cvar_SetValue( "sv_pure", pure );
@@ -1260,6 +1264,11 @@ static void ServerOptions_SetMenuItems( void ) {
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
 		break;
 
+    case GT_FRENZY:
+        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
+        Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
+        break;
+            
 	case GT_TOURNAMENT:
 		Com_sprintf( s_serveroptions.fraglimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_tourney_fraglimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_tourney_timelimit" ) ) );
@@ -1416,14 +1425,14 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 
 	y = 272;
 	if ( s_serveroptions.gametype == GT_FRENZY ) {
-    	s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
-		s_serveroptions.fraglimit.generic.name       = "Score Limit:";
-		s_serveroptions.fraglimit.generic.flags      = QMF_NUMBERSONLY|QMF_PULSEIFFOCUS|QMF_SMALLFONT;
-		s_serveroptions.fraglimit.generic.x	         = OPTIONS_X;
-		s_serveroptions.fraglimit.generic.y	         = y;
-		s_serveroptions.fraglimit.generic.statusbar  = ServerOptions_StatusBar;
-		s_serveroptions.fraglimit.field.widthInChars = 6;
-        s_serveroptions.fraglimit.field.maxchars     = 6;
+    	s_serveroptions.scorelimit.generic.type       = MTYPE_FIELD;
+		s_serveroptions.scorelimit.generic.name       = "Score Limit:";
+		s_serveroptions.scorelimit.generic.flags      = QMF_NUMBERSONLY|QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+		s_serveroptions.scorelimit.generic.x	         = OPTIONS_X;
+		s_serveroptions.scorelimit.generic.y	         = y;
+		s_serveroptions.scorelimit.generic.statusbar  = ServerOptions_StatusBar;
+		s_serveroptions.scorelimit.field.widthInChars = 6;
+        s_serveroptions.scorelimit.field.maxchars     = 6;
 	} else if( s_serveroptions.gametype <= GT_TEAM ) {
 		s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
 		s_serveroptions.fraglimit.generic.name       = "Frag Limit:";
@@ -1610,6 +1619,9 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 		}
 	}
 
+    if( s_serveroptions.gametype == GT_FRENZY ) {
+        Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.scorelimit );
+    } else
 	if( s_serveroptions.gametype <= GT_TEAM ) {
 		Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.fraglimit );
 	}

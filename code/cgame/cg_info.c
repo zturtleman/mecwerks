@@ -284,7 +284,7 @@ void CG_DrawInformation( void ) {
 	}
 
 	if (cgs.gametype == GT_FRENZY ) {
-		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
+		value = atoi( Info_ValueForKey( info, "scorelimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "scorelimit %i", value ),
                                       UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );

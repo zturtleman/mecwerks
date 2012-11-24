@@ -1049,10 +1049,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			targ->client->ps.stats[STAT_HEALTH] = targ->health;
 		}
         
-        if ( g_gametype.integer == GT_FRENZY ) {
-            AddScore( attacker, targ->r.currentOrigin, take * 10 );
+        if ( targ != attacker && targ->health > 0 ) {
+            if ( g_gametype.integer == GT_FRENZY ) {
+                AddScore( attacker, targ->r.currentOrigin, take * 10 );
+            }
         }
-        
 		if ( targ->health <= 0 ) {
 			if ( client )
 				targ->flags |= FL_NO_KNOCKBACK;

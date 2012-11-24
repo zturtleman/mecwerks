@@ -42,6 +42,7 @@ typedef void (*voidfunc_f)(void);
 
 extern vmCvar_t	ui_ffa_fraglimit;
 extern vmCvar_t	ui_ffa_timelimit;
+extern vmCvar_t	ui_ffa_scorelimit;
 
 extern vmCvar_t	ui_tourney_fraglimit;
 extern vmCvar_t	ui_tourney_timelimit;

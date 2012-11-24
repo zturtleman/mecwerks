@@ -42,6 +42,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 
 extern vmCvar_t	ui_ffa_fraglimit;
 extern vmCvar_t	ui_ffa_timelimit;
+extern vmCvar_t	ui_ffa_scorelimit;
 
 extern vmCvar_t	ui_tourney_fraglimit;
 extern vmCvar_t	ui_tourney_timelimit;
@@ -96,6 +97,7 @@ extern vmCvar_t	ui_server16;
 
 extern vmCvar_t	ui_captureLimit;
 extern vmCvar_t	ui_fragLimit;
+extern vmCvar_t	ui_scoreLimit;
 extern vmCvar_t	ui_gameType;
 extern vmCvar_t	ui_netGameType;
 extern vmCvar_t	ui_actualNetGameType;

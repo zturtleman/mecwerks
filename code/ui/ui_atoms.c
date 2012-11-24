@@ -325,6 +325,7 @@ static void UI_CalcPostGameStats( void ) {
 	}
  
 	// put back all the ui overrides
+    trap_Cvar_Set("scorelimit", UI_Cvar_VariableString("ui_saveScoreLimit"));
 	trap_Cvar_Set("capturelimit", UI_Cvar_VariableString("ui_saveCaptureLimit"));
 	trap_Cvar_Set("fraglimit", UI_Cvar_VariableString("ui_saveFragLimit"));
 	trap_Cvar_Set("cg_drawTimer", UI_Cvar_VariableString("ui_drawTimer"));

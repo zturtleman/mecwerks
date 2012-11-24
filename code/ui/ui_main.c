@@ -1078,7 +1078,8 @@ static void UI_DrawClanName(rectDef_t *rect, float scale, vec4_t color, int text
 static void UI_SetCapFragLimits(qboolean uiVars) {
 	int cap = 5;
 	int frag = 10;
-	if (uiInfo.gameTypes[ui_gameType.integer].gtEnum == GT_OBELISK) {
+	int score = 5000;
+    if (uiInfo.gameTypes[ui_gameType.integer].gtEnum == GT_OBELISK) {
 		cap = 4;
 	} else if (uiInfo.gameTypes[ui_gameType.integer].gtEnum == GT_HARVESTER) {
 		cap = 15;
@@ -1086,9 +1087,11 @@ static void UI_SetCapFragLimits(qboolean uiVars) {
 	if (uiVars) {
 		trap_Cvar_Set("ui_captureLimit", va("%d", cap));
 		trap_Cvar_Set("ui_fragLimit", va("%d", frag));
+		trap_Cvar_Set("ui_scoreLimit", va("%d", score));
 	} else {
 		trap_Cvar_Set("capturelimit", va("%d", cap));
 		trap_Cvar_Set("fraglimit", va("%d", frag));
+		trap_Cvar_Set("scorelimit", va("%d", score));
 	}
 }
 // ui_gameType assumes gametype 0 is -1 ALL and will not show
@@ -3023,6 +3026,8 @@ static void UI_StartSkirmish(qboolean next) {
 	trap_Cvar_Set("ui_saveCaptureLimit", va("%i", temp));
 	temp = trap_Cvar_VariableValue( "fraglimit" );
 	trap_Cvar_Set("ui_saveFragLimit", va("%i", temp));
+    temp = trap_Cvar_VariableValue( "scorelimit" );
+	trap_Cvar_Set("ui_saveScoreLimit", va("%i", temp));
 
 	UI_SetCapFragLimits(qfalse);
 
@@ -5604,6 +5609,7 @@ typedef struct {
 
 vmCvar_t	ui_ffa_fraglimit;
 vmCvar_t	ui_ffa_timelimit;
+vmCvar_t	ui_ffa_scorelimit;
 
 vmCvar_t	ui_tourney_fraglimit;
 vmCvar_t	ui_tourney_timelimit;
@@ -5710,6 +5716,7 @@ vmCvar_t	ui_scoreShutoutBonus;
 vmCvar_t	ui_scoreTime;
 vmCvar_t	ui_captureLimit;
 vmCvar_t	ui_fragLimit;
+vmCvar_t	ui_scoreLimit;
 vmCvar_t	ui_smallFont;
 vmCvar_t	ui_bigFont;
 vmCvar_t	ui_findPlayer;
@@ -5723,7 +5730,8 @@ vmCvar_t	ui_serverStatusTimeOut;
 static cvarTable_t		cvarTable[] = {
 	{ &ui_ffa_fraglimit, "ui_ffa_fraglimit", "20", CVAR_ARCHIVE },
 	{ &ui_ffa_timelimit, "ui_ffa_timelimit", "0", CVAR_ARCHIVE },
-
+    { &ui_ffa_scorelimit, "ui_ffa_scorelimit", "5000", CVAR_ARCHIVE },
+	
 	{ &ui_tourney_fraglimit, "ui_tourney_fraglimit", "0", CVAR_ARCHIVE },
 	{ &ui_tourney_timelimit, "ui_tourney_timelimit", "15", CVAR_ARCHIVE },
 
@@ -5829,6 +5837,7 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_scoreSkillBonus, "ui_scoreSkillBonus", "0", CVAR_ARCHIVE},
 	{ &ui_scoreShutoutBonus, "ui_scoreShutoutBonus", "0", CVAR_ARCHIVE},
 	{ &ui_fragLimit, "ui_fragLimit", "10", 0},
+	{ &ui_scoreLimit, "ui_scoreLimit", "5000", 0},
 	{ &ui_captureLimit, "ui_captureLimit", "5", 0},
 	{ &ui_smallFont, "ui_smallFont", "0.25", CVAR_ARCHIVE},
 	{ &ui_bigFont, "ui_bigFont", "0.4", CVAR_ARCHIVE},
