@@ -774,6 +774,12 @@ void UI_LoadConfig_Cache( void );
 void UI_LoadConfigMenu( void );
 
 //
+// ui_campaign.c
+//
+void UI_Campaign_Cache( void );
+void UI_CampaignMenu( void );
+
+//
 // ui_saveconfig.c
 //
 void UI_SaveConfigMenu_Cache( void );

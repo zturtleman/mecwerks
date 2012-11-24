@@ -109,8 +109,9 @@ void Main_MenuEvent (void* ptr, int event) {
 
 	switch( ((menucommon_s*)ptr)->id ) {
 	case ID_SINGLEPLAYER:
-		UI_SPLevelMenu();
-		break;
+		//UI_SPLevelMenu();
+        UI_CampaignMenu();
+        break;
 
 	case ID_MULTIPLAYER:
 		UI_ArenaServersMenu();
