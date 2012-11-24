@@ -299,10 +299,10 @@ void InGame_MenuInit( void ) {
 		s_ingame.localPlayers.color				= color_red;
 		s_ingame.localPlayers.style				= UI_CENTER|UI_SMALLFONT;
 
-		if (trap_Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER)
-		{
-			s_ingame.localPlayers.generic.flags |= QMF_GRAYED;
-		}
+		//if (trap_Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER)
+		//{
+		//	s_ingame.localPlayers.generic.flags |= QMF_GRAYED;
+		//}
 	}
 
 	y += INGAME_MENU_VERTICAL_SPACING;

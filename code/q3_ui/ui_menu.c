@@ -325,7 +325,7 @@ void UI_MainMenu( void ) {
 	s_main.singleplayer.generic.y			= y;
 	s_main.singleplayer.generic.id			= ID_SINGLEPLAYER;
 	s_main.singleplayer.generic.callback	= Main_MenuEvent; 
-	s_main.singleplayer.string				= "SINGLE PLAYER";
+	s_main.singleplayer.string				= "CAMPAIGN";
 	s_main.singleplayer.color				= color_red;
 	s_main.singleplayer.style				= style;
 
