@@ -1468,7 +1468,7 @@ void CheckExitRules( void ) {
 		}
 	}
     
-	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer ) {
+	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer && g_gametype.integer != GT_FRENZY ) {
 		if ( level.teamScores[TEAM_RED] >= g_fraglimit.integer ) {
 			trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
 			LogExit( "Fraglimit hit." );
