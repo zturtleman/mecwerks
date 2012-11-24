@@ -57,7 +57,7 @@ fi
 
 
 echo "Building X86 Client/Dedicated Server against \"$X86_SDK\""
-sleep 2
+#sleep 1
 
 if [ ! -d $DESTDIR ]; then
 	mkdir -p $DESTDIR

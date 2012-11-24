@@ -115,7 +115,7 @@ static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF, GT_FRENZY
 ,GT_1FCTF, GT_OBELISK, GT_HARVESTER
 #endif
 };
-static int gametype_remap2[] = {0, 2, 0, 1, 3, 0
+static int gametype_remap2[] = {0, 4, 2, 0, 1, 3
 #ifdef MISSIONPACK
 ,4, 5, 6
 #endif
@@ -1415,7 +1415,16 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	s_serveroptions.picframe.focuspic			= GAMESERVER_SELECT;
 
 	y = 272;
-	if( s_serveroptions.gametype <= GT_TEAM ) {
+	if ( s_serveroptions.gametype == GT_FRENZY ) {
+    	s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
+		s_serveroptions.fraglimit.generic.name       = "Score Limit:";
+		s_serveroptions.fraglimit.generic.flags      = QMF_NUMBERSONLY|QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+		s_serveroptions.fraglimit.generic.x	         = OPTIONS_X;
+		s_serveroptions.fraglimit.generic.y	         = y;
+		s_serveroptions.fraglimit.generic.statusbar  = ServerOptions_StatusBar;
+		s_serveroptions.fraglimit.field.widthInChars = 6;
+        s_serveroptions.fraglimit.field.maxchars     = 6;
+	} else if( s_serveroptions.gametype <= GT_TEAM ) {
 		s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
 		s_serveroptions.fraglimit.generic.name       = "Frag Limit:";
 		s_serveroptions.fraglimit.generic.flags      = QMF_NUMBERSONLY|QMF_PULSEIFFOCUS|QMF_SMALLFONT;
@@ -1423,9 +1432,8 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 		s_serveroptions.fraglimit.generic.y	         = y;
 		s_serveroptions.fraglimit.generic.statusbar  = ServerOptions_StatusBar;
 		s_serveroptions.fraglimit.field.widthInChars = 3;
-		s_serveroptions.fraglimit.field.maxchars     = 3;
-	}
-	else {
+        s_serveroptions.fraglimit.field.maxchars     = 3;
+    } else {
 		s_serveroptions.flaglimit.generic.type       = MTYPE_FIELD;
 		s_serveroptions.flaglimit.generic.name       = "Capture Limit:";
 		s_serveroptions.flaglimit.generic.flags      = QMF_NUMBERSONLY|QMF_PULSEIFFOCUS|QMF_SMALLFONT;

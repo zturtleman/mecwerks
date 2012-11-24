@@ -283,7 +283,14 @@ void CG_DrawInformation( void ) {
 		y += PROP_HEIGHT;
 	}
 
-	if (cgs.gametype < GT_CTF ) {
+	if (cgs.gametype == GT_FRENZY ) {
+		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
+		if ( value ) {
+			UI_DrawProportionalString( 320, y, va( "scorelimit %i", value ),
+                                      UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
+			y += PROP_HEIGHT;
+		}
+	} else if (cgs.gametype < GT_CTF ) {
 		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "fraglimit %i", value ),
