@@ -200,6 +200,7 @@ void TeamMain_MenuInit( int localClient ) {
 	switch( gametype ) {
 	case GT_SINGLE_PLAYER:
 	case GT_FFA:
+    case GT_FRENZY:
 	case GT_TOURNAMENT:
 		s_teammain.joinred.generic.flags  |= QMF_GRAYED;
 		s_teammain.joinblue.generic.flags |= QMF_GRAYED;

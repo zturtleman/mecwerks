@@ -120,6 +120,9 @@ void SV_RankBegin( char *gamekey )
 		case GT_FFA:
 			gamekey = "Q3 Free For All";
 			break;
+        case GT_FRENZY:
+            gamekey = "MW Scoring Frenzy";
+            break;
 		case GT_TOURNAMENT:
 			gamekey = "Q3 Tournament";
 			break;

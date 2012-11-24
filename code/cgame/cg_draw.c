@@ -2630,6 +2630,8 @@ static void CG_DrawWarmup( void ) {
 	} else {
 		if ( cgs.gametype == GT_FFA ) {
 			s = "Free For All";
+        } else if ( cgs.gametype == GT_FRENZY ) {
+            s = "Scoring Frenzy";
 		} else if ( cgs.gametype == GT_TEAM ) {
 			s = "Team Deathmatch";
 		} else if ( cgs.gametype == GT_CTF ) {

@@ -101,6 +101,7 @@ static const char *gametype_items[] = {
 	"Team Deathmatch",
 	"Tournament",
 	"Capture the Flag",
+    "Scoring Frenzy",
 #ifdef MISSIONPACK
 	"1 Flag CTF",
 	"Overload",
@@ -109,12 +110,12 @@ static const char *gametype_items[] = {
 	NULL
 };
 
-static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF
+static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF, GT_FRENZY
 #ifdef MISSIONPACK
 ,GT_1FCTF, GT_OBELISK, GT_HARVESTER
 #endif
 };
-static int gametype_remap2[] = {0, 2, 0, 1, 3
+static int gametype_remap2[] = {0, 2, 0, 1, 3, 0
 #ifdef MISSIONPACK
 ,4, 5, 6
 #endif
@@ -145,6 +146,10 @@ static int GametypeBits( char *string ) {
 			bits |= 1 << GT_FFA;
 			continue;
 		}
+        
+        if ( Q_stricmp( token, "frenzy" ) == 0 ) {
+            bits |= 1 << GT_FRENZY;
+        }
 
 		if( Q_stricmp( token, "tourney" ) == 0 ) {
 			bits |= 1 << GT_TOURNAMENT;
@@ -294,9 +299,10 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 	count = UI_GetNumArenas();
 	s_startserver.nummaps = 0;
 	matchbits = 1 << gametype_remap[s_startserver.gametype.curvalue];
-	if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA ) {
+	if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA || gametype_remap[s_startserver.gametype.curvalue] == GT_FRENZY) {
 		matchbits |= ( 1 << GT_SINGLE_PLAYER );
 	}
+    
 	for( i = 0; i < count; i++ ) {
 		info = UI_GetArenaInfoByNumber( i );
 	
@@ -808,11 +814,16 @@ static void ServerOptions_Start( void ) {
 	switch( s_serveroptions.gametype ) {
 	case GT_FFA:
 	default:
-		trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit );
-		trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
-		break;
-
-	case GT_TOURNAMENT:
+        trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit );
+        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        break;
+            
+    case GT_FRENZY:
+        trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit * 1000 ); // increase points for scoring frenzy
+        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        break;
+    
+    case GT_TOURNAMENT:
 		trap_Cvar_SetValue( "ui_tourney_fraglimit", fraglimit );
 		trap_Cvar_SetValue( "ui_tourney_timelimit", timelimit );
 		break;

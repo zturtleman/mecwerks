@@ -242,7 +242,10 @@ void CG_DrawInformation( void ) {
 	case GT_FFA:
 		s = "Free For All";
 		break;
-	case GT_SINGLE_PLAYER:
+    case GT_FRENZY:
+        s = "Scoring Frenzy";
+        break;
+    case GT_SINGLE_PLAYER:
 		s = "Single Player";
 		break;
 	case GT_TOURNAMENT:
