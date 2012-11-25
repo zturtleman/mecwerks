@@ -1,0 +1,112 @@
+
+<html>
+<head>
+<title>Quake Style - Quake 3 Tutorials - Game Enhancements - (Re/De)generation of stats</title>
+
+<style type="text/css">
+
+body, table, tr, td             { font-family: verdana }
+input, textarea, select, option { font-family: verdana; font-size: 10px }
+
+pre                             { font-family: verdana; font-weight: bold }
+
+A                               { color: #00ff00 }
+A:hover                         { color: white; text-decoration: none }
+
+</style>
+</head>
+
+<body bgcolor=black text=#ffff80>
+<font size=1>
+
+<div align=right>
+
+ <table cellspacing=0 cellborder=0 border=0>
+  <tr>
+   <td align=center>
+    <font size=1><b>
+
+    <font color=white>Quake Style - Quake 3 Tutorials</font><br>
+    <font color=#bbcc77>Game Enhancements </font><font color=#ff8000>- (Re/De)generation of stats</font><br>
+    How to add regenerating or degenerating elements to your mod!
+
+   </td>
+  </tr>
+ </table>
+
+</div>
+<br>
+
+<!-- START TUTORIAL -->
+This "quickie" tut will show you how to use an existing function to make regenerating/degenerating additions to your mod.  Open up g_active.c and go to the ClientTimerActions( gentity_t *ent, int msec ) definition.  This function will run everything in it once a second.  It's perfect for regeneration and degeneration!  Here it is in full glory:<br>
+<pre><font size=1> 
+void ClientTimerActions( gentity_t *ent, int msec ) {
+	gclient_t *client;
+
+	client &#061; ent->client;
+	client->timeResidual +&#061; msec;
+
+	while ( client->timeResidual >&#061; 1000 ) {
+		client->timeResidual -&#061; 1000;
+
+		// regenerate
+		if ( client->ps.powerups[PW_REGEN] ) {
+			if ( ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
+				ent->health +&#061; 15;
+				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1 ) {
+					ent->health &#061; client->ps.stats[STAT_MAX_HEALTH] * 1.1;
+				}
+				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
+			} else if ( ent->health < client->ps.stats[STAT_MAX_HEALTH] * 2) {
+				ent->health +&#061; 5;
+				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
+					ent->health &#061; client->ps.stats[STAT_MAX_HEALTH] * 2;
+				}
+				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
+			}
+		} else {
+			// count down health when over max
+			if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
+				ent->health--;
+			}
+		}
+
+		// count down armor when over max
+		if ( client->ps.stats[STAT_ARMOR] > client->ps.stats[STAT_MAX_HEALTH] ) {
+			client->ps.stats[STAT_ARMOR]--;
+		}
+	}
+}
+</font></pre> <br>As you my have noticed from looking at it, it handles all the power ups and the decrementing of armor and health while it's over 100.  Let's add a simple bit that checks the player's weapon and adds ammo every second.  Inside of the while loop, at the bottom (before the last two } ) add these lines:<br>
+<pre><font size=1><font color=#00FFFF>  
+		// give ammo
+		client->ps.ammo[client->ps.weapon] +&#061; 2;
+		if (client->ps.ammo[client->ps.weapon] > 200)
+			client->ps.ammo[client->ps.weapon &#061; 200;
+</font> 
+</font></pre> <br>The end of the function should look like this:<br>
+<pre><font size=1> 
+		// count down armor when over max
+		if ( client->ps.stats[STAT_ARMOR] > client->ps.stats[STAT_MAX_HEALTH] ) {
+			client->ps.stats[STAT_ARMOR]--;
+		}
+
+		// give ammo
+		client->ps.ammo[client->ps.weapon] +&#061; 2;
+		if (client->ps.ammo[client->ps.weapon] > 200)
+			client->ps.ammo[client->ps.weapon &#061; 200;
+	}
+}
+</font></pre> <br>What the above code does is adds 2 units of the correct ammo to the client every second.  It then checks to make sure the ammo doesn't go over 200, and if it does, it resets it back to 200.  You can change the client->ps.weapon to any of the WP_WEAPON enumerated types (they're numbers if you didn't know).  1 is the WP_GUANTLET, going on up to WP_GRAPPLING_HOOK, which is 10 (neither of them use ammo though, so don't use them!).<br><br>As you can tell, it's a pretty easy process.  Other uses you ask?  Well if you create new power-ups or runes, then you can check and see if the player has the rune in the above function, and give them ammo or health, or any number of things.  You could also use it for realistic damage, and set a bleeding counter.  Maybe if you're shot in the chest your bleeding counter is set to 10, and for 10 seconds you lose 3 health each second.  You can decrement that bleeding counter in the ClientTimerActions function easily as well.<br><br>Be creative, and enjoy!  
+
+<!--- END TUTORIAL --->
+<br>
+<br><font color=#ff8000><b>-- Credits:</b></font>
+<br>&nbsp;&nbsp; Tutorial by <a href="mailto:tadao@stargate.net"><b>Willi</b></a>
+<br>&nbsp;&nbsp; Return to <a href="../tuts.shtml"><b>QS Tutorials</b></a>
+<br>
+<br><font color=#ff8000><b>-- Important:</b></font>
+<br>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please give us credit.
+<br>&nbsp;&nbsp; Our code is copyrighted, but we give permission to everyone to use it in any way they see fit, as long as we are recognized.
+</body>
+</html>

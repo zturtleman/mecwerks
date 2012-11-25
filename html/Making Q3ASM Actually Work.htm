@@ -1,0 +1,243 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?267046953"></SCRIPT><!--INSERTADTHISPAGE -->
+
+<HTML>
+
+<HEAD>
+	<META NAME="Description" CONTENT="Making Q3ASM Actually Work">
+	<META NAME="Author" CONTENT="The SARACEN">
+	<LINK REL="stylesheet" HREF="darkblood.css" TYPE="text/css">
+	<TITLE>Making Q3ASM Actually Work</TITLE>
+	<SCRIPT LANGUAGE=JAVASCRIPT> <!--
+//	if (top.location == self.location)
+//		top.location.href = "index.htm?tut_compiling.htm";
+	// -->
+	</SCRIPT>
+</HEAD>
+
+<BODY>
+
+<CENTER>
+<A HREF=http://www.stoppoliceware.org><IMG SRC=pics/button_stoppoliceware.gif BORDER=NO></A> 
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=IAB_FULL_BANNER?267046953"></SCRIPT><NOSCRIPT><A HREF="http://ads.gamespy.com/cgi-bin/adclick.exe/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=IAB_FULL_BANNER?267046953"><IMG SRC="http://ads.gamespy.com/cgi-bin/adserver.exe/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=IAB_FULL_BANNER?267046953"></A></NOSCRIPT><!--ACCIPITERADINSERT /SITE=PQ/GENRE=ACTION/AREA=HOSTED/AAMSZ=IAB_FULL_BANNER--> 
+<A HREF=http://www.stoppoliceware.org><IMG SRC=pics/button_stoppoliceware.gif BORDER=NO></A>
+</CENTER>
+
+	<DIV CLASS="sub3">&nbsp;</DIV>
+	<DIV CLASS="head3">
+		HOW THE SMEG DO I...?
+	</DIV>
+
+	<HR><BR>
+
+	<DIV CLASS="head2">
+		Making Q3ASM Actually Work
+	</DIV>
+
+	<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Many people have reported difficulty compiling <CODE CLASS="filename">*.qvm</CODE> files with the batch programs that come with the Quake III Arena & Quake III Team Arena <A TARGET="_blank" CLASS="download" HREF="http://www.fileplanet.com/index.asp?file=53726&download=1">Source Code</A> (<A TARGET="_blank" CLASS="download" HREF="http://members.ozemail.com.au/~thesaracen/downloads/Q3A_Q3TA_SRC_129f.exe">alternate link</A>). This tutorial attempts to help people set things up so that it becomes possible.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<B><I>NOTE:</I></B> I make no guarantee whatsoever that this will work - I&rsquo;m simply showing you how I got <B>my</B> copy of the code to run on my Windows 98 system. Some parts may not work for you, especially if you are using a non-Windows system (though I can&rsquo;t blame you if you are! ;-] ).
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<B><I>UPDATE 27/06/01:</I></B> I have just made a minor alteration to the batch files (in the download zip) to overcome problems experienced on Windows 2000 Professional. Many thanks to Nate Acheson for the heads-up!
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<B><I>UPDATE 13/12/01:</I></B> Finally compatible with version 1.29h of the source code (which, as far as I am aware, is the codebase used in the 1.3x Point Release). And thanks to the attentions of some kind soul signed <I>bk</I>, this tutorial is now only half as long as it once needed to be ;-)
+	</P>
+
+	<DIV CLASS="head1">&nbsp;&nbsp;
+		1 &bull; The Installation
+	</DIV>
+
+	<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		First things first: install the source code. The installer will want to put it in <CODE CLASS="dirname">C:\Quake3</CODE>; make sure that this is <I>exactly</I> where you put it!!! There are two little command-line programs that have to be put there, and if they aren&rsquo;t, nothing will work.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		You should now have new schtuffels as follows:
+	</P><PRE CLASS="dirname">
+		C:\
+		 +-quake3
+		    +-bin_nt
+		    |  +-<FONT CLASS="filename">A few files</FONT>
+		    |
+		    +-code
+		    |  +-cgame
+		    |  |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |  |
+		    |  +-game
+		    |  |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |  |
+		    |  +-q3_ui
+		    |  |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |  |
+		    |  +-ui
+		    |     +-<FONT CLASS="filename">A few other files</FONT>
+		    |
+		    +-ui
+		    |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |
+		    +-<FONT CLASS="filename">One or two files</FONT>
+	</PRE>
+
+	<DIV CLASS="head1">&nbsp;&nbsp;
+		2 &bull; Basic Messing Around
+	</DIV>
+
+	<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Because of the way things were set up in a previous release of the source code, there are a few changes you need to make to this new directory structure. Your first step is to rename the <CODE CLASS="dirname">code</CODE> directory - call it <CODE CLASS="dirname">source</CODE>, instead. Go inside this directory, and create a new directory called <CODE CLASS="dirname">lcc</CODE>. Finally, go inside <I>this</I> one and create a directory called <CODE CLASS="dirname">bin</CODE>.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Now, look in <CODE CLASS="dirname">C:\Quake3\bin_nt</CODE>. There are six <CODE CLASS="filename">*.exe</CODE> files: <U>move</U> all of them to <CODE CLASS="dirname">C:\Quake3\source\lcc\bin</CODE>.<!-- ; there are another two <CODE CLASS="filename">*.exe</CODE> files in here which <I>can&rsquo;t</I> be moved, but the ones from <CODE CLASS="dirname">bin_nt</CODE> are okay. --> Now that they&rsquo;ve been moved, delete <CODE CLASS="dirname">bin_nt</CODE>.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		The world should now look like this:
+	</P><PRE CLASS="dirname">
+		C:\
+		 +-quake3
+		    +-source
+		    |  +-cgame
+		    |  |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |  |
+		    |  +-game
+		    |  |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |  |
+		    |  +-lcc
+		    |  |  +-bin
+		    |  |    +-<FONT CLASS="filename">A few files</FONT>
+		    |  |
+		    |  +-q3_ui
+		    |  |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |  |
+		    |  +-ui
+		    |     +-<FONT CLASS="filename">A few other files</FONT>
+		    |
+		    +-ui
+		    |  +-<FONT CLASS="filename">A whole shitload of files</FONT>
+		    |
+		    +-<FONT CLASS="filename">One or two files</FONT>
+	</PRE><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Now, <U>copy</U> the files <CODE CLASS="dirname">C:\Quake3\source\game\</CODE><CODE CLASS="filename">g_syscalls.c</CODE> and <CODE CLASS="dirname">C:\Quake3\source\game\</CODE><CODE CLASS="filename">g_syscalls.asm</CODE> to <CODE CLASS="dirname">C:\Quake3\source</CODE>; <U>copy</U> the files <CODE CLASS="dirname">C:\Quake3\source\cgame\</CODE><CODE CLASS="filename">cg_syscalls.c</CODE> and <CODE CLASS="dirname">C:\Quake3\source\cgame\</CODE><CODE CLASS="filename">cg_syscalls.asm</CODE> to <CODE CLASS="dirname">C:\Quake3\source</CODE>; finally, <U>copy</U> the files <CODE CLASS="dirname">C:\Quake3\source\q3_ui\</CODE><CODE CLASS="filename">ui_syscalls.c</CODE> and <CODE CLASS="dirname">C:\Quake3\source\q3_ui\</CODE><CODE CLASS="filename">ui_syscalls.asm</CODE> to <CODE CLASS="dirname">C:\Quake3\source</CODE>. You should now have 3 files called <CODE CLASS="filename">*_syscalls.c</CODE> and 3 files called <CODE CLASS="filename">*_syscalls.asm</CODE> in the <CODE CLASS="dirname">C:\Quake3\source</CODE> directory: <U>never</U> alter or delete these files!!! In fact, check the <CODE CLASS="newcode">Read-Only</CODE> flag in the properties for all six of these files!
+	</P>
+
+	<DIV CLASS="head1">&nbsp;&nbsp;
+		3 &bull; Adding The Forgotten Files
+	</DIV>
+
+	<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		The biggest problem is that, when they were putting together the source download, they forgot to include two little files that do the actual compiling. The second-biggest problem (one that has plagued Q3 Coders since the beginning) is that the batch files that run the compilers don&rsquo;t work (except for some Win2k users). Download the <A CLASS="download" TARGET="_blank" HREF="http://dl.fileplanet.com/dl/dl.asp?hardhavoc/tut_files/tut_compiling_files.zip">required files</A> (<A CLASS="download" TARGET="_blank" HREF="http://members.ozemail.com.au/~thesaracen/downloads/tut_compiling_files.zip">alternate link</A>) for this tuturial and unzip them into the <CODE CLASS="dirname">C:\Quake3\source</CODE> directory. You will probably be asked if you want to overwrite some files - if so, answer <B>yes</B>, as these are replacements for the broken batch files.
+	</P>
+
+	<DIV CLASS="head1">&nbsp;&nbsp;
+		4 &bull; Cleaning (?) Up The Mess
+	</DIV> 
+
+	<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		id Software has included the source code to Team Arena as well as the standard Q3A code. This is fine, but remember that you cannot make a &#147;Team Arena Mod&#148;, since Team Arena is itself a mod. With this in mind, when you start a fresh codebase as outlined in the next section, there will be quite a few files missing, but this section will show you how to prove to the compiler that it doesn&rsquo;t actually need them. Each file that must be edited will be listed, followed by the changes you need to make.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<I>Note:</I> since the 1.29h codebase, you might need to un-check the <CODE CLASS="newcode">Read-Only</CODE> flag on pretty much all files before you can edit them. I&rsquo;ve included a line at the top of all the batch files that automatically does this for the entire directory, so just run <CODE CLASS="filename">game.bat</CODE>, <CODE CLASS="filename">cgame.bat</CODE> and <CODE CLASS="filename">q3_ui.bat</CODE> once each (you <B>will</B> get errors, but don&rsquo;t worry for now, we&rsquo;ll fix them!), before going further.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<I>Note:</I> a few of these modifications were actually suggested by <A HREF="http://hfarena.cjb.net">CyberKewl</A> - many thanks to him for finding them.
+	</P><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\cgame\</CODE><CODE CLASS="filename">cg_consolecmds.c</CODE>
+	</P><UL><P>
+		Right near the top, move the line that goes <CODE CLASS="oldcode">#include "../ui/ui_shared.h"</CODE> exactly one line down (ie below the line that says <CODE CLASS="oldcode">#ifdef MISSIONPACK</CODE>).
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\cgame\</CODE><CODE CLASS="filename">cg_servercmds.c</CODE>
+	</P><UL><P>
+		Right near the top, change the line that goes <CODE CLASS="oldcode">#include "../../ui/menudef.h"</CODE> to <CODE CLASS="oldcode">#include "../<FONT CLASS="newcode">q3_</FONT>ui/menudef.h"</CODE>.
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\game\</CODE><CODE CLASS="filename">ai_cmd.c</CODE><BR>
+		<CODE CLASS="dirname">&nbsp; C:\Quake3\source\game\</CODE><CODE CLASS="filename">ai_dmnet.c</CODE><BR>
+		<CODE CLASS="dirname">&nbsp; C:\Quake3\source\game\</CODE><CODE CLASS="filename">ai_dmq3.c</CODE><BR>
+		<CODE CLASS="dirname">&nbsp; C:\Quake3\source\game\</CODE><CODE CLASS="filename">ai_team.c</CODE><BR>
+		<CODE CLASS="dirname">&nbsp; C:\Quake3\source\game\</CODE><CODE CLASS="filename">ai_vcmd.c</CODE><BR>
+	</P><UL><P>
+		Near the top of each of these files, change the line <CODE CLASS="oldcode">#include "../../ui/menudef.h"</CODE> to read <CODE CLASS="oldcode">#include "../<FONT CLASS="newcode">q3_</FONT>ui/menudef.h"</CODE>.
+	</P><P>
+		In case you&rsquo;re wondering, this <CODE CLASS="filename">menudef.h</CODE> file is normally found in a directory that the standard Q3A code doesn&rsquo;t even bother with - when you start a fresh code base for a new mod, you won&rsquo;t have this directory. All I&rsquo;ve done is make a copy of this file and put it in a directory that the standard Q3A code <I>does</I> deal with - this is much easier than my original method, which you don&rsquo;t even want to hear about, believe me!
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\game\</CODE><CODE CLASS="filename">bg_public.h</CODE><BR>
+	</P><UL><P>
+		Search for the following text: &#147;<CODE CLASS="oldcode">(*trace)( trace_t *results</CODE>&#148; (between the quotes, not including the quotes). You&rsquo;ll find yourself inside the definition of the struct <CODE CLASS="oldcode">pmove_t</CODE>. Now the line of code you&rsquo;ve arrived at is a problem - both the <CODE CLASS="dirname">cgame</CODE> code and the <CODE CLASS="dirname">game</CODE> code reference this struct, but they define the respective functions with slightly different parameters. Specifically, <CODE CLASS="oldcode">vec3_t mins</CODE> and <CODE CLASS="oldcode">vec3_t maxs</CODE> are declared as <CODE CLASS="newcode">const</CODE> in the <CODE CLASS="dirname">game</CODE> code, but not in the <CODE CLASS="dirname">cgame</CODE> code. The simplest way around this that I can see is to use conditional compiling - that is, let the <CODE CLASS="dirname">cgame</CODE> code see things the way it wants to, and compile it with the <CODE CLASS="newcode">const</CODE> declarations for the <CODE CLASS="dirname">game</CODE> code, like so:
+	</P><PRE CLASS="oldcode">
+	// callbacks to test the world
+	// these will be different functions during game and cgame
+<FONT CLASS="newcode">#ifdef CGAME</FONT>
+	void (*trace)(trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask);
+<FONT CLASS="newcode">#else
+	void (*trace)(trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask);
+#endif</FONT>
+	int			(*pointcontents)( const vec3_t point, int passEntityNum );
+} pmove_t;
+	</PRE></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\game\</CODE><CODE CLASS="filename">g_cmds.c</CODE>
+	</P><UL><P>
+		Right near the top, change the line <CODE CLASS="oldcode">#include "../../ui/menudef.h"</CODE> to read <CODE CLASS="oldcode">#include "../<FONT CLASS="newcode">q3_</FONT>ui/menudef.h"</CODE>.
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\game\</CODE><CODE CLASS="filename">g_spawn.c</CODE>
+	</P><UL><P>
+		The compiler will complain of an &#147;empty declaration at line #174&#148; - the line in question being <CODE CLASS="oldcode">void SP_item_botroam( gentity_t *ent ) {}</CODE><CODE CLASS="newcode">;</CODE>. All you have to do is to delete the <CODE CLASS="newcode">;</CODE> at the end of that line. I have to admit that it took me a while to work that one out!<BR><I>/me slaps forhead.</I>
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\q3_ui\</CODE><CODE CLASS="filename">ui_local.h</CODE>
+	</P><UL><P>
+		Right near the top, change the line <CODE CLASS="oldcode">#include "../ui/ui_public.h"</CODE> to read <CODE CLASS="newcode">#include "ui_public.h"</CODE> - the note on the line above is still correct, we&rsquo;ve just moved the file.
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\q3_ui\</CODE><CODE CLASS="filename">ui_main.c</CODE>
+	</P><UL><P>
+		Search for the string <CODE CLASS="oldcode">UI_HASUNIQUECDKEY</CODE> (well...it's not really a string, it's a numerical value, but Notepad doesn't know that). Change the line <U>below</U> that from <CODE CLASS="oldcode">return qtrue;</CODE> to <CODE CLASS="newcode">return qfalse;</CODE> - you&rsquo;ll notice some comments in that little region that tell you to do much the same thing. (I should have added this in ages ago - thanks to Bob Palinckx for that heads-up!)
+	</P></UL><P>
+		<CODE CLASS="dirname">&bull; C:\Quake3\source\q3_ui\</CODE><CODE CLASS="filename">ui_startserver.c</CODE>
+	</P><UL><P>
+		At two places in the file, search for the string <CODE CLASS="oldcode">_friendlt</CODE> - just change both of these to read <CODE CLASS="newcode">_friendly</CODE>, instead - they&rsquo;re both typos that never got fixed.
+	</P></UL><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Finally, a quick word of warning - when you compile the <CODE CLASS="dirname">q3_ui</CODE> directory, you&rsquo;ll get a lot of big confusing warning messages - two in <CODE CLASS="filename">ui_ingame.c</CODE>, two in <CODE CLASS="filename">ui_atoms.c</CODE> and one in <CODE CLASS="filename">ui_menu.c</CODE>, all of them involving &#147;pointer to void&#148; and other esoteric expressions ;-) There is no way to fix them, so just take note of where you normally see them, so you&rsquo;ll know which ones to ignore later on (just don&rsquo;t fall into the trap of ignoring <I>all</I> error messages in the <CODE CLASS="dirname">q3_ui</CODE> directory!).
+	</P>
+
+	<DIV CLASS="head1">&nbsp;&nbsp;
+		5 &bull; Starting A Fresh Code Base
+	</DIV> 
+
+	<P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		The batch programs should now work. In order to begin a new mod with a fresh set of code, create a <CODE CLASS="dirname">source</CODE> directory inside your mod&rsquo;s subdirectory (for me it&rsquo;s <CODE CLASS="dirname">C:\Games\Quake III Arena\HardHavoc\source</CODE>). From now on, when I refer to the <CODE CLASS="dirname">source</CODE> directory, I mean the new one you just made under your mod&rsquo;s directory.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		From inside <CODE CLASS="dirname">C:\Quake3\source</CODE>, copy the <CODE CLASS="dirname">cgame</CODE>, <CODE CLASS="dirname">game</CODE> and <CODE CLASS="dirname">q3_ui</CODE> directories to your new <CODE CLASS="dirname">source</CODE> directory. Then copy the six files within <CODE CLASS="dirname">C:\Quake3\source</CODE> to the new <CODE CLASS="dirname">source</CODE> directory, too.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+		Now find the three <CODE CLASS="filename">*.q3asm</CODE> files in <CODE CLASS="dirname">source\cgame</CODE>, <CODE CLASS="dirname">source\game</CODE> and <CODE CLASS="dirname">source\q3_ui</CODE>. Edit each one of these so that the first line has the exact directory\filename that the outputted <CODE CLASS="filename">*.qvm</CODE> file for each should be, inside the quotes, eg for me the first line of <CODE CLASS="filename">cgame.q3asm</CODE> should read <CODE CLASS="newcode">-o "C:\Games\Quake III Arena\HardHavoc\vm\cgame"</CODE>, the first line of <CODE CLASS="filename">game.q3asm</CODE> should read <CODE CLASS="newcode">-o "C:\Games\Quake III Arena\HardHavoc\vm\qagame"</CODE> (pay attention, there!) and the first line of <CODE CLASS="filename">q3_ui.q3asm</CODE> should read <CODE CLASS="newcode">-o "C:\Games\Quake III Arena\HardHavoc\vm\ui"</CODE> (are you still paying attention?). For you, the directory structure will be different, but they will all be the same as mine from the <CODE CLASS="newcode">vm</CODE> bit onwards.
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		You&rsquo;re nearly there! Now, open <CODE CLASS="dirname">source\game\</CODE><CODE CLASS="filename">g_local.h</CODE>. You see that line that says <CODE CLASS="oldcode">#define GAMEVERSION "baseq3"</CODE>? Change the <CODE CLASS="oldcode">baseq3</CODE> to something relevant your mod&rsquo;s subdirectory (mine is <CODE CLASS="oldcode">#define GAMEVERSION "<FONT CLASS="newcode">HardHavoc</FONT>"</CODE>). Now open <CODE CLASS="dirname">source\game\</CODE><CODE CLASS="filename">bg_public.h</CODE> and do the same sort of thing for <CODE CLASS="oldcode">#define GAME_VERSION "baseq3-1"</CODE> (ie I changed mine to <CODE CLASS="oldcode">#define GAME_VERSION "<FONT CLASS="newcode">HardHavoc-1</FONT>"</CODE>).
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		That&rsquo;s the end! To make sure everything is working, go to line 649 of <CODE CLASS="dirname">source\game\</CODE><CODE CLASS="filename">g_missile.c</CODE> and change the <CODE CLASS="oldcode">900</CODE> to a <CODE CLASS="newcode">300</CODE>. Then recompile all three <CODE CLASS="filename">*.qvm</CODE> files by running <CODE CLASS="dirname">source\cgame\</CODE><CODE CLASS="filename">cgame.bat</CODE>, <CODE CLASS="dirname">source\game\</CODE><CODE CLASS="filename">game.bat</CODE> and <CODE CLASS="dirname">source\q3_ui\</CODE><CODE CLASS="filename">q3_ui.bat</CODE>. When you run the mod, fire a few rockets - if you can run after them and catch up with them, everything has gone well! (change it back again unless you want to keep it!)
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Just a quick note to those who are unfamiliar with Quake III programming - whenever you make a modification to one of the source code files, you usually only need to run the <CODE CLASS="filename">*.bat</CODE> file in that directory (ie recompile the <CODE CLASS="filename">*.qvm</CODE> file that that source file is a part of). However, if you make any modifications to any of the <CODE CLASS="dirname">source\game\</CODE><CODE CLASS="filename">bg_*.*</CODE> files, you need to recompile <B>all three</B> <CODE CLASS="filename">*.qvm</CODE>s. And it&rsquo;s also worth mentioning that you should <B>NEVER</B> edit either of the <CODE CLASS="dirname">source\game\</CODE><CODE CLASS="filename">q_shared.*</CODE> files - they are both part of the source code to the <CODE CLASS="filename">quake3.exe</CODE> file (ie the <B>engine</B>!) and so any changes made to those files would require recompiling <CODE CLASS="filename">quake3.exe</CODE> - which nobody but <A HREF="http://www.idsoftware.com">id Software</A> can do!!!
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		If there are any problems with this tutorial, <A HREF=mailto:thesaracen@ozemail.com.au>eMail me</A> and tell me exactly what&rsquo;s not working. Good luck, and have fun!
+	</P><P>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<A HREF=mailto:thesaracen@ozemail.com.au><IMG SRC=http://members.ozemail.com.au/~thesaracen/avatars/thesaracen_small.jpg BORDER=0 ALT="The~SARACEN"></A>
+	</P>
+
+	<P CLASS="copyright">
+		Quake III Arena and the QIIIA logo are Copyright &copy; <A CLASS="copyright" HREF="http://www.idsoftware.com">id Software</A>.
+	<HR></P>
+
+</BODY>
+
+</HTML>

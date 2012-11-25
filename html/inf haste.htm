@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0063)http://www.planetquake.com/code3arena/tutorials/tutorial4.shtml -->
+<HTML><HEAD><TITLE>Code3Arena</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY background="inf haste_files/bg.gif" link=#c05f00 text=white vLink=#d16545><!-- BEGIN BANNER AD TABLE -->
+<TABLE align=center background="inf haste_files/bg.gif" border=0 cellPadding=5 
+cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle vAlign=top width="100%">
+      <CENTER><A 
+      href="http://adclick.gamespy.com/cgi-bin/adclick.exe/CID=00001a7b346ae9d200000000/site=PQ/AAMSZ=IAB_FULL_BANNER/AREA=ARTICLES" 
+      target=_top><IMG alt=GameDAILY.com border=0 
+      src="inf haste_files/GameDAILYbanner_Jan00.gif"></A></CENTER></TD></TR></TBODY></TABLE><!-- END BANNER AD TABLE --><BR><!-- BEGIN LOGO IMAGE TABLE -->
+<TABLE align=center bgColor=#000000 border=1 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle><IMG alt=Code3Arena border=0 height=150 
+      src="inf haste_files/logo.gif" width=550> </TD></TR></TBODY></TABLE><!-- END LOGO IMAGE TABLE -->
+<P><!-- BEGIN MAIN TABLE HERE-->
+<TABLE align=center bgColor=#4b0202 border=0 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR><!-- BEGIN LEFT NAVBAR MENU *** REMOVED *** --><!-- BEGIN DIVIDER *** REMOVED *** --><!-- MAIN TEXT AREA -->
+    <TD bgColor=#000000 vAlign=top>
+      <TABLE bgColor=#000000 border=0 cellPadding=15 cellSpacing=10 width="100%" 
+      valign="top">
+        <TBODY>
+        <TR>
+          <TD vAlign=top><FONT color=#eeeeee face="Verdana, Arial" size=2>
+            <CENTER><B><FONT color=#c05f00 size=5>TUTORIAL 4 - Permanent Haste 
+            </FONT></B><BR>by <B><A 
+            href="mailto:sumfuka@planetquake.com">SumFuka</A></B></CENTER>
+            <P>Ok, from now on we'll be learning more and more about the quake 
+            world. However you'll need some basic knowledge about coding in C. 
+            If you're a newbie C programmer, why not grab yourself a book on C 
+            programming ? Or even better, have a surf around - there are some 
+            great online resources available.
+            <P>As luck would have it, there are some C-coding tutorials at our 
+            'predecessor' site for quake2 coding (thanks, Puke !). Cruise by <A 
+            href="http://www.planetquake.com/qdevels">QDeveLS</A> and have a 
+            read for yourself. There are heaps of tutorials for quake2 coding 
+            there also. Whilst you can't follow those tutorials for quake3 mod 
+            making, you might get some neat ideas by browsing through them.
+            <P>Time to start coding again, "Innit".
+            <P><FONT color=#e07f44>
+            <H4>1. HOW DID THEY DO THAT ?? </H4></FONT>(As always, I assume 
+            you're ready to rock in MSVC and you are working in the quake3\mymod 
+            directory.)
+            <P>Now, let's start with some Sherlock Holmes work... let's find out 
+            how a particular feature is implemented in the code base. Umm... 
+            erm... how about the Haste rune ? Ok. Let's do a "Find in Files" for 
+            'Haste' (on the toolbar there is a little yellow folder icon with 
+            binoculars - use this if you like). The bottom pane of the screen 
+            will search thru all the source and header files for lines 
+            containing 'haste'. (you can enlarge this pane by dragging the top 
+            border upwards). <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>Searching for 'Haste'...
+D:\q3\source\game\ai_chat.c(349):		bs-&gt;inventory[INVENTORY_HASTE] ||
+D:\q3\source\game\ai_dmq3.c(564):	bs-&gt;inventory[INVENTORY_HASTE] =
+bs-&gt;cur_ps.powerups[PW_HASTE] != 0;
+D:\q3\source\game\bg_misc.c(536):/*QUAKED item_haste (.3 .3 1) (-16 -16 -16) (16 16 16)
+suspended
+D:\q3\source\game\bg_misc.c(539):		"item_haste",
+D:\q3\source\game\bg_misc.c(540):		"sound/items/haste.wav",
+D:\q3\source\game\bg_misc.c(541):        { "models/powerups/instant/haste.md3", 
+D:\q3\source\game\bg_misc.c(542):		"models/powerups/instant/haste_ring.md3", 
+D:\q3\source\game\bg_misc.c(544):/* icon */		"icons/haste",
+D:\q3\source\game\bg_misc.c(548):		PW_HASTE,
+D:\q3\source\game\bg_pmove.c(1568):	if ( pm-&gt;ps-&gt;powerups[PW_HASTE] ) {
+D:\q3\source\game\bg_public.h(214):	PW_HASTE,
+D:\q3\source\game\g_active.c(604):	if ( client-&gt;ps.powerups[PW_HASTE] ) {
+D:\q3\source\game\inv.h(34):#define INVENTORY_HASTE				29
+D:\q3\source\game\inv.h(79):#define MODELINDEX_HASTE			30
+14 occurrence(s) have been found.
+</PRE></FONT>Ok, there is some interesting stuff in here. The bit 
+            that says <B>"item_haste"</B> probably defines the attributes for 
+            the Haste icon. In fact, the 
+            <B>"models/powerups/instant/haste.md3"</B> defines which model 
+            represents the Haste icon. Let's keep looking down... there are two 
+            lines that say <B>if ( blah blah [PW_HASTE])</B>. That's 
+            interesting, because the if statement is probably saying "if the 
+            player has the Haste rune then do something, else if not, do 
+            something else". Double click on this line (in the 'Find in Files 1' 
+            pane) : <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE> D:\q3\source\game\g_active.c(604):	if ( client-&gt;ps.powerups[PW_HASTE] ) {
+</PRE></FONT>Bang, g_active.c should open in your editor window and 
+            line 604 will have a little marker next to it. You should see this : 
+            <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	if ( client-&gt;ps.powerups[PW_HASTE] ) {
+		client-&gt;ps.speed *= 1.3;
+	}
+</PRE></FONT>Some C programming knowledge is required here : An if 
+            statement is always in the form "if ( this_is_true) { 
+            then_do_this_stuff; }". The "*=" operator means to multiply the 
+            thing on the left by the thing on the right. In other words, 
+            "multiply client-&gt;ps.speed by 1.3".
+            <P>If we have a look up and down, we can see that this code segment 
+            is somewhere in the middle of the ClientThink_real function. We've 
+            just discovered the piece of code that makes you move faster when 
+            you have the haste rune! Additionally, we can see that you move 
+            exactly 30% faster than normal (they didn't tell us that in the 
+            manual). "Elementary, my dear Watson."
+            <P><FONT color=#e07f44>
+            <H4>2. LET'S MAKE A CHANGE </H4></FONT>Ok, let's give ourselves 
+            permanent haste. Modify the code at line 604 so that it looks like 
+            this : <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	if ( <FONT color=#ff6060>qtrue</FONT> ) {
+		client-&gt;ps.speed *= 1.3;
+	}
+</PRE></FONT>The bit that speeds us up (<B>client-&gt;ps.speed *= 
+            1.3;</B>) is no longer executed 'only when the player has the Haste 
+            rune'. Because we have set the if condition to always be true (using 
+            the constant qtrue), the speedup is *always* executed, regardless of 
+            Haste runes. In other words : every player has permanent Haste. 
+            Compile it and have a bash with the bots !
+            <P>Hint: don't play this mod for too long... you might get a little 
+            dizzy.
+            <P>
+            <P></P></FONT></TD></TR></TBODY></TABLE><!-- END MAIN TABLE --></TD></TR></TBODY></TABLE>
+<P>
+<TABLE bgColor=#000000 border=0 cellPadding=10 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle bgColor=#000000>[ <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial3.shtml"><B>&lt;&lt; 
+      Prev</B></A> ] [ <A 
+      href="http://www.planetquake.com/code3arena/index.shtml"><B>Home</B></A> ] 
+      [ <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial5.shtml"><B>Next 
+      &gt;&gt;</B></A> ] <BR><BR></TD></TR></TBODY></TABLE>
+<P></P></BODY></HTML>

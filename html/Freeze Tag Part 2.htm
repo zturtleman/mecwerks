@@ -1,0 +1,261 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0055)http://quakestyle.telefragged.com/quake3/tutorial23.htm -->
+<HTML><HEAD><TITLE>Quake Style - Quake 3 Tutorials - Freeze Tag - Freeze Tag Part 2</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	FONT-FAMILY: verdana
+}
+TABLE {
+	FONT-FAMILY: verdana
+}
+TR {
+	FONT-FAMILY: verdana
+}
+TD {
+	FONT-FAMILY: verdana
+}
+INPUT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+TEXTAREA {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+SELECT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+OPTION {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+PRE {
+	FONT-FAMILY: verdana; FONT-WEIGHT: bold
+}
+A {
+	COLOR: #00ff00
+}
+A:hover {
+	COLOR: white; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2919.6307" name=GENERATOR></HEAD>
+<BODY bgColor=black text=#ffff80><FONT size=1>
+<DIV align=right>
+<TABLE border=0 cellSpacing=0 cellborder="0">
+  <TBODY>
+  <TR>
+    <TD align=middle><FONT size=1><B><FONT color=white>Quake Style - Quake 3 
+      Tutorials</FONT><BR><FONT color=#bbcc77>Freeze Tag </FONT><FONT 
+      color=#ff8000>- Freeze Tag Part 2</FONT><BR>Making noclip work for dead 
+      players. 
+</B></FONT></TD></TR></TBODY></TABLE></DIV><BR><!-- START TUTORIAL -->Making 
+Noclip Work for Dead <BR><BR>In order to get the player who's dead and 
+noclipping around working I had to change a few things in the server AND client 
+code. This means if people don't have the client they will move around funny and 
+will thing the mod is not right and complain. Actually that's an unfortunate 
+side effect. To figure out how to get it so you can fly around, I searched the 
+code for stuff like PM_DEAD, TEAM_SPECTATOR, and STAT_HEALTH. We ended up with 
+bg_pmove.c PM_UpdateViewAngles <BR><PRE><FONT size=1>
+	if ( ps-&gt;pm_type == PM_INTERMISSION ) {
+		return;		// no view changes at all
+	}
+<FONT color=#00ffff>
+//freeze
+	if ( ps-&gt;pm_type == PM_NOCLIP ) {
+	} else {
+//freeze
+</FONT>
+	if ( ps-&gt;pm_type != PM_SPECTATOR &amp;&amp; ps-&gt;stats[STAT_HEALTH] &lt;= 0 ) {
+		return;		// no view changes at all
+	}
+<FONT color=#00ffff>
+//freeze
+	}
+//freeze
+</FONT>
+	// circularly clamp the angles with deltas
+	for (i=0 ; i&lt;3 ; i++) {
+</FONT></PRE><BR>cg_view.c CG_DrawActiveFrame <BR><PRE><FONT size=1>
+	cg.clientFrame++;
+
+	// update cg.predictedPlayerState
+	CG_PredictPlayerState();
+<FONT color=#00ffff>
+//freeze
+	if ( cg.snap-&gt;ps.pm_type == PM_NOCLIP ) {
+		cg.renderingThirdPerson = qfalse;
+	} else {
+//freeze
+</FONT>
+	// decide on third person view
+	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap-&gt;ps.stats[STAT_HEALTH] &lt;= 0);
+<FONT color=#00ffff>
+//freeze
+	}
+//freeze
+</FONT>
+	// build cg.refdef
+	inwater = CG_CalcViewValues();
+</FONT></PRE><BR>cg_view.c CG_OffsetFirstPersonView <BR><PRE><FONT size=1>
+	origin = cg.refdef.vieworg;
+	angles = cg.refdefViewAngles;
+
+<FONT color=#00ffff>
+//freeze
+	if ( cg.snap-&gt;ps.pm_type == PM_NOCLIP ) {
+	} else {
+//freeze
+</FONT>
+	// if dead, fix the angle and don't add any kick
+	if ( cg.snap-&gt;ps.stats[STAT_HEALTH] &lt;= 0 ) {
+		angles[ROLL] = 40;
+		angles[PITCH] = -15;
+		angles[YAW] = cg.snap-&gt;ps.stats[STAT_DEAD_YAW];
+		origin[2] += cg.predictedPlayerState.viewheight;
+		return;
+	}
+<FONT color=#00ffff>
+//freeze
+	}
+//freeze
+</FONT>
+
+	// add angles based on weapon kick
+</FONT></PRE><BR>The first change let's them look around, the second makes it so 
+they aren't in a third person view, and the third makes sure their view isn't 
+stuck at one angle. Trust me, it took a LONG time to find this exact code and 
+get noclip to work! I first tried making the player a spectator but it started 
+turning into way too many code changes. Let's make the noclip player move like a 
+spectator though! In bg_pmove.c PmoveSingle we have <BR><PRE><FONT size=1>
+	if ( pm-&gt;ps-&gt;pm_type &gt;= PM_DEAD ) {
+		pm-&gt;cmd.forwardmove = 0;
+		pm-&gt;cmd.rightmove = 0;
+		pm-&gt;cmd.upmove = 0;
+	}
+
+	if ( pm-&gt;ps-&gt;pm_type == PM_SPECTATOR ) {
+		PM_CheckDuck ();
+		PM_FlyMove ();
+		PM_DropTimers ();
+		return;
+	}
+
+	if ( pm-&gt;ps-&gt;pm_type == PM_NOCLIP ) {
+<FONT color=#00ffff>
+/*freeze
+		PM_NoclipMove ();
+freeze*/
+</FONT>
+		if ( pm-&gt;ps-&gt;pm_time ) {
+			PM_DeadMove();
+		} else {
+			PM_CheckDuck();
+			PM_FlyMove();
+		}
+		pm-&gt;ps-&gt;weapon = WP_NONE;
+<FONT color=#00ffff>
+//freeze
+		PM_DropTimers ();
+		return;
+	}
+
+	if (pm-&gt;ps-&gt;pm_type == PM_FREEZE) {
+		return;		// no movement at all
+	}
+</FONT>
+</FONT></PRE><BR>We have the player act like a dead guy (no movement) when 
+pm_time is still there (this decrements, unlike normal level.time stuff which 
+check level.time as it increments). This keeps them still for that 4 seconds we 
+talked about (set in player_freeze). Otherwise let's let them do exactly as a 
+spectator would. Remove any weapons they have also. This killed a bug I had 
+where players could float around and still bunch people. In PM_Friction <BR><PRE><FONT size=1>
+	// apply flying friction
+	if ( pm-&gt;ps-&gt;powerups[PW_FLIGHT] || pm-&gt;ps-&gt;pm_type == PM_SPECTATOR ) {
+		drop += speed*pm_flightfriction*pml.frametime;
+	}
+<FONT color=#00ffff>
+//freeze
+	if ( pm-&gt;ps-&gt;pm_type == PM_NOCLIP ) {
+		drop += speed * pm_flightfriction * pml.frametime;
+	}
+//freeze
+</FONT>
+	// scale the velocity
+	newspeed = speed - drop;
+</FONT></PRE><BR>Again we make the noclip experience like that of spectator, 
+otherwise you go sliding off with nothing to slow you down. Now make stuff look 
+right for the client. In cg_draw.c CG_Draw2D <BR><PRE><FONT size=1>
+	if ( cg.snap-&gt;ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+		CG_DrawSpectator();
+		CG_DrawCrosshair();
+		CG_DrawCrosshairNames();
+	} else {
+		// don't draw any status if dead
+		if ( cg.snap-&gt;ps.stats[STAT_HEALTH] &gt; 0 ) {
+			CG_DrawStatusBar();
+			CG_DrawAmmoWarning();
+			CG_DrawCrosshair();
+			CG_DrawCrosshairNames();
+			CG_DrawWeaponSelect();
+			CG_DrawHoldableItem();
+			CG_DrawReward();
+		}
+		if ( cgs.gametype &gt;= GT_TEAM ) {
+			CG_DrawTeamInfo();
+		}
+<FONT color=#00ffff>
+//freeze
+		if ( cg.snap-&gt;ps.pm_type == PM_NOCLIP ) {
+			CG_DrawSpectator();
+			CG_DrawCrosshairNames();
+		}
+//freeze
+</FONT>
+	}
+</FONT></PRE><BR>Again we copy what spectator was doing. In CG_DrawSpectator 
+<BR><PRE><FONT size=1>
+<FONT color=#00ffff>
+//freeze
+	if ( cg.snap-&gt;ps.pm_type == PM_NOCLIP ) {
+		if ( cg.predictedPlayerState.powerups[ PW_BALL ] ) {
+			CG_DrawBigString( 320 - 8 * 8, 24, "freezing", 1.0F );
+		}
+
+		return;
+	}
+//freeze
+</FONT>
+	CG_DrawBigString(320 - 9 * 8, 440, "SPECTATOR", 1.0F);
+	if ( cgs.gametype == GT_TOURNAMENT ) {
+		CG_DrawBigString(320 - 15 * 8, 460, "waiting to play", 1.0F);
+</FONT></PRE><BR>Show "freezing" text if this player's noclipping and frozen. 
+Note we check for that important PW_BALL setting! Now in 
+CG_ScanForCrosshairEntity, if we're looking at a frozen body, because the body's 
+SOLID, we can show who it belongs to. <BR><PRE><FONT size=1> 
+	CG_Trace( &amp;trace, start, vec3_origin, vec3_origin, end, 
+		cg.snap-&gt;ps.clientNum, CONTENTS_SOLID|CONTENTS_BODY );
+	if ( trace.entityNum &gt;= MAX_CLIENTS ) {
+<FONT color=#00ffff>
+//freeze
+		entityState_t	*es;
+
+		es = &amp;cg_entities[ trace.entityNum ].currentState;
+// If this body's frozen and the player who "made" this body is frozen then show that player's name
+		if ( es-&gt;powerups &amp; ( 1 &lt;&lt; PW_BALL ) &amp;&amp; cg_entities[ es-&gt;otherEntityNum ].currentState.powerups &amp; ( 1 &lt;&lt; PW_BALL ) ) {
+			cg.crosshairClientNum = es-&gt;otherEntityNum;
+			cg.crosshairClientTime = cg.time;
+		}
+//freeze
+</FONT>
+		return;
+	}
+</FONT></PRE><BR>There's still the problem of not being able to move through 
+doors or transports like the spectator can do. I haven't worked this out yet. 
+<BR><BR><!--- END TUTORIAL ---><BR><BR><FONT color=#ff8000><B>-- 
+Credits:</B></FONT> <BR>&nbsp;&nbsp; Tutorial by <A 
+href="mailto:dbircsak@earthlink.net"><B>Doolittle</B></A> <BR>&nbsp;&nbsp; 
+Return to <A href="http://quakestyle.telefragged.com/tuts.shtml"><B>QS 
+Tutorials</B></A> <BR><BR><FONT color=#ff8000><B>-- Important:</B></FONT> 
+<BR>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please 
+give us credit. <BR>&nbsp;&nbsp; Our code is copyrighted, but we give permission 
+to everyone to use it in any way they see fit, as long as we are recognized. 
+</FONT></BODY></HTML>

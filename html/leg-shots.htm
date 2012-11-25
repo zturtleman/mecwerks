@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0064)http://www.planetquake.com/code3arena/tutorials/tutorial15.shtml -->
+<HTML><HEAD><TITLE>Code3Arena</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY background=leg-shots_files/bg.gif link=#c05f00 text=white vLink=#d16545><!-- BEGIN BANNER AD TABLE -->
+<TABLE align=center background=leg-shots_files/bg.gif border=0 cellPadding=5 
+cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle bgColor=#000000 height=60 vAlign=top width=468>
+      <CENTER>
+      <SCRIPT language=JavaScript> 
+now = new Date(); 
+random = now.getTime(); 
+
+  document.write('<a href="http://ads.gamespy.com/cgi-bin/adclick.exe/CID=00001ab5346ae9d200000000/site=PQ/AAMSZ=IAB_FULL_BANNER/AREA=ARTICLESMISC=' + random + ';">'); 
+  document.write('<img src="http://adforce.imgis.com/?adserv|127|125078|1|1|MISC=' + random + ';" height=60 width=468 BORDER=0></a>'); 
+
+</SCRIPT>
+      </CENTER></TD></TR></TBODY></TABLE><!-- END BANNER AD TABLE --><BR><!-- BEGIN LOGO IMAGE TABLE -->
+<TABLE align=center bgColor=#000000 border=1 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle><IMG alt=Code3Arena border=0 height=137 
+      src="leg-shots_files/logo.gif" width=500> </TD></TR></TBODY></TABLE><!-- END LOGO IMAGE TABLE -->
+<P><!-- BEGIN TOP HEIRARCHY -->
+<TABLE bgColor=#000000 border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD><IMG src="leg-shots_files/ouricon.gif"></TD>
+    <TD bgColor=#000000 width="100%"><FONT color=#eeeeee face="Verdana, Arial" 
+      size=2><B><A href="http://www.planetquake.com/">PlanetQuake</A> | <A 
+      href="http://www.planetquake.com/code3arena">Code3Arena</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials">Tutorials</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial14.shtml">&lt;&lt; 
+      Prev</A> | Tutorial15 | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial16.shtml">Next 
+      &gt;&gt;</A> </B></FONT></TD></TR></TBODY></TABLE>
+<P><!-- END TOP HEIRARCHY --><!-- BEGIN MAIN TABLE HERE-->
+<TABLE align=center bgColor=#4b0202 border=0 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR><!-- BEGIN LEFT NAVBAR MENU *** REMOVED *** --><!-- BEGIN DIVIDER *** REMOVED *** --><!-- MAIN TEXT AREA -->
+    <TD bgColor=#000000 vAlign=top>
+      <TABLE bgColor=#000000 border=0 cellPadding=15 cellSpacing=10 width="100%" 
+      valign="top">
+        <TBODY>
+        <TR>
+          <TD vAlign=top><FONT color=#eeeeee face="Verdana, Arial" size=2>
+            <CENTER><B><FONT color=#c05f00 size=5>TUTORIAL 15 - Leg Shots 
+            </FONT></B><BR>by <B><A 
+            href="mailto:goin0004@itlabs.umn.edu">McBain</A></B></CENTER>
+            <P><FONT color=#e07f44>
+            <H4>1. Pre-requisite Tutorial </H4></FONT>[Ed's note: You need to 
+            implement a locational damage tutoroial first. We have used <A 
+            href="http://www.planetquake.com/code3arena/tutorials/tutorial14.shtml">Tutorial 
+            14</A> by Calrathan or you can use your own locational damage code - 
+            just hook it in like below. We've also got foot shots in our 
+            locational damage, which also slow you down. Thanks to McBain for 
+            letting us post his code - Sum].
+            <P>I thought it would be cool to make leg damage slow the player 
+            down. When the player picks up health it returns their speed. You 
+            can easily make this so that any damage slows the player.
+            <P><FONT color=#e07f44>
+            <H4>2. Reduce Speed When Hit </H4></FONT>First go to g_combat.c in 
+            the game project.
+            <P>If you have done the above tutorial the code should look like 
+            this:
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>               // Check the location ignoring the rotation info
+                    switch ( targ-&gt;client-&gt;lasthurt_location &amp; 
+                                    ~(LOCATION_BACK | LOCATION_LEFT | LOCATION_RIGHT | LOCATION_FRONT) )
+                    {
+                    case LOCATION_HEAD:
+                            take *= 1.8;
+                            break;
+                    case LOCATION_FACE:
+                            if (targ-&gt;client-&gt;lasthurt_location &amp; LOCATION_FRONT)
+                                    take *= 5.0; // Faceshots REALLY suck
+                            else
+                                    take *= 1.8;
+                            break;
+                    case LOCATION_SHOULDER:
+                            if (targ-&gt;client-&gt;lasthurt_location &amp; (LOCATION_FRONT | LOCATION_BACK))
+                                    take *= 1.4; // Throat or nape of neck
+                            else
+                                    take *= 1.1; // Shoulders
+                            break;
+                    case LOCATION_CHEST:
+                            if (targ-&gt;client-&gt;lasthurt_location &amp; (LOCATION_FRONT | LOCATION_BACK))
+                                    take *= 1.3; // Belly or back
+                            else
+                                    take *= 0.8; // Arms
+                            break;
+                    case LOCATION_STOMACH:
+                            take *= 1.2;
+                            break;
+                    case LOCATION_GROIN:
+                            if (targ-&gt;client-&gt;lasthurt_location &amp; LOCATION_FRONT)
+                                    take *= 1.3; // Groin shot
+                            break;
+                    case LOCATION_LEG:
+                            take *= 0.7;
+                            break;
+                    case LOCATION_FOOT:
+                            take *= 0.5;
+                            break;
+
+                    }
+</PRE></FONT>The locational damage checks for leg hits on the lower 
+            part of the body (the actual percentage varies when the player 
+            crouches and does 70% damage to the legs and 50% damage to the foot. 
+            You can change these however you want.
+            <P>Now to make the leg damage slow the player down add this line 
+            just under <B>take *= 0.7;</B> and <B>take *= 0.7;</B> . <FONT 
+            color=#ffffcc face="Verdana, Arial" size=3><PRE>                    case LOCATION_GROIN:
+                            if (targ-&gt;client-&gt;lasthurt_location &amp; LOCATION_FRONT)
+                                    take *= 1.3; // Groin shot
+                            break;
+                    case LOCATION_LEG:
+                            take *= 0.7;
+<FONT color=#ff6060>                            targ-&gt;client-&gt;ps.speed -= take; // slowdown if shot in legs, McBain</FONT>
+                            break;
+                    case LOCATION_FOOT:
+                            take *= 0.5;
+<FONT color=#ff6060>                            targ-&gt;client-&gt;ps.speed -= take; // slowdown if shot in foot, McBain</FONT>
+                            break;
+	}
+</PRE></FONT>This is pretty self explanatory. targ is the damaged 
+            player and the speed is decreased by the amount of damage taken. You 
+            could scale that however you want.
+            <P><FONT color=#e07f44>
+            <H4>3. Reset Speed At Respawn </H4></FONT>Now open g_client.c and go 
+            to the ClientSpawn function. Change the code as follows: <FONT 
+            color=#ffffcc face="Verdana, Arial" size=3><PRE>	// health will count down towards max_health
+	ent-&gt;health = client-&gt;ps.stats[STAT_HEALTH] = client-&gt;ps.stats[STAT_MAX_HEALTH] * 1.25;
+
+<FONT color=#ff6060>	// return to normal speed, McBain
+	client-&gt;ps.speed = g_speed.value;</FONT>
+
+	G_SetOrigin( ent, spawn_origin );
+	VectorCopy( spawn_origin, client-&gt;ps.origin );
+</PRE></FONT>This just means that the players speed will return to 
+            the server's normal value when the player spawns (after a death 
+            obviously).
+            <P><FONT color=#e07f44>
+            <H4>4. Regain Speed On Health Pickup </H4></FONT>Now go to g_items.c 
+            go to the Pickup_Health function and add my code here: <FONT 
+            color=#ffffcc face="Verdana, Arial" size=3><PRE>	if ( ent-&gt;count ) {
+		quantity = ent-&gt;count;
+	} else {
+		quantity = ent-&gt;item-&gt;quantity;
+	}
+
+	other-&gt;health += quantity;
+
+<FONT color=#ff6060>	// return speed upon health pickup or more than maximum health, McBain
+	other-&gt;client-&gt;ps.speed += quantity;
+	if (other-&gt;client-&gt;ps.speed &gt; g_speed.value) {
+		other-&gt;client-&gt;ps.speed = g_speed.value;
+	}
+
+	if (other-&gt;health &gt;= other-&gt;client-&gt;ps.stats[STAT_MAX_HEALTH]) {
+		other-&gt;client-&gt;ps.speed = g_speed.value;
+	}
+	// end McBain</FONT>
+
+	if (other-&gt;health &gt; max ) {
+		other-&gt;health = max;
+	}
+</PRE></FONT>This just makes it so that if the player picks up 
+            health they get that much speed back. If the player picks up health 
+            and gets to 100 or more health they go to maximum speed.
+            <P>The only thing this code doesn't do is make it so if you picked 
+            up a megahealth and got leg damage, you may have more than 100 
+            health and run slower, but this is easily fixed. I will leave that 
+            to the reader (I hate when people say that). Besides all you would 
+            have to do is pick up a health and you would be back to normal 
+speed.
+            <P><FONT color=#e07f44>
+            <H4>5. One More Fix </H4></FONT>One last thing. The Quake code 
+            updates player speed during every "player think" mostly to check for 
+            the haste power-up. You need to make it so it doesn't change the 
+            player speed since we made want it to get slower. Open up 
+            g_active.c, go to the ClientThink_real function and comment this out 
+            like below: <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	client-&gt;ps.gravity = g_gravity.value;
+
+	// set speed
+<FONT color=#ff6060>	// out by McBain for speed damage
+//	client-&gt;ps.speed = g_speed.value;</FONT>
+	
+	if ( client-&gt;ps.powerups[PW_HASTE] ) {
+		client-&gt;ps.speed *= 1.3;
+	}
+</PRE></FONT>Notice haste still makes you 1.3 times faster.
+            <P>Props to wchar_t* for the location damage tutorial. 
+            <P>
+            <P></P></FONT></TD></TR></TBODY></TABLE><!-- END MAIN TABLE --></TD></TR></TBODY></TABLE>
+<P><!-- BEGIN BOTTOM HEIRARCHY -->
+<TABLE bgColor=#000000 border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD><IMG src="leg-shots_files/ouricon.gif"></TD>
+    <TD bgColor=#000000 width="100%"><FONT color=#eeeeee face="Verdana, Arial" 
+      size=2><B><A href="http://www.planetquake.com/">PlanetQuake</A> | <A 
+      href="http://www.planetquake.com/code3arena">Code3Arena</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials">Tutorials</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial14.shtml">&lt;&lt; 
+      Prev</A> | Tutorial15 | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial16.shtml">Next 
+      &gt;&gt;</A> </B></FONT></TD></TR></TBODY></TABLE>
+<P><!-- END BOTTOM HEIRARCHY --></P></BODY></HTML>

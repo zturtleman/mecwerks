@@ -1,0 +1,130 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304059046"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0072)http://www.inolen.com/index.phtml?file=./programming/fireworksaddon.html -->
+<HTML><HEAD><TITLE>www.inolen.com</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE>A:link {
+	COLOR: #336699; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #0000a0; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: black; TEXT-DECORATION: underline
+}
+A:hover {
+	TEXT-DECORATION: overline
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY bgColor=#eeeeee leftMargin=0 text=#000000 topMargin=0>
+<DIV align=center>
+<TABLE align=center border=0 cellPadding=0 cellSpacing=0 hspace="0" 
+  vspace="0"><TBODY>
+  <TR>
+    <TD align=middle bgColor=#eeeeee borderColor=#000000 colSpan=2 
+      vAlign=top><IMG height=150 src="Fireworks_files/logo.jpg" width=300> 
+  </TD></TR></TBODY></TABLE>
+<TABLE align=center border=1 borderColorDark=#ffffff borderColorLight=#000000 
+cellPadding=0 cellSpacing=0 width="80%" hspace="0" vspace="0">
+  <TBODY>
+  <TR align=middle vAlign=center>
+    <TD bgColor=#ffffff colSpan=2>
+      <DIV align=center><FONT face=Tahoma size=1><B><A 
+      href="http://www.inolen.com/index.phtml"><FONT face=Tahoma 
+      size=2>Main</FONT></A>&nbsp; |&nbsp; <A 
+      href="http://www.inolen.com/index.phtml?file=./maps.html"><FONT 
+      face=Tahoma size=2>Maps</FONT></A><FONT face=Tahoma size=2>&nbsp; |&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./programming.html">Programming</A>&nbsp;|&nbsp;<A 
+      href="http://www.inolen.com/index.phtml?file=./links.html">Links</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./files.html">Files</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./demos.html">Demos</A>&nbsp;|&nbsp; 
+      <A href="http://www.inolen.com/cgi-bin/Ultimate.cgi?action=intro" 
+      target=_blank>Forums</A></FONT></B></FONT> </DIV></TD></TR>
+  <TR>
+    <TD align=middle background=Fireworks_files/side.jpg vAlign=top width=115>
+      <FORM action=http://www.inolen.com/cgi-bin/NewsPro/viewnews.cgi?search 
+      method=post><INPUT name=searchstring 
+      onblur="if (value == '') {value = 'Search News'}" 
+      onfocus="if (value == 'Search News') {value =''}" size=13 
+      style="BACKGROUND-COLOR: #ffffff; BORDER-BOTTOM: #336699 1px solid; BORDER-LEFT: #336699 1px solid; BORDER-RIGHT: #336699 1px solid; BORDER-TOP: #336699 1px solid; COLOR: #336699; FONT-FAMILY: Tahoma" 
+      value="Search News"> </FORM></TD>
+    <TD align=left bgColor=#ffffff vAlign=top>
+      <P><FONT color=#000000 face=Tahoma size=2><B>This is an addon to the Air 
+      Kill award tutorial, this makes it to where the person must gib( explode ) 
+      when you shoot and kill them in the air to get the award, hence the name 
+      "FireWorks". Plus it makes their blood change colors via a some code. Note 
+      the reason I am using the smokePuff shader is because the images are 
+      already in grayscale so they can be morphed to other colors 
+      correctly.</B></FONT></P>
+      <P><B><FONT color=#000000 face=Tahoma size=2>Open up g_combat.c and 
+      find:</FONT></B></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>if ( self-&gt;s.groundEntityNum == ENTITYNUM_NONE ) {</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>That checks to make sure the victim you 
+      kill was not on the ground. Change it to:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>if ( self-&gt;s.groundEntityNum == ENTITYNUM_NONE &amp;&amp; self-&gt;health &lt;= GIB_HEALTH) {</B></FONT></PRE>
+      <P><B><FONT face=Tahoma size=2>That checks to see if you health( you being 
+      the guy that got killed ) is less than or equal to the gib health( which 
+      would mean you blew up ). If so, it awards you the medal.</FONT></B></P>
+      <P><FONT face=Tahoma size=2><B>Now lets actually do the SFX part! AKA The 
+      cool part! Ok lets open up bg_public.h and find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>// player_state-&gt;stats[] indexes
+ typedef enum {</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Up under it we need to add our new 
+      stat:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>	STAT_FIREWORKS,</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now open up cg_players.c and goto this 
+      line:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>    if ( cent-&gt;currentState.eFlags &amp; EF_AWARD_AIRKILL ) {</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Below it we need to distinguish a variable( 
+      our stat ) so we can let CG_BloodTrail distinguish between if it should 
+      use the the normal red blood, or use our colored blood :), so add this 
+      below that line:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>		cg.snap-&gt;ps.stats[STAT_FIREWORKS] = 1;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Open up cg_localents.c and find 
+      this:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>	int		t;
+ 	int		t2;
+ 	int		step;
+ 	vec3_t	newOrigin;
+ 	localEntity_t	*blood;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Up under those add:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>	int c1,c2,c3,c4;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>		blood = CG_SmokePuff( newOrigin, vec3_origin, 
+ 					  20,		// radius
+ 					  1, 1, 1, 1,	// color
+ 					  2000,		// trailTime
+ 					  t,		// startTime
+ 					  0,		// flags
+ 					  cgs.media.bloodTrailShader );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Replace it with:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>		if ( cg.snap-&gt;ps.stats[STAT_FIREWORKS] == 0 ) {
+ 		blood = CG_SmokePuff( newOrigin, vec3_origin, 
+ 					  20,		// radius
+ 					  1, 1, 1, 1,	// color
+ 					  2000,		// trailTime
+ 					  t,		// startTime
+ 					  0,		// flags
+ 					  cgs.media.bloodTrailShader );
+ 		} else if ( cg.snap-&gt;ps.stats[STAT_FIREWORKS] == 1 ) {
+ 		c1 = rand()&amp;0-1;
+         c2 = rand()&amp;0-1;
+         c3 = rand()&amp;0-1;
+ 		c4 = 1;
+ 
+ 		blood = CG_SmokePuff( newOrigin, vec3_origin, 
+ 					  20,		// radius
+ 					  c1, c2, c3, c4,	// color
+ 					  2000,		// trailTime
+ 					  t,		// startTime
+ 					  0,		// flags
+ 					  cgs.media.smokePuffShader );
+ 		}</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now enjoy your nice and pretty sad looking 
+      fireworks display :) If anyone feels like coding and making something that 
+      is actually pretty kewl, then e-mail it to me. Also, I know there is 
+      probably a better way to set the variable rather than making a all new 
+      stat, so if you do do it a better way e-mail me and I will update the 
+      tutorial with it.</B></FONT></P>
+      <P><FONT color=#000000 face=Tahoma size=2><B>I spend my time coding and 
+      then writing these tutorials, please give credit to www.inolen.com if you 
+      use this code in your mod(s). Feel free to use this code in your mods as 
+      long as I receive credit.</B></FONT></P></TD></TR>
+  <TR>
+    <TD align=middle bgColor=#f9f9f9 colSpan=2 vAlign=center><FONT 
+      color=#000000 face=Tahoma size=2><B>Design Copyright inolen 
+    2000</B></FONT></TD></TR></TBODY></TABLE></DIV></BODY></HTML>

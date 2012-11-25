@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0057)http://www.quakefiles.com/skunkworks/q3/disableitems.html -->
+<HTML><HEAD><TITLE>Disabling Items</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type><LINK 
+href="Disabling Items good!!!_files/skunk.css" rel=STYLESHEET type=text/css>
+<META content="MSHTML 5.00.2919.6307" name=GENERATOR></HEAD>
+<BODY text=white>
+<SCRIPT language=JavaScript>
+<!--
+var begin = new Date()
+var startYear = new Date("January 1, 1970")
+startYear.setYear(begin.getYear())
+var random = (begin.getTime() - startYear.getTime())
+document.write('<a href="http://ad.doubleclick.net/jump/quakefiles.com/skunkworks;sz=468x60;tile=1;ord=' + random + '">');
+document.write('<img src="http://ad.doubleclick.net/ad/quakefiles.com/skunkworks;sz=468x60;tile=1;ord=' + random + '" height=60 width=468>' + '</a>');
+document.write(' <A HREF="http://www.gamekey.com"><img src="http://www.gamekey.com/common/swatch.jpg"></a>');
+document.write('</iframe>');
+// -->
+</SCRIPT>
+<NOSCRIPT><A 
+href="http://ad.doubleclick.net/jump/quakefiles.com/skunkworks;abr=!ie4;abr=!ie5;sz=468x60;tile=1"><IMG 
+border=0 height=60 
+src="Disabling Items good!!!_files/skunkworks;abr=!ie4;abr=!ie5;sz=468x60;tile=1.gif" 
+width=468></A> <A href="http://www.gamekey.com/"><IMG 
+src="Disabling Items good!!!_files/swatch.jpg"></A> </NOSCRIPT>
+<CENTER>
+<H1>Disabling Items</H1></CENTER><BR>
+<P>First off, please let me know if you use this tutorial and it works for you, 
+as Its purely theoretical at the moment (I can't test it yet) [This message will 
+be removed as soon as I get confirmation that this works]</P>
+<P>Anyway, There was a request on the qdevels board(or the pq mailing list, I 
+can't remember which] for a tutorial about disabling the items that are on the 
+map to start with. This didn't seem too hard (it's really easy with q2) to I 
+thought I'd try doing it. Here's my attempt at doing so.</P>
+<HR width="10%">
+
+<P>Find G_CallSpawn (in g_spawn.c [game]). You should note that it tries finding 
+an entity in the item list first, before trying to find it in the normal spawn 
+funtions. This makes life really easy. (and the fact it shows how to disable 
+team only items for non team games makes life even easier)</P>
+<P>find the code below.</P><PRE class=code>if( item-&gt;giType == IT_TEAM &amp;&amp; g_gametype.integer != GT_CTF ) {
+			return qfalse;
+			}
+			G_SpawnItem( ent, item );
+			return qtrue;
+</PRE>
+<P>Now, there are two ways to disable the items, just always return qfalse 
+(breaks ctf), or check the flags and only return qfalse in some situations. I'm 
+going to take the second route, and split it off into another function. makes 
+the code neater, and easier to read. Change the code above, to the code 
+below</P><PRE class=code>if( !S_CheckItem(item) ) 
+	{
+		return qfalse;
+	}
+	G_SpawnItem( ent, item );
+	return qtrue;
+</PRE>
+<P>I know that S_CheckItem could just return the other value, but this could end 
+up being a generic check routine (i have some plans) so I'm keeping it as 
+returning true if the item is to be spawned</P>
+<HR width="10%">
+
+<P>anyway, copy the function below above G_CallSpawn (or stick it in a new file 
+with a #include g_local.h with a protoype in g_spawn.c). I'll explain anything 
+that needs it after the function</P><PRE class=code>qboolean S_CheckItem(gitem_t *checkeditem)
+{
+
+
+switch (checkeditem-&gt;giType)
+{
+case IT_WEAPON:
+	return qtrue;
+case IT_AMMO:
+	return qtrue;
+case IT_ARMOR:
+	return qtrue;
+case IT_HEALTH:
+	return qtrue;
+case IT_POWERUP:
+	return qtrue;
+case IT_HOLDABLE:
+	return qtrue;
+case IT_TEAM:
+	if (g_gametype.integer == GT_CTF)
+		return qtrue;
+}
+return qfalse;
+}
+
+</PRE>
+<P>Ok, fairly simple function, right? If you want to disable an item type, then 
+just change the qtrue to a qfalse under the relevent case statment. Why am I 
+passing the full item type? So you can do specific weapon and item checks. You 
+don't like the railgun? Easy to remove without touching the other weapons. Just 
+add the code below, just before the switch statement. (modify it for other 
+items. Remember to use the actual classname rather than the pickup name. Look in 
+bg_misc.c [game] for the item list. )</P><PRE class=code>if (!strcmp(checkeditem-&gt;classname,"weapon_railgun"))
+	return qfalse;
+</PRE>
+<P>Easy, right? the !is there because strcmp returns 0 if they are equal and 1 
+if they are not ( I don't know why, but thats life)</P>
+<HR width="50%">
+
+<P>One final addition. If you've implemented new cvars (server side) [see <A 
+href="http://www.quakefiles.com/skunkworks/q3/q3cvar.html">this turorial</A> for 
+instructions on how to do this] Then it's simple to change the check function to 
+use them to disable specific items and classes of items on a game by game basis. 
+For the classes of items add a check within the case (example below)</P><PRE class=code>case IT_WEAPON:
+if (s_disableweapons.integer==1)
+	return qfalse;
+else
+return qtrue;
+</PRE>
+<P>if you want to disable individual items by cvars, then it just requires a 
+slight modification of the basic item removal. See below for an example</P><PRE class=code>if (!strcmp(checkeditem-&gt;classname,"weapon_railgun") &amp;&amp; (s_disablerailgun == 1))
+	return qfalse;
+</PRE>
+<HR width="100%">
+
+<P>Note: if you want to disable all but one weapon, then follow the instructions 
+for disabling a single item, but change the return value to qtrue, while 
+changeing the value for all the other weapons to qfalse</P>
+<HR width="100%">
+<A href="http://www.quakefiles.com/skunkworks/q3/tutorial.html">Back to the 
+tutorial page</A><BR>
+<ADDRESS><A href="mailto:problems@deathsdoor.com">Mail 
+Me</A></ADDRESS><BR><BR><BR><BR></BODY></HTML>

@@ -1,0 +1,84 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304509703"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0067)http://www.inolen.com/index.phtml?file=./programming/teamstats.html -->
+<HTML><HEAD><TITLE>www.inolen.com</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE>A:link {
+	COLOR: #336699; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #0000a0; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: black; TEXT-DECORATION: underline
+}
+A:hover {
+	TEXT-DECORATION: overline
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY bgColor=#eeeeee leftMargin=0 text=#000000 topMargin=0>
+<DIV align=center>
+<TABLE align=center border=0 cellPadding=0 cellSpacing=0 hspace="0" 
+  vspace="0"><TBODY>
+  <TR>
+    <TD align=middle bgColor=#eeeeee borderColor=#000000 colSpan=2 
+      vAlign=top><IMG height=150 src="Team Stats_files/logo.jpg" width=300> 
+  </TD></TR></TBODY></TABLE>
+<TABLE align=center border=1 borderColorDark=#ffffff borderColorLight=#000000 
+cellPadding=0 cellSpacing=0 width="80%" hspace="0" vspace="0">
+  <TBODY>
+  <TR align=middle vAlign=center>
+    <TD bgColor=#ffffff colSpan=2>
+      <DIV align=center><FONT face=Tahoma size=1><B><A 
+      href="http://www.inolen.com/index.phtml"><FONT face=Tahoma 
+      size=2>Main</FONT></A>&nbsp; |&nbsp; <A 
+      href="http://www.inolen.com/index.phtml?file=./maps.html"><FONT 
+      face=Tahoma size=2>Maps</FONT></A><FONT face=Tahoma size=2>&nbsp; |&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./programming.html">Programming</A>&nbsp;|&nbsp;<A 
+      href="http://www.inolen.com/index.phtml?file=./links.html">Links</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./files.html">Files</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./demos.html">Demos</A>&nbsp;|&nbsp; 
+      <A href="http://www.inolen.com/cgi-bin/Ultimate.cgi?action=intro" 
+      target=_blank>Forums</A></FONT></B></FONT> </DIV></TD></TR>
+  <TR>
+    <TD align=middle background="Team Stats_files/side.jpg" vAlign=top 
+width=115>
+      <FORM action=http://www.inolen.com/cgi-bin/NewsPro/viewnews.cgi?search 
+      method=post><INPUT name=searchstring 
+      onblur="if (value == '') {value = 'Search News'}" 
+      onfocus="if (value == 'Search News') {value =''}" size=13 
+      style="BACKGROUND-COLOR: #ffffff; BORDER-BOTTOM: #336699 1px solid; BORDER-LEFT: #336699 1px solid; BORDER-RIGHT: #336699 1px solid; BORDER-TOP: #336699 1px solid; COLOR: #336699; FONT-FAMILY: Tahoma" 
+      value="Search News"> </FORM></TD>
+    <TD align=left bgColor=#ffffff vAlign=top>
+      <P><FONT color=#000000 face=Tahoma size=2><B>This tut shows how to show 
+      team mates stats when your crosshair moves over them in the 
+      game.</B></FONT></P>
+      <P><FONT color=#000000 face=Tahoma size=2><B>Open up cg_draw.c and go to 
+      line 1988 up under</B></FONT><FONT color=#ffffff face=Tahoma 
+      size=2><B><BR><FONT color=#ff0000>float w;<BR><FONT color=#000000>and 
+      add</FONT></FONT></B></FONT><FONT color=#000000 face=Tahoma 
+      size=2><B>:</B></FONT><FONT color=#ffffff face=Tahoma size=2><B><BR><FONT 
+      color=#0000a0>char *teamstat;</FONT><FONT color=#ffff00><BR></FONT><FONT 
+      color=#000000>Then find:</FONT><BR><FONT color=#ff0000>name = 
+      cgs.clientinfo[ cg.crosshairClientNum ].name;<BR>w = CG_DrawStrlen( name ) 
+      * BIGCHAR_WIDTH; <BR>CG_DrawBigString( 320 - w / 2, 170, name, color[3] * 
+      0.5 ); </FONT></B></FONT><BR><B><FONT color=#000000 face=Tahoma size=2>And 
+      add directly up under it:</FONT></B></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>if (cgs.clientinfo[cg.crosshairClientNum].health){
+ teamstat = va("Health: %i Armor: %i",
+ 	cgs.clientinfo[ cg.crosshairClientNum ].health,
+ 	cgs.clientinfo[ cg.crosshairClientNum ].armor);
+ w = CG_DrawStrlen( teamstat ) * SMALLCHAR_WIDTH;
+ CG_DrawSmallString( 320 - w / 2, 190, teamstat, color[3] * 0.5 );
+ }</B></FONT></PRE>
+      <P><FONT color=#000000 face=Tahoma size=2><B>I spend my time programming 
+      and writing these tutorials, so please feel free to use this code in your 
+      mod as long as www.inolen.com and the author receive 
+    credit.</B></FONT></P></TD></TR>
+  <TR>
+    <TD align=middle bgColor=#f9f9f9 colSpan=2 vAlign=center><FONT 
+      color=#000000 face=Tahoma size=2><B>Design Copyright inolen 
+    2000</B></FONT></TD></TR></TBODY></TABLE></DIV></BODY></HTML>

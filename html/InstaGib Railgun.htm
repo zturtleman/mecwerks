@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0054)http://quakestyle.telefragged.com/quake3/tutorial8.htm -->
+<HTML><HEAD><TITLE>Quake Style - Quake 3 Tutorials - New Game Styles - InstaGib Railgun</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	FONT-FAMILY: verdana
+}
+TABLE {
+	FONT-FAMILY: verdana
+}
+TR {
+	FONT-FAMILY: verdana
+}
+TD {
+	FONT-FAMILY: verdana
+}
+INPUT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+TEXTAREA {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+SELECT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+OPTION {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+PRE {
+	FONT-FAMILY: verdana; FONT-WEIGHT: bold
+}
+A {
+	COLOR: #00ff00
+}
+A:hover {
+	COLOR: white; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=black text=#ffff80><FONT size=1>
+<DIV align=right>
+<TABLE border=0 cellSpacing=0 cellborder="0">
+  <TBODY>
+  <TR>
+    <TD align=middle><FONT size=1><B><FONT color=white>Quake Style - Quake 3 
+      Tutorials</FONT><BR><FONT color=#bbcc77>New Game Styles </FONT><FONT 
+      color=#ff8000>- InstaGib Railgun</FONT><BR>Railguns only, unlimited slugs, 
+      instant gibbing. What more can you want? 
+</B></FONT></TD></TR></TBODY></TABLE></DIV><BR><!-- START TUTORIAL -->InstaGib 
+Railgun <BR><BR>This simple modification turns the game into a rail-fest where 
+one shot = one kill. It's rather simple to make this an optional mode of your 
+mod with cvars, but for this we'll just make it permanent. <BR><BR>Files to be 
+modified: <BR><PRE><FONT size=1> 
+bg_pmove.c
+g_client.c
+g_items.c
+g_weapon.c
+</FONT></PRE><BR>Let's get started - First open up bg_pmove.c and go to the 
+definition of the PM_Weapon( void ) function. Find these lines: <BR><PRE><FONT size=1> 
+	// take an ammo away if not infinite
+	if ( pm-&gt;ps-&gt;ammo[ pm-&gt;ps-&gt;weapon ] != -1 ) {
+		pm-&gt;ps-&gt;ammo[ pm-&gt;ps-&gt;weapon ]--;
+	}
+</FONT></PRE><BR>Insert this line just after the if statement in the code above: 
+<BR><PRE><FONT size=1> <FONT color=#00ffff> 
+		if ( pm-&gt;ps-&gt;weapon != WP_RAILGUN ) // InstaGib - unlimited ammo
+</FONT>
+</FONT></PRE><BR>This will make sure that the railgun never runs out of ammo. 
+It'd be just as simple to set the railgun ammo to -1, but that would cause 
+another problem: the "out of ammo" text would be shown all the time to each 
+player. Annoying, no? Doing it this way prevents that problem, although it could 
+be solved by modifying the client game code. <BR><BR>Next open up g_client.c and 
+go to the definition of the ClientSpawn(gentity_t *ent) function and find these 
+lines: <BR><PRE><FONT size=1> <FONT color=#ff00ff> 
+	client-&gt;ps.stats[STAT_WEAPONS] = ( 1 &lt;&lt; WP_MACHINEGUN );
+	if ( g_gametype.integer == GT_TEAM ) {
+		client-&gt;ps.ammo[WP_MACHINEGUN] = 50;
+	} else {
+		client-&gt;ps.ammo[WP_MACHINEGUN] = 100;
+	}
+</FONT>
+</FONT></PRE><BR>Replace the above lines with these: <BR><PRE><FONT size=1> <FONT color=#00ffff> 
+	// InstaGib - weapons on spawning w/ammo
+	client-&gt;ps.stats[STAT_WEAPONS] = ( 1 &lt;&lt; WP_RAILGUN );
+	client-&gt;ps.ammo[WP_RAILGUN] = 99;
+</FONT> 
+</FONT></PRE><BR>That gives the spawning player a railgun and 99 slugs, which 
+won't ever run out because of the change in bg_pmove.c. <BR><BR>Next go down a 
+bit further until you find this line: <BR><PRE><FONT size=1> <FONT color=#ff00ff> 
+		client-&gt;ps.weapon = WP_MACHINEGUN;
+</FONT> 
+</FONT></PRE><BR>Replace it with this one: <BR><PRE><FONT size=1> <FONT color=#00ffff> 
+		client-&gt;ps.weapon = WP_RAILGUN; // InstaGib
+</FONT> 
+</FONT></PRE><BR>That simply causes the railgun to be brought up on spawn, 
+instead of the machinegun. <BR><BR>Now open up g_items.c and find the definition 
+of the G_SpawnItem (gentity_t *ent, gitem_t *item) function. <BR><BR>Right at 
+the top, before any of the other code, put this: <BR><PRE><FONT size=1> <FONT color=#00ffff> 
+	// InstaGib - prevent weapons and ammo from spawning
+	if ( item-&gt;giType == IT_WEAPON || item-&gt;giType == IT_AMMO)
+		return;
+</FONT> 
+</FONT></PRE><BR>This prevents any other weapons or ammo spawning, since we only 
+want to use the railgun and it won't run out of ammo. <BR><BR>Lastly open up 
+g_weapon.c and go to the weapon_railgun_fire (gentity_t *ent) function. Find 
+this line: <BR><PRE><FONT size=1> <FONT color=#ff00ff>
+	damage = 100 * s_quadFactor;
+</FONT>
+</FONT></PRE><BR>Replace it with this: <BR><PRE><FONT size=1> <FONT color=#00ffff> 
+	damage = 1000 * s_quadFactor;// InstaGib - increase damage!
+</FONT> 
+</FONT></PRE><BR>That'll do nicely to instantly gib any player that's hit. 
+<BR><BR>That's all there is to it! Enjoy. <!--- END TUTORIAL ---><BR><BR><FONT 
+color=#ff8000><B>-- Credits:</B></FONT> <BR>&nbsp;&nbsp; Tutorial by <A 
+href="mailto:tadao@stargate.net"><B>Willi</B></A> <BR>&nbsp;&nbsp; Return to <A 
+href="http://quakestyle.telefragged.com/tuts.shtml"><B>QS Tutorials</B></A> 
+<BR><BR><FONT color=#ff8000><B>-- Important:</B></FONT> <BR>&nbsp;&nbsp; If you 
+do use something from QuakeStyle in your mod, please give us credit. 
+<BR>&nbsp;&nbsp; Our code is copyrighted, but we give permission to everyone to 
+use it in any way they see fit, as long as we are recognized. 
+</FONT></BODY></HTML>

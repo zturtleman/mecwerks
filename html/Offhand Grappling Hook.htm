@@ -1,0 +1,127 @@
+
+<html>
+<head>
+<title>Quake Style - Quake 3 Tutorials - Game Enhancements - Willi's Q3 Offhand Grappling Hook</title>
+
+<style type="text/css">
+
+body, table, tr, td             { font-family: verdana }
+input, textarea, select, option { font-family: verdana; font-size: 10px }
+
+pre                             { font-family: verdana; font-weight: bold }
+
+A                               { color: #00ff00 }
+A:hover                         { color: white; text-decoration: none }
+
+</style>
+</head>
+
+<body bgcolor=black text=#ffff80>
+<font size=1>
+
+<div align=right>
+
+ <table cellspacing=0 cellborder=0 border=0>
+  <tr>
+   <td align=center>
+    <font size=1><b>
+
+    <font color=white>Quake Style - Quake 3 Tutorials</font><br>
+    <font color=#bbcc77>Game Enhancements </font><font color=#ff8000>- Willi's Q3 Offhand Grappling Hook</font><br>
+    Converts the existing &quot;weapon&quot; grapple into an offhand hook!
+
+   </td>
+  </tr>
+ </table>
+
+</div>
+<br>
+
+<!-- START TUTORIAL -->
+Willi's Q3A Offhand Grappling Hook v1.0:<br><br>Please give credit where credit is due.<br><br>First, these changes will effectively nullify the original grappling hook made by Zoid in the Q3A source code. You will NOT be able to use the grappling hook as a normal "on hand" weapon - this converts the weapon to offhand permanently, unless you want to copy/rename numerous functions.<br><br>Files to be modified from the game source code:<br><br>g_local.h<br>g_active.c<br>g_items.c<br>g_missile.c<br>g_weapon.c<br><br>First open up g_local.h and go down to the gclient_s structure (roughly line 230). Near the fireHeld qboolean add this:<br>
+<pre><font size=1><font color=#00FFFF> 
+	// Willi - Offhand Grappling Hook
+	qboolean hookhasbeenfired;
+</font>
+</font></pre><br>We'll be using that later when we modify g_active.c<br><br>Now open up g_active.c. Right at the top after the #include for g_local.h add this prototype:<br>
+<pre><font size=1> <font color=#00FFFF>
+// Willi - Offhand Grappling Hook
+void Weapon_GrapplingHook_Fire (gentity_t *ent);
+</font>
+</font></pre> <br>Next find the definition for the ClientThink_real( gentity_t *ent ) function, then inside of that function, find these lines:<br>
+<pre><font size=1><font color=#FF00FF> 
+	// Let go of the hook if we aren't firing
+	if ( client->ps.weapon &#061;&#061; WP_GRAPPLING_HOOK &&
+	client->hook && !( ucmd->buttons & BUTTON_ATTACK ) ) {
+		Weapon_HookFree(client->hook);
+	}
+</font>
+</font></pre><br>Comment ALL of the above lines out!  What we just did is change how the hook is released. Before, the hook wouldn't be released unless you had the actual "weapon" in hand and weren't holding down the +attack key. Now it just relies on there being an active hook and the fireHeld qboolean, which we'll do next.<br><br>Still in g_active.c, find these lines:<br>
+<pre><font size=1><font color=#FF00FF>  
+	if ( !( ent->client->ps.eFlags & EF_FIRING ) ) {
+		client->fireHeld &#061; qfalse; // for grapple
+	}
+</font> 
+</font></pre> <br>Comment them ALL out! Since the offhand hook isn't an actual weapon then it won't be toggling the EF_FIRING flag. We don't want the hook to detach itself prematurely, now do we?  Just below the above code that you commented out or removed, add this whole section:<br>
+<pre><font size=1> <font color=#00FFFF> 
+	// Willi - Offhand Grappling Hook
+	if ( (pm.cmd.buttons & 32)  &&
+		ent->client->ps.pm_type !&#061; PM_DEAD &&
+		!ent->client->hookhasbeenfired)	{
+		Weapon_GrapplingHook_Fire( ent );
+		ent->client->hookhasbeenfired &#061; qtrue;
+	}
+	if ( !(pm.cmd.buttons & 32)  &&
+		ent->client->ps.pm_type !&#061; PM_DEAD &&
+		ent->client->hookhasbeenfired &&
+		ent->client->fireHeld)	{
+		ent->client->fireHeld &#061; qfalse;
+		ent->client->hookhasbeenfired &#061; qfalse;
+	}
+	if ( client->hook && client->fireHeld &#061;&#061; qfalse )
+		Weapon_HookFree(client->hook);
+</font> 
+</font></pre> <br>This handles how the hook is fired.  The (cmd.buttons & 32) is actually an unused command left by id Software.  It corresponds to +button5.  You can also use (cmd.buttons & 64) which corresponds to +button6.  When you press the key bound to +button5 the hook will fire, and if you release it, the hook will release.  Pretty swanky, eh?<br><br>Now open up g_item.c.  Since we're going to be using some of the models and effects for the grappling hook, and no maps have the actual weapon, we need to precache it.  We also need to precache the lightning gun so the grappling "rope" is also loaded.  Find the void ClearRegisteredItems( void ) function and add these to the existing list of weapons to be registered:<br>
+<pre><font size=1><font color=#00FFFF>
+	// Willi - Offhand Grappling Hook
+	RegisterItem( BG_FindItemForWeapon( WP_LIGHTNING ) );
+	RegisterItem( BG_FindItemForWeapon( WP_GRAPPLING_HOOK ) );
+</font>
+</font></pre><br>Next lets open up g_weapon.c. Find the definition for the Weapon_GrapplingHook_Fire (gentity_t *ent)function. Add this to the top of the function, above the first if statement:<br>
+<pre><font size=1><font color=#00FFFF> 
+	// Willi - Offhand Grappling Hook
+	AngleVectors (ent->client->ps.viewangles, forward, right, up);
+	CalcMuzzlePoint ( ent, forward, right, up, muzzle );
+</font>
+</font></pre><br>Since we're calling the offhand grappling hook from a command, and not from firing a weapon, we need to figure out where the player is pointing.<br><br>Next open up g_missile.c and go to the G_RunMissile( gentity_t *ent ) function.  Find these lines:<br>
+<pre><font size=1><font color=#FF00FF>
+			if (ent->parent && ent->parent->client->hook &#061;&#061; ent)
+				ent->parent->client->hook &#061; NULL;
+</font>
+</font></pre><br>Replace them with these:<br>
+<pre><font size=1><font color=#00FFFF>
+			// Willi - Offhand Grappling Hook
+			if (ent->parent && ent->parent->client->hook &#061;&#061; ent)
+			{
+				ent->parent->client->hook &#061; NULL;
+				ent->parent->client->hookhasbeenfired &#061; qfalse;
+				ent->parent->client->fireHeld &#061; qfalse;
+			}
+</font>
+</font></pre><br>If the hook hits the sky this resets the variables, so that the next time you hit your bound key, it fires the hook again.<br><br>That should be it. Give it a run through with MSVC, then go for the game.bat and the qvm. If there are problems, I've probably forgotten something, and I apologize in advance.  The command will be
+<pre><font size=1>  +button5
+</font></pre>  unless you decide to use the other button, in which case it's 
+<pre><font size=1> +button6
+</font></pre>Remember, the normal hook "weapon" won't work correctly after doing this modification.  It feels nice to have the first offhand grapplng hook for Q3A :-)<br><br>Enjoy!
+
+<!--- END TUTORIAL --->
+<br>
+<br><font color=#ff8000><b>-- Credits:</b></font>
+<br>&nbsp;&nbsp; Tutorial by <a href="mailto:tadao@stargate.net"><b>Willi</b></a>
+<br>&nbsp;&nbsp; Return to <a href="../tuts.shtml"><b>QS Tutorials</b></a>
+<br>
+<br><font color=#ff8000><b>-- Important:</b></font>
+<br>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please give us credit.
+<br>&nbsp;&nbsp; Our code is copyrighted, but we give permission to everyone to use it in any way they see fit, as long as we are recognized.
+</body>
+</html>

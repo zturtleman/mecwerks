@@ -1,0 +1,307 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304459734"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0056)http://www.planetquake.com/juz/tutes/tute_particles.html -->
+<HTML><HEAD><TITLE>Juz's Slipgate</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<STYLE type=text/css>.normal {
+	COLOR: #ffffff; FONT-FAMILY: Verdana; FONT-SIZE: small; FONT-STYLE: normal; FONT-WEIGHT: normal
+}
+.heading {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: medium; FONT-STYLE: italic; FONT-WEIGHT: normal
+}
+.news {
+	COLOR: #ffffff; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal
+}
+.sitecategories {
+	COLOR: #000000; FONT-FAMILY: Verdana; FONT-SIZE: medium; FONT-STYLE: italic; FONT-WEIGHT: normal
+}
+A:link {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+A:active {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+.code {
+	COLOR: #ffffff; FONT-FAMILY: Verdana; FONT-SIZE: xx-small; FONT-STYLE: normal; FONT-WEIGHT: bold; LINE-HEIGHT: normal
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY aLink=#ffffff bgColor=#006666 link=#ffffff text=#ffffff 
+vLink=#ffffff><SPAN class=code></SPAN>
+<CENTER>
+<SCRIPT language=JavaScript>
+now = new Date(); 
+random = now.getTime();
+clickurl = "/accipiter/adclick.html/CID=00003996b354751a00000000/SITE=PQ/GENRE=ACTION/AREA=HOSTED/AAMSZ=IAB_FULL_BANNER";
+imageurl = "http://www.qksrv.net/image-792352-4083175";
+document.write('<a href="'+ clickurl +'?'+ random +'" target="_top"><img src="'+ imageurl +'?'+ random +'" width=468 height=60 border=0></a>');
+</SCRIPT>
+<NOSCRIPT><A 
+href="http://www.planetquake.com/accipiter/adclick.html/CID=00003996b354751a00000000/SITE=PQ/GENRE=ACTION/AREA=HOSTED/AAMSZ=IAB_FULL_BANNER" 
+target=_top><IMG border=0 height=60 
+src="Explosion Particles_files/4083175-2.gif" width=468></A></NOSCRIPT> 
+</CENTER>
+<P> </P>
+<TABLE align=center border=0 cellPadding=1 cellSpacing=1 width=770>
+  <TBODY>
+  <TR align=middle bgColor=#000000 vAlign=center>
+    <TD>
+      <DIV align=center>
+      <TABLE border=0 cellPadding=1 cellSpacing=1 height="100%" width="100%">
+        <TBODY>
+        <TR>
+          <TD>
+            <DIV align=center class=normal><I class=normal>Juz's Slipgate - 
+            Tutorials</I></DIV></TD></TR>
+        <TR bgColor=#006666>
+          <TD bgColor=#669900 vAlign=center width="69%">
+            <DIV align=center>
+            <P>&nbsp;</P></DIV>
+            <BLOCKQUOTE>
+              <DIV align=center class=news>
+              <HR align=center color=#000000 noShade SIZE=2 width=70>
+
+              <P><SPAN class=heading>Explosion Particles Tutorial</SPAN> </P>
+              <HR align=center color=#000000 noShade SIZE=2 width=70>
+
+              <P align=left><SPAN class=sitecategories>Introduction</SPAN></P>
+              <P align=left><SPAN class=news><SPAN class=News><SPAN 
+              class=news>This tutorial will show you how to produce some simple 
+              particle effects for explosions, as seen in mods such as Q3F and 
+              CQA, and in the original Quake. Most of the code you'll need to 
+              produce these effects is already in place in the Q3A source, so 
+              there isn't much work to do. This tutorial assumes you are 
+              familiar with C programming and the Q3A source. You'll need to 
+              produce a texture and shader for your particles, or sparks, or you 
+              can download my example <A 
+              href="http://www.planetquake.com/juz/files/spark.zip">here</A>. 
+              </SPAN></SPAN></SPAN></P>
+              <TABLE border=0 cellPadding=1 cellSpacing=1 width="40%">
+                <TBODY>
+                <TR>
+                  <TD>
+                    <DIV align=center><A 
+                    href="http://www.planetquake.com/juz/images/screenshots/screenshot_particleexplosion.jpg" 
+                    target=_blank><IMG border=1 height=180 
+                    src="Explosion Particles_files/screenshot_particleexplosion_thumb.jpg" 
+                    width=240></A><SPAN class=news><SPAN class=news> 
+                    </SPAN></SPAN></DIV></TD></TR>
+                <TR>
+                  <TD class=news>
+                    <DIV align=center class=code>The particle explosion effect 
+                    in action in my CQA mod. (Click to see a larger 
+                  image)</DIV></TD></TR></TBODY></TABLE>
+              <P align=left><SPAN class=sitecategories>Preparatory 
+              coding</SPAN></P>
+              <P align=left class=normal><SPAN class=news><SPAN class=News><SPAN 
+              class=news><SPAN class=news>The first thing to do is to put our 
+              shader as a member of the cgs.media structure, and to register the 
+              shader so it is precached and we can use it in the code. So, in <B 
+              class=code>cg_local.h </B>at the bottom of the <B 
+              class=code>cgMedia_t</B>, beneath the line <B 
+              class=code>sfxHandle_t wstbactvSound;</B>, put the following code: 
+              </SPAN></SPAN></SPAN></SPAN></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=left class=code>qhandle_t sparkShader; 
+              </DIV></BLOCKQUOTE>
+              <DIV align=center class=news>
+              <P align=left><SPAN class=news><SPAN class=news><SPAN 
+              class=news><SPAN class=news>To register the shader, put the 
+              following line at the bottom of the <B 
+              class=code>CG_RegisterGraphics</B> function in <B 
+              class=code>cg_main.c</B>:</SPAN></SPAN></SPAN></SPAN></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=left class=news><B class=code>cgs.media.sparkShader = 
+                trap_R_RegisterShader("spark");</B></DIV></BLOCKQUOTE>
+              <DIV align=center class=news>
+              <P align=left><SPAN class=news><SPAN class=news>This assumes your 
+              particle shader is called "spark", which it will be if you've used 
+              my example shader and graphic. If you've called your particle 
+              shader something else, change the argument to <B 
+              class=code>trap_R_RegisterShader</B> accordingly. 
+              </SPAN></SPAN></P>
+              <P align=left class=Heading><SPAN class=news><SPAN 
+              class=sitecategories>The Particle Launch 
+Function</SPAN></SPAN></P>
+              <P align=left>Most of the work in producing the particles is done 
+              in <B class=code>CG_ExplosionParticles</B>, a new funciton which 
+              you should add in <B class=code>cg_weapons.c</B> anywhere above 
+              the existing function <B class=code>CG_MissileHitWall</B>. The 
+              function is defined as follows: </P>
+              <P align=left><SPAN class=heading><SPAN class=code><SPAN 
+              class=code><SPAN class=code>void CG_ExplosionParticles( int 
+              weapon, vec3_t origin ) {</SPAN></SPAN></SPAN></SPAN></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=left class=news>
+                <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code>int number; // number of particles <BR>int jump; // 
+                amount to nudge the particles trajectory vector up by <BR>int 
+                speed; // speed of particles <BR>int light; // amount of light 
+                for each particle <BR>vec4_t lColor; // color of light for each 
+                particle <BR>qhandle_t shader; // shader to use for the 
+                particles <BR>int index; <BR>vec3_t randVec, tempVec; 
+                </SPAN></SPAN></SPAN></SPAN><BR></P></DIV>
+                <DIV align=left class=news>
+                <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=heading><SPAN class=code>// set defaults <BR>number = 32; 
+                <BR>jump = 50; <BR>speed = 300; <BR>light = 50; <BR>lColor[0] = 
+                1.0f; <BR>lColor[1] = 1.0f; <BR>lColor[2] = 1.0f; <BR>lColor[3] 
+                = 1.0f; // alpha </SPAN></SPAN></SPAN></SPAN></SPAN></P>
+                <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code><SPAN class=code>switch( weapon ) 
+                {</SPAN></SPAN></SPAN></SPAN></SPAN></P></DIV>
+                <DIV align=left class=news><SPAN class=code><SPAN 
+                class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code>case 
+                WP_ROCKET_LAUNCHER:</SPAN></SPAN></SPAN></SPAN></SPAN></DIV>
+                <BLOCKQUOTE>
+                  <DIV align=left class=news>
+                  <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                  class=code><SPAN 
+                  class=code></SPAN></SPAN></SPAN></SPAN></SPAN><SPAN 
+                  class=code><SPAN class=code><SPAN class=code><SPAN 
+                  class=code><SPAN class=code>number = 128;<BR>jump = 
+                  70;<BR>light = 100;<BR>lColor[0] = 1.0f; <BR>lColor[1] = 
+                  0.56f; <BR>lColor[2] = 0.0f; <BR>shader = 
+                  cgs.media.sparkShader; <BR>break; 
+                  </SPAN></SPAN></SPAN></SPAN></SPAN></P></DIV>
+                  <DIV align=left class=news></DIV></BLOCKQUOTE>
+                <DIV align=left class=news><SPAN class=code><SPAN 
+                class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code>case WP_GRENADE_LAUNCHER: 
+                </SPAN></SPAN></SPAN></SPAN></SPAN></DIV>
+                <BLOCKQUOTE>
+                  <DIV align=left class=news>
+                  <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                  class=code><SPAN class=code>number = 64; <BR>jump = 60; 
+                  <BR>light = 100; <BR>lColor[0] = 1.0f;<BR>lColor[1] = 0.56f; 
+                  <BR>lColor[2] = 0.0f;<BR>shader = cgs.media.sparkShader; 
+                  <BR>break; 
+                </SPAN></SPAN></SPAN></SPAN></SPAN></P></DIV></BLOCKQUOTE>
+                <DIV align=left class=news><SPAN class=code><SPAN 
+                class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code>default: </SPAN></SPAN></SPAN></SPAN></SPAN></DIV>
+                <BLOCKQUOTE>
+                  <DIV class=news><SPAN class=code><SPAN class=code><SPAN 
+                  class=code><SPAN class=code><SPAN class=code>return; 
+                  </SPAN></SPAN></SPAN></SPAN></SPAN></DIV></BLOCKQUOTE>
+                <DIV align=left class=news>
+                <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code><SPAN class=code>} 
+                </SPAN></SPAN></SPAN></SPAN></SPAN></P></DIV>
+                <DIV align=left class=news>
+                <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=code><SPAN class=code>for( index = 0; index &lt; number; 
+                index++ ) { </SPAN></SPAN></SPAN></SPAN></SPAN></P></DIV>
+                <BLOCKQUOTE>
+                  <DIV align=left class=news>
+                  <P><SPAN class=code><SPAN class=code><SPAN class=code><SPAN 
+                  class=code><SPAN class=code>localEntity_t *le; <BR>refEntity_t 
+                  *re;</SPAN></SPAN></SPAN></SPAN></SPAN><SPAN class=code><SPAN 
+                  class=code><SPAN class=code><SPAN class=code><SPAN 
+                  class=code><BR><BR>le = CG_AllocLocalEntity(); //allocate a 
+                  local entity<BR>re = &amp;le-&gt;refEntity; <BR>le-&gt;leFlags 
+                  = LEF_PUFF_DONT_SCALE; //don't change the particle size 
+                  <BR>le-&gt;leType = LE_MOVE_SCALE_FADE; // particle should 
+                  fade over time<BR>le-&gt;startTime = cg.time; // set the start 
+                  time of the particle to the current time<BR>le-&gt;endTime = 
+                  cg.time + 3000 + random() * 250; //set the end 
+                  time<BR>le-&gt;lifeRate = 1.0 / ( le-&gt;endTime - 
+                  le-&gt;startTime ); <BR>re = &amp;le-&gt;refEntity; 
+                  <BR>re-&gt;shaderTime = cg.time / 1000.0f; <BR>re-&gt;reType = 
+                  RT_SPRITE;<BR>re-&gt;rotation = 0; <BR>re-&gt;radius = 3; 
+                  <BR>re-&gt;customShader = shader; <BR>re-&gt;shaderRGBA[0] = 
+                  0xff; <BR>re-&gt;shaderRGBA[1] = 0xff;<BR>re-&gt;shaderRGBA[2] 
+                  = 0xff; <BR>re-&gt;shaderRGBA[3] = 0xff; <BR>le-&gt;light = 
+                  light; <BR>VectorCopy( lColor, le-&gt;lightColor ); 
+                  <BR>le-&gt;color[3] = 1.0; <BR>le-&gt;pos.trType = TR_GRAVITY; 
+                  // moves in a gravity affected arc <BR>le-&gt;pos.trTime = 
+                  cg.time; <BR>VectorCopy( origin, le-&gt;pos.trBase ); 
+                  <BR><BR>tempVec[0] = crandom(); //between 1 and -1 
+                  <BR>tempVec[1] = crandom(); <BR>tempVec[2] = crandom(); 
+                  <BR>VectorNormalize(tempVec); <BR>VectorScale(tempVec, speed, 
+                  randVec); <BR>randVec[2] += jump; //nudge the particles up a 
+                  bit <BR>VectorCopy( randVec, le-&gt;pos.trDelta ); 
+                  </SPAN></SPAN></SPAN></SPAN></SPAN></P></DIV></BLOCKQUOTE>
+                <DIV align=left class=news><SPAN class=code><SPAN 
+                class=code><SPAN class=code><SPAN class=code><SPAN 
+                class=heading><B class=code>} 
+                </B></SPAN></SPAN></SPAN></SPAN></SPAN></DIV></BLOCKQUOTE>
+              <DIV align=center class=news>
+              <P align=left><SPAN class=code><SPAN class=code><SPAN 
+              class=code><SPAN class=code><SPAN 
+              class=code>}</SPAN></SPAN></SPAN></SPAN></SPAN></P>
+              <P align=left>This arguments to this function are the weapon 
+              number, for example <B class=code>WP_ROCKET_LAUNCHER </B>and the 3 
+              dimensional vector representing the position of the explosion. 
+              First of all a number of variables representing various 
+              characteristics of the particles are declared, for example the 
+              speed of the particles, the shader to use etc. In the following 
+              switch statement, these values are changed for specific weapons. 
+              In this example only the rocket launcher and grenade launcher have 
+              particle explosions, and the other weapons will cause the default 
+              case to be used, and the function returns. </P>
+              <P align=left>The for loop then creates the actual particles. The 
+              variable <B class=code>number</B> holds the number of particles to 
+              create, and the code is looped until the correct number of 
+              particles have been created. The code inside the loop first 
+              allocates a space on the local entity list for the particle, then 
+              sets up the values in the local entity that define how the 
+              particle will move, how long it will appear for etc. </P>
+              <P align=left class=code>T<SPAN class=news>he lines at the bottom 
+              of the loop,</SPAN> starting with <SPAN class=code><SPAN 
+              class=code><SPAN class=code><SPAN class=code><SPAN 
+              class=code>tempVec[0] = crandom();<B> </B><SPAN 
+              class=news>generate a random vector which will act as the movement 
+              vector for the particle. This vector is then scaled so the 
+              particle is moving at the correct speed, and the upwards component 
+              of the movement vector is increased by a small amount to launch 
+              the particles move vertically and give a better affect. This 
+              vector is then copied to the particle's localentity's <SPAN 
+              class=code>pos.trDelta</SPAN> vector, the vector which represents 
+              the movent of that particle. 
+              </SPAN></SPAN></SPAN></SPAN></SPAN></SPAN></P>
+              <P align=left class=news>The final step is to call this function 
+              by putting the following line at the bottom of <SPAN 
+              class=code>CG_MissileHitWall</SPAN>, the function responsible for 
+              creating the effects for an explosion: </P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=left class=code>
+                <P>CG_ExplosionParticles( weapon, origin ); 
+</P></DIV></BLOCKQUOTE>
+              <DIV align=left class=code>
+              <P class=news>You should now be able to compile your code and see 
+              the particle effect produced when a rocket or grenade explodes. I 
+              hope this tutorial hasn't been too hard to follow :) Please note 
+              that the code shown in this tutorial isn't perfect, it's just a 
+              relatively simple and effective method of producing explosion 
+              particles. There is plenty of room for improvment to create a more 
+              powerful system, but this should provide a base for you to work 
+              from. If you have any questions/comments/flaming/mad ramblings 
+              about this tutorial, please email me <A 
+              href="mailto:juz@planetquake.com">here</A>.</P></DIV>
+              <DIV align=center class=news>
+              <P align=left><SPAN class=news><SPAN class=News><SPAN 
+              class=normal>Juz</SPAN></SPAN></SPAN><SPAN class=normal><SPAN 
+              class=News> </SPAN></SPAN></P>
+              <BLOCKQUOTE>
+                <DIV align=left class=News></DIV></BLOCKQUOTE>
+              <P align=left class=Small>&nbsp;</P>
+              <P class=News>&nbsp;</P>
+              <P align=left>&nbsp;</P>
+              <P>&nbsp;</P>
+              <P>&nbsp;</P></DIV></BLOCKQUOTE></TD></TR>
+        <TR>
+          <TD>
+            <DIV align=center><SPAN class=normal><A 
+            href="http://www.planetquake.com/juz/tutes.html" target=_self><FONT 
+            color=#ffffff face=Verdana size=3>Back</FONT></A></SPAN> </DIV>
+            <DIV align=center 
+  class=normal></DIV></TD></TR></TBODY></TABLE></DIV></TD></TR></TBODY></TABLE><SPAN 
+class=heading></SPAN></BODY></HTML>

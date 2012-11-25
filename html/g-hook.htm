@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0042)http://www.planetquake.com/bop/q3hook.html -->
+<HTML><HEAD><TITLE>Untitled</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="U.N. Owen" name=Author>
+<META content="MSHTML 5.00.2014.210" name=GENERATOR></HEAD>
+<BODY aLink=#ff0000 bgColor=#000000 link=#33ff33 text=#cccccc 
+vLink=#551a8b><B><FONT face=Verdana><FONT size=+1>"THE NOTES" : Chapter 
+2</FONT></FONT></B> <BR><FONT face=Verdana><FONT size=+1>&nbsp;</FONT></FONT> 
+<BR><B><FONT face=Verdana><FONT size=+1>HOWTO enable the Grappling Hook in the 
+Quake 3 Source Code</FONT></FONT></B> <BR><FONT face=Verdana><FONT size=+1>By 
+Matt Ownby (see end of this document for contact information)</FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR>
+<HR width="100%">
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff0000><FONT size=-1>1/15/99, 5:12 
+AM</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>Ok the Q3 
+source code was just released a few hours ago and I have had my eyes pouring 
+over the contents ever since.&nbsp; Fortunately, much of it is similar to Quake 
+2.&nbsp; There is also a lot of new stuff.</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>As many of you know, the grappling hook was added 
+into the code, but removed later in development.&nbsp; Therefore, it is just a 
+matter of patching the code a little bit to unlock the grappling hook for 
+general use &lt;evil grin&gt;.&nbsp; Here is a quick (very quick) tutorial on 
+how to patch your source code to turn on the grappling hook.</FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>NOTE: Due to my small modifications, line numbers 
+will be different from the stock source.&nbsp; All my modifications begin with 
+"// start MATT" and "// end MATT".</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Arial,Helvetica><FONT 
+color=#ffffff><FONT size=+1><U>g_client.c</U> (part of the "game" 
+DLL)</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffff00><FONT 
+size=-1>Go to about line 939</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;client-&gt;ps.stats[STAT_WEAPONS] |= ( 1 &lt;&lt; WP_GAUNTLET 
+);</FONT></FONT> <BR><B><FONT face=Verdana><FONT size=-1>&nbsp;// start 
+MATT</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;client-&gt;ps.stats[STAT_WEAPONS] |= ( 1 &lt;&lt; 
+WP_GRAPPLING_HOOK);</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;// end MATT</FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;client-&gt;ps.ammo[WP_GAUNTLET] = -1;</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;client-&gt;ps.ammo[WP_GRAPPLING_HOOK] = 
+-1;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffff00><FONT size=-1>Go to about line 
+991</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><B><FONT face=Verdana><FONT size=-1>&nbsp; // 
+start MATT</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT size=-1>&nbsp; for 
+( i = WP_NUM_WEAPONS - 2 ; i &gt; 0 ; i-- ) {</FONT></FONT></B> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;&nbsp; // changed the -1 to a -2 so the grapple 
+isn't selected by default</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;&nbsp; // end MATT</FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;&nbsp; 
+if ( client-&gt;ps.stats[STAT_WEAPONS] &amp; ( 1 &lt;&lt; i ) ) {</FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;&nbsp;&nbsp; client-&gt;ps.weapon = 
+i;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;&nbsp;&nbsp; 
+break;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;&nbsp; 
+}</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp; }</FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT 
+face=Arial,Helvetica><FONT color=#ffffff><FONT size=+1><U>ui_controls2.c</U> 
+(part of the "ui" DLL)</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffff00><FONT 
+size=-1>Go to about line 105</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>#define 
+ID_JOYTHRESHOLD 40</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>#define 
+ID_SMOOTHMOUSE 41</FONT></FONT> <BR><B><FONT face=Verdana><FONT size=-1>// start 
+MATT</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT size=-1>#define 
+ID_WEAPON10&nbsp; 42&nbsp; // grappling hook</FONT></FONT></B> <BR><B><FONT 
+face=Verdana><FONT size=-1>// end MATT</FONT></FONT></B> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;</FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+color=#ffff00><FONT size=-1>Go to about line 170</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;menuaction_s&nbsp; bfg;</FONT></FONT> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;// start MATT</FONT></FONT></B> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;menuaction_s&nbsp; hook;</FONT></FONT></B> 
+<BR><B><FONT face=Verdana><FONT size=-1>&nbsp;// end MATT</FONT></FONT></B> 
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;menuaction_s&nbsp; 
+attack;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffff00><FONT size=-1>Go to about line 
+245</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;{"weapon 
+9",&nbsp; "BFG",&nbsp;&nbsp;&nbsp; ID_WEAPON9,&nbsp; ANIM_WEAPON9, 
+'9',&nbsp;&nbsp; -1,&nbsp; -1, -1},</FONT></FONT> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;// start MATT</FONT></FONT></B> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;{"weapon 10",&nbsp; "grappling hook", 
+ID_WEAPON10, ANIM_WEAPON10, '0',&nbsp;&nbsp; -1,&nbsp; -1, 
+-1},</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT size=-1>&nbsp;// stop 
+MATT</FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;{"+attack",&nbsp;&nbsp; "attack",&nbsp;&nbsp; ID_ATTACK,&nbsp; 
+ANIM_ATTACK, K_CTRL,&nbsp;&nbsp; -1,&nbsp; -1, -1},</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffff00><FONT size=-1>Go to about line 299</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;(menucommon_s *)&amp;s_controls.bfg,</FONT></FONT> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;// start MATT</FONT></FONT></B> <BR><B><FONT 
+face=Verdana><FONT size=-1>&nbsp;(menucommon_s 
+*)&amp;s_controls.hook,</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;// end MATT</FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;NULL,</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffff00><FONT 
+size=-1>Go to about line 1386</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.bfg.generic.type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 
+MTYPE_ACTION;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.bfg.generic.flags&nbsp;&nbsp;&nbsp;&nbsp; = 
+QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;s_controls.bfg.generic.callback&nbsp; = 
+Controls_ActionEvent;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.bfg.generic.ownerdraw = 
+Controls_DrawKeyBinding;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.bfg.generic.id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+= ID_WEAPON9;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><B><FONT face=Verdana><FONT size=-1>&nbsp;// 
+start MATT</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.hook.generic.type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 
+MTYPE_ACTION;</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.hook.generic.flags&nbsp;&nbsp;&nbsp;&nbsp; = 
+QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;</FONT></FONT></B> 
+<BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.hook.generic.callback&nbsp; = 
+Controls_ActionEvent;</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.hook.generic.ownerdraw = 
+Controls_DrawKeyBinding;</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.hook.generic.id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+= ID_WEAPON10;</FONT></FONT></B> <BR><B><FONT face=Verdana><FONT 
+size=-1>&nbsp;// end MATT</FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.attack.generic.type&nbsp;&nbsp;&nbsp;&nbsp; = 
+MTYPE_ACTION;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.attack.generic.flags&nbsp;&nbsp;&nbsp;&nbsp; = 
+QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;s_controls.attack.generic.callback&nbsp; = 
+Controls_ActionEvent;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.attack.generic.ownerdraw = 
+Controls_DrawKeyBinding;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;s_controls.attack.generic.id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+= ID_ATTACK;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffff00><FONT 
+size=-1>That's it!</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffff00><FONT size=-1>And yes, this patch _does_ work for CTF (I tested it 
+briefly).</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffff00><FONT 
+size=-1>&nbsp;</FONT></FONT></FONT> <BR>
+<HR width="100%">
+<BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>Contact Information:</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>I can be found on <FONT color=#ffff00>irc.enterthegame.com</FONT> in 
+<FONT color=#ffff00>#JUN</FONT> at all times, although sometimes I will 
+obviously be away.&nbsp; My nick is <FONT 
+color=#ffffff>JB[JUN]</FONT>.</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>I am not going to post my email address on this page because I am sick 
+of getting spam every day.</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>Here are other 
+programming projects I am working on (you can get my email address from these 
+pages hehe):</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>&nbsp;</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1><A 
+href="http://daphne.rulecity.com/">http://daphne.rulecity.com/</A></FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1><A 
+href="http://www.planetquake.com/bop">http://www.planetquake.com/bop</A>&nbsp; 
+(look for the Quake 3 version soon muwahaha)</FONT></FONT> </BODY></HTML>

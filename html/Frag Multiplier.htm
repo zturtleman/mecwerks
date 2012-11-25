@@ -1,0 +1,80 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304545515"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0035)http://www.figpops.com/q3tut2.shtml -->
+<HTML><HEAD><TITLE>Welcome to FigPops.com, Home of the Frozen Monkey.</TITLE>
+<META content="index, nofollow" name=robots>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="Welcome to FigPops.com, home of the frozen monkey." 
+name=description>
+<META content="Howler Monkey" name=author>
+<STYLE>@import url( Frag Multiplier_files/figpops2.css );
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY text=#0099cc><BR><BR><BR><BR>
+<H1>Welcome to FigPops.com</H1><BR><BR><BR><BR><BR>
+<TABLE border=0 height="100%" width="100%">
+  <TBODY>
+  <TR vAlign=top>
+    <TD align=middle width="20%" cellpadding="5"><BR><A 
+      href="http://www.figpops.com/index.html"><U>Back to the Starter 
+      Page</U></A><BR><A 
+      href="http://www.figpops.com/main2.shtml"><U>News/Mainpage</U></A><BR><A 
+      href="http://www.figpops.com/tuts.shtml"><U>Quake 3 
+      Tutorials</U></A><BR><A href="http://www.figpops.com/dxtut.shtml"><U>Deus 
+      Ex Tutorials</U></A><BR><A href="http://www.figpops.com/q1.shtml"><U>Quake 
+      1 Expansion Project</U></A><BR><A 
+      href="http://www.figpops.com/modfaq.shtml"><U>Newbies Guide to 
+      Modmaking</U></A><BR><A 
+      href="http://www.figpops.com/model.shtml"><U>Models</U></A><BR><A 
+      href="http://www.figpops.com/links.shtml"><U>Links</U></A><BR><A 
+      href="http://www.figpops.com/cgi-bin/cgiwrap/figpops/ikonboard//ikonboard.cgi"><U>FigPops.com 
+      Forums</U></A><BR><A href="mailto:Monkey@figpops.com"><U>Email 
+      Monkey</U></A><BR><BR></TD>
+    <TD align=middle width="60%" cellpadding="10"><BR><BR><BR><BR>
+      <DIV align=left><CODE><FONT color=#3300ff><BR></FONT></CODE>This is how to 
+      add a Frag Multiplier to a normal DM game, completely server 
+      side.<BR><BR>in g_local.h<BR>around line 241 you'll 
+      find<BR><BR><CODE><FONT color=#3300ff>struct gclient_s 
+      {<BR></FONT></CODE><BR>now scroll down a coupla of lines until you 
+      find<BR><BR><CODE><FONT color=#3300ff>int 
+      invulnerabilityTime;<BR>#endif<BR><BR>char 
+      *areabits;<BR><BR></FONT></CODE>just below that add<BR><BR><CODE><FONT 
+      color=#3300ff>//pigpen frag multiplier<BR>int fragmult;<BR>int 
+      fragtime;<BR>//end pigpen<BR><BR></FONT></CODE><BR>now save and open 
+      g_client.c<BR><BR>find void ClientSpawn around line 1015<BR><BR>scroll 
+      down until you find<BR><BR><CODE><FONT 
+      color=#3300ff>client-&gt;ps.stats[STAT_WEAPONS] |= ( 1 &lt;&lt; 
+      WP_GAUNTLET );<BR>client-&gt;ps.ammo[WP_GAUNTLET] = 
+      -1;<BR>client-&gt;ps.ammo[WP_GRAPPLING_HOOK] = 
+      -1;<BR><BR></FONT></CODE>then add<BR><BR><CODE><FONT 
+      color=#3300ff>//pigpen frag multiplier<BR>client-&gt;fragmult = 
+      1;<BR>//end pigpen<BR><BR></FONT></CODE>now save and open 
+      g_active.c<BR><BR>find void ClientTimerActions around line 
+      383<BR><BR>scroll down until you see<BR><BR><CODE><FONT color=#3300ff>// 
+      count down health when over max<BR>if ( ent-&gt;health &gt; 
+      client-&gt;ps.stats[STAT_MAX_HEALTH] ) 
+      {<BR>ent-&gt;health--;<BR>}<BR>}<BR></FONT></CODE>and add<BR><CODE><FONT 
+      color=#3300ff>//pigpen frag multiplier<BR>if (client-&gt;fragtime &gt;= 
+      60)<BR>{ client-&gt;fragtime = 0;<BR>client-&gt;fragmult = 
+      client-&gt;fragmult +1;<BR>trap_SendServerCommand( client - level.clients, 
+      "cp \"Your Frag Multiplier just went up by one.\n\"" );<BR>}<BR>else<BR>{ 
+      client-&gt;fragtime = client-&gt;fragtime + 1;<BR>}<BR>//pigpen 
+      end<BR></FONT></CODE><BR>before<BR><BR><CODE><FONT color=#3300ff>// count 
+      down armor when over max<BR>if ( client-&gt;ps.stats[STAT_ARMOR] &gt; 
+      client-&gt;ps.stats[STAT_MAX_HEALTH] ) 
+      {<BR>client-&gt;ps.stats[STAT_ARMOR]--;<BR><BR></FONT></CODE>so it will 
+      end up looking as above<BR><BR>now save and open g_combat.c<BR><BR>find 
+      void AddScore around line 32<BR>and where it says<BR><BR><CODE><FONT 
+      color=#3300ff>ent-&gt;client-&gt;ps.persistant[PERS_SCORE] += 
+      score;<BR><BR></FONT></CODE>make it<BR><BR><CODE><FONT 
+      color=#3300ff>ent-&gt;client-&gt;ps.persistant[PERS_SCORE] += 
+      score*ent-&gt;client-&gt;fragmult; //pig frag 
+      mult<BR><BR></FONT></CODE>now save and compile, tada, every 60 seconds the 
+      player is alive he/she gets +1 to their frag multiplier, meaning a person 
+      who stays alive for 5 minutes will get 5 frags for every 1 
+      kill.<BR></DIV><BR><BR><BR></TD>
+    <TD align=middle width="20%" cellpadding="5"><BR>Texture of the day <BR><A 
+      href="mailto:monkey@figpops.com">Submit your own Texture of the Day</A> 
+      <BR></TD></TR></TBODY></TABLE><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<CENTER><SMALL><SMALL><SMALL>FigPops, the Frozen Monkey and site design © by 
+FigPops.com.</SMALL></SMALL></SMALL></CENTER></BODY></HTML>

@@ -1,0 +1,262 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0056)http://www.quakefiles.com/skunkworks/q3/description.html -->
+<HTML><HEAD><TITLE>A start to explaining Q3</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2919.6307" name=GENERATOR></HEAD>
+<BODY bgColor=white link=red text=black vLink=darkred>
+<SCRIPT language=JavaScript>
+<!--
+var begin = new Date()
+var startYear = new Date("January 1, 1970")
+startYear.setYear(begin.getYear())
+var random = (begin.getTime() - startYear.getTime())
+document.write('<a href="http://ad.doubleclick.net/jump/quakefiles.com/skunkworks;sz=468x60;tile=1;ord=' + random + '">');
+document.write('<img src="http://ad.doubleclick.net/ad/quakefiles.com/skunkworks;sz=468x60;tile=1;ord=' + random + '" height=60 width=468>' + '</a>');
+document.write(' <A HREF="http://www.gamekey.com"><img src="http://www.gamekey.com/common/swatch.jpg"></a>');
+document.write('</iframe>');
+// -->
+</SCRIPT>
+<NOSCRIPT><A 
+href="http://ad.doubleclick.net/jump/quakefiles.com/skunkworks;abr=!ie4;abr=!ie5;sz=468x60;tile=1"><IMG 
+border=0 height=60 
+src="A start to explaining Q3 good!!_files/skunkworks;abr=!ie4;abr=!ie5;sz=468x60;tile=1.gif" 
+width=468></A> <A href="http://www.gamekey.com/"><IMG 
+src="A start to explaining Q3 good!!_files/swatch.jpg"></A> </NOSCRIPT>
+<H1>A start to explaining Quake 3</H1><BR>
+<P>Probably not quite right, but it's a start. I'm forced to make some guesses 
+about the structure, due to me not actually having the game, and not being able 
+to test my suppositions.</P>
+<P>(g) means a file is in the game folder, (c) means the client folder, (u) 
+means the ui folder</P>
+<P>The main data structure for entities in q3 is shown below. this is stored in 
+q_shared.h in the game directory (it's linked to directly by most of the other 
+code (the *_local.h files link to it)</P>
+<P>I'm pulling together definitions for each of the fields in it. each field 
+that is a link, links to the definitions I've been able to find. Comments I've 
+added are in blue.</P><BR>struct gentity_s { <BR>
+<TABLE>
+  <TBODY>
+  <TR>
+    <TD width=10></TD>
+    <TD><A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#entstate">entityState_t</A> 
+      s; // communicated by server to clients<BR>entityShared_t r; // shared by 
+      both the server system and game<BR><BR>// DO NOT MODIFY ANYTHING ABOVE 
+      THIS, THE SERVER<BR>// EXPECTS THE FIELDS IN THAT 
+      ORDER!<BR>//================================<BR><BR>struct <A 
+      href="http://www.quakefiles.com/skunkworks/q3/client">gclient_s</A> 
+      *client; // NULL if not a client<BR><BR>qboolean inuse; //<FONT 
+      color=blue>If a structure is being used this should be true. 
+      </FONT><BR><BR>char *classname; // set in QuakeEd <FONT color=blue>Map 
+      entity stuff I think</FONT><BR>int spawnflags; // set in 
+      QuakeEd<BR><BR>qboolean neverFree; // if true, FreeEntity will only 
+      unlink<BR>// bodyque uses this<BR><BR>int flags; // <A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#flags">FL_* 
+      variables</A><BR><BR>char *model;<BR>char *model2;<BR>int freetime; // 
+      level.time when the object was freed<BR>int eventTime; // events will be 
+      cleared EVENT_VALID_MSEC after set<BR>qboolean freeAfterEvent;<BR>qboolean 
+      unlinkAfterEvent;<BR><BR>qboolean physicsObject; // if true, it can be 
+      pushed by movers and fall off edges<BR>// all game items are 
+      physicsObjects, <BR>float physicsBounce; // 1.0 = continuous bounce, 0.0 = 
+      no bounce<BR>int clipmask; // brushes with this content value will be 
+      collided against<BR>// when moving. items and corpses do not collide 
+      against<BR>// players, for instance<BR><BR>// movers<BR>moverState_t 
+      moverState;<BR>int soundPos1;<BR>int sound1to2;<BR>int sound2to1;<BR>int 
+      soundPos2;<BR>int soundLoop;<BR>gentity_t *parent;<BR>gentity_t 
+      *nextTrain;<BR>gentity_t *prevTrain;<BR>vec3_t pos1, pos2;<BR><BR>char 
+      *message;<BR><BR>int timestamp; // body queue sinking, etc<BR><BR>float 
+      angle; // set in editor, -1 = up, -2 = down<BR>char *target;<BR>char 
+      *targetname;<BR>char *team;<BR>gentity_t *target_ent;<BR><BR>float 
+      speed;<BR>vec3_t movedir;<BR><BR>int nextthink;<FONT color=#0000ff> // 
+      when the entity will think next.</FONT><BR>void (*think)(gentity_t 
+      *self);<FONT color=#0000ff>// what it does when it thinks</FONT><BR>void 
+      (*reached)(gentity_t *self); // movers call this when hitting 
+      endpoint<BR>void (*blocked)(gentity_t *self, gentity_t *other);<FONT 
+      color=#0000ff> // what a mover does when it cant move</FONT><BR>void 
+      (*touch)(gentity_t *self, gentity_t *other, trace_t *trace);<FONT 
+      color=#0000ff>// what happens if it is touched</FONT><BR>void 
+      (*use)(gentity_t *self, gentity_t *other, gentity_t *activator);<FONT 
+      color=#0000ff> // what happens when the entity is used</FONT><BR>void 
+      (*pain)(gentity_t *self, gentity_t *attacker, int damage);<FONT 
+      color=#0000ff>// What happens when an entity is damaged</FONT><BR>void 
+      (*die)(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int 
+      damage, int mod); <FONT color=#0000ff>// What happens when it's taken more 
+      damage than it has health</FONT><BR><BR>int pain_debounce_time;<FONT 
+      color=#0000ff>// used so the pain function isn't activated too 
+      often</FONT><BR>int fly_sound_debounce_time; // wind tunnel<BR>int 
+      last_move_time;<BR><BR>int health; <FONT color=#0000ff>// How much damage 
+      an entity can take</FONT><BR><BR>qboolean takedamage;<BR><BR>int damage; 
+      <FONT color=#0000ff>// Storage for how much it can do (checked in things 
+      like explode functions) ditto for the ones below</FONT><BR>int 
+      splashDamage; // quad will increase this without increasing radius<BR>int 
+      splashRadius;<BR>int methodOfDeath;<BR>int splashMethodOfDeath;<BR><BR>int 
+      count;<BR><BR>gentity_t *chain;<FONT color=#0000ff> // for trains I would 
+      guess</FONT><BR>gentity_t *enemy;<BR>gentity_t *activator;<BR>gentity_t 
+      *teamchain; // next entity in team<BR>gentity_t *teammaster; // master of 
+      the team<BR><BR>int watertype;<FONT color=#0000ff>// From the content 
+      types. water, slime lava, etc</FONT><BR>int waterlevel;<FONT 
+      color=#0000ff>// appears to be 0: out of water 3: underwater with 1 and 2 
+      being part in (feet , waist?)</FONT><BR><BR>int noise_index;<BR><BR>// 
+      timing variables<BR>float wait;<BR>float random;<BR><BR>gitem_t *item; // 
+      for bonus items<BR><BR>qboolean 
+botDelayBegin;<BR></TD></TR></TBODY></TABLE><BR>};<BR>
+<HR>
+<A name=entstate></A>
+<P>The entity state structure (sent from server to client) <BR>typedef struct 
+entityState_s {<BR><BR>
+<TABLE>
+  <TBODY>
+  <TR>
+    <TD width=10></TD>
+    <TD>int number; // entity index<BR>int eType; // <A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#etype">entityType_t</A><BR>int 
+      eFlags; // <FONT color=blue>This would appear to be refering to <A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#eflags">this 
+      list</A> of flags</FONT><BR><BR><A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#traj_t">trajectory_t</A> 
+      pos; // for calculating position<BR><A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#traj_t">trajectory_t</A> 
+      apos; // for calculating angles<BR><BR>int time; // <FONT color=blue>not 
+      sure what these two are for</FONT><BR>int time2;<BR><BR>vec3_t origin; // 
+      <FONT color=blue>a 3 dimensional array of floats (<A 
+      href="http://www.quakefiles.com/skunkworks/q3/description.html#vecnote">Note</A>)</FONT><BR>vec3_t 
+      origin2; // <FONT color=blue>these 2 are probably used for the actual 
+      location of the entity, and where it was a frame ago</FONT><BR><BR>vec3_t 
+      angles; //<FONT color=blue>These 2 will probably be for current angles, 
+      and angles a frame ago</FONT><BR>vec3_t angles2;<BR><BR>int 
+      otherEntityNum; // shotgun sources, etc<BR>int otherEntityNum2; // <FONT 
+      color=blue>not a clue here yet</FONT><BR><BR>int groundEntityNum; // -1 = 
+      in air <BR>int constantLight; // r + (g&lt;&lt;8) + (b&lt;&lt;16) + 
+      (intensity&lt;&lt;24)<BR>int loopSound; // constantly loop this 
+      sound<BR><BR>int modelindex;<BR>int modelindex2;<BR>int clientNum; // 0 to 
+      (MAX_CLIENTS - 1), for players and corpses<BR>int frame;<BR><BR>int solid; 
+      // for client side prediction, trap_linkentity sets this 
+      properly<BR><BR>int event; // impulse events -- muzzle flashes, footsteps, 
+      etc<BR>int eventParm;<BR><BR>// for players<BR>int powerups; // bit 
+      flags<BR>int weapon; // determines weapon and flash model, etc<BR>int 
+      legsAnim; // mask off ANIM_TOGGLEBIT<BR>int torsoAnim; // mask off 
+      ANIM_TOGGLEBIT<BR></TD></TR></TBODY></TABLE>} entityState_t;<BR><BR>
+<HR>
+<A name=etype>Entity Types</A><BR>
+<P>This is the list of types that an entity can be. when I find out the effects 
+these have on the game, I'll update it (in bg_public.h (in game))</P><PRE>typedef enum {
+	ET_GENERAL,
+	ET_PLAYER,
+	ET_ITEM,
+	ET_MISSILE,
+	ET_MOVER,
+	ET_BEAM,
+	ET_PORTAL,
+	ET_SPEAKER,
+	ET_PUSH_TRIGGER,
+	ET_TELEPORT_TRIGGER,
+	ET_INVISIBLE,
+	ET_GRAPPLE,				// grapple hooked on wall
+
+	ET_EVENTS				// any of the EV_* events can be added freestanding
+							// by setting eType to ET_EVENTS + eventNum
+							// this avoids having to set eFlags and eventNum
+} entityType_t;
+</PRE>
+<HR>
+<A name=eflags>Entity Flags</A><BR>
+<P>Also in bg_public.h (g) All I can find for the moment</P><PRE>// entityState_t-&gt;eFlags
+#define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
+#define	EF_TELEPORT_BIT		0x00000004		// toggled every time the origin abruptly changes
+#define	EF_AWARD_EXCELLENT	0x00000008		// draw an excellent sprite
+#define	EF_BOUNCE			0x00000010		// for missiles
+#define	EF_BOUNCE_HALF		0x00000020		// for missiles
+#define	EF_AWARD_GAUNTLET	0x00000040		// draw a gauntlet sprite
+#define	EF_NODRAW			0x00000080		// may have an event, but no model (unspawned items)
+#define	EF_FIRING			0x00000100		// for lightning gun
+#define	EF_MOVER_STOP		0x00000400		// will push otherwise
+#define	EF_TALK				0x00001000		// draw a talk balloon
+#define	EF_CONNECTION		0x00002000		// draw a connection trouble sprite
+#define	EF_VOTED			0x00004000		// already cast a vote
+#define	EF_AWARD_IMPRESSIVE	0x00008000		// draw an impressive sprite
+</PRE>
+<HR>
+<A name=traj_t>trajectory_t Definition</A><BR>
+<P>From q_shared.h(g).</P><PRE>typedef struct {
+	trType_t	trType;
+	int		trTime;
+	int		trDuration;			// if non 0, trTime + trDuration = stop time
+	vec3_t	trBase;
+	vec3_t	trDelta;			// velocity, etc
+} trajectory_t;
+</PRE>
+<HR>
+<A name=vecnote>vec3_t Note</A> 
+<P>I checked to see if this has changed. it has, kinda. heres it's defintion, 
+along with some others</P><PRE>typedef float vec_t;
+typedef vec_t vec2_t[2];
+typedef vec_t vec3_t[3];
+typedef vec_t vec4_t[4];
+typedef vec_t vec5_t[5];
+</PRE>
+<P>I don't know why they've done it this way yet, but I'm planning to find 
+out</P>
+<HR>
+<A name=client></A>
+<P>The client structure (I'm working on the defintions)</P><PRE>struct gclient_s {
+	// ps MUST be the first element, because the server expects it
+	playerState_t	ps;				// communicated by server to clients
+
+	// the rest of the structure is private to game
+	clientPersistant_t	pers;
+	clientSession_t		sess;
+
+	qboolean	readyToExit;		// wishes to leave the intermission
+
+	qboolean	noclip;
+
+	int			lastCmdTime;		// level.time of last usercmd_t, for EF_CONNECTION
+									// we can't just use pers.lastCommand.time, because
+									// of the g_sycronousclients case
+	int			buttons;
+	int			oldbuttons;
+	int			latched_buttons;
+
+	// sum up damage over an entire frame, so
+	// shotgun blasts give a single big kick
+	int			damage_armor;		// damage absorbed by armor
+	int			damage_blood;		// damage taken out of health
+	int			damage_knockback;	// impact damage
+	vec3_t		damage_from;		// origin for vector calculation
+	qboolean	damage_fromWorld;	// if true, don't use the damage_from vector
+
+	int			accurateCount;		// for "impressive" reward sound
+
+	//
+	int			lasthurt_client;	// last client that damaged this client
+	int			lasthurt_mod;		// type of damage the client did
+
+	// timers
+	int			respawnTime;		// can respawn when time &gt; this, force after g_forcerespwan
+	int			inactivityTime;		// kick players when time &gt; this
+	qboolean	inactivityWarning;	// qtrue if the five seoond warning has been given
+	int			rewardTime;			// clear the EF_AWARD_IMPRESSIVE, etc when time &gt; this
+
+	int			airOutTime;
+
+	int			lastKillTime;		// for multiple kill rewards
+
+	qboolean	fireHeld;			// used for hook
+	gentity_t	*hook;				// grapple hook if out
+
+	// timeResidual is used to handle events that happen every second
+	// like health / armor countdowns and regeneration
+	int			timeResidual;
+};
+</PRE>
+<HR>
+<A name=flags></A>
+<P>Entity Flags</P><PRE>// gentity-&gt;flags
+#define	FL_GODMODE				0x00000010
+#define	FL_NOTARGET				0x00000020
+#define	FL_TEAMSLAVE			0x00000400	// not the first on the team
+#define FL_NO_KNOCKBACK			0x00000800
+#define FL_DROPPED_ITEM			0x00001000
+#define FL_NO_BOTS				0x00002000	// spawn point not for bot use
+#define FL_NO_HUMANS			0x00004000	// spawn point just for bots
+</PRE></BODY></HTML>

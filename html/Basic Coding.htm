@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0049)http://www.frag.com/tectonic/quake3/tuts/bits.htm -->
+<HTML><HEAD><TITLE>Q3Coding: Basic Coding</TITLE><!-- #BeginTemplate "/Templates/model.dwt" --><!-- #BeginEditable "titre" --><!-- #EndEditable -->
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type><LINK 
+href="../main.css" rel=stylesheet>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=#ffffff>
+<TABLE border=0 width="75%">
+  <TBODY>
+  <TR align=left bgColor=#006699 vAlign=top>
+    <TD><!-- #BeginEditable "matiere" -->
+      <DIV align=left><B><FONT color=#ccccff face="Arial, Helvetica, sans-serif" 
+      size=4>Q3 Coding</FONT></B></DIV><!-- #EndEditable --></TD></TR>
+  <TR align=left bgColor=#ccccff vAlign=top>
+    <TD class=titre1>
+      <DIV align=left><FONT face="Tahoma, Verdana" size=2><!-- #BeginEditable "tit" --></FONT><FONT 
+      face="Arial, Helvetica, sans-serif" size=2><B>Understanding Bits &amp; 
+      #</B></FONT></DIV></TD></TR>
+  <TR align=left vAlign=top>
+    <TD height=465><!-- #BeginEditable "texte" -->
+      <P align=right><FONT face="Tahoma, Verdana" size=2><B>Date :</B> 
+      24/01/99<BR><B>Author(s) </B>: <A 
+      href="mailto:wilka@frag.com">Wilka</A><BR><B>Skill(s) :</B> 
+      N/A<BR><B>Source Project(s) :</B> N/A<BR><B>Revision :</B> 1.0</FONT></P>
+      <H3><FONT face="Tahoma, Verdana">Bits</FONT></H3>
+      <P><FONT face="Tahoma, Verdana" size=2>This was going to be another 
+      tutorial showing how to do stuff with the Quake3 code. But I've had a lot 
+      of questions about the flags that q3 uses to determine if something is 
+      enabled or not, and a lot of people seem confused by statements like 
+      </FONT><FONT face="Courier New" size=2>if(tr.surfaceFlags &amp; 
+      SURF_NOIMPACT)</FONT><FONT face="Tahoma, Verdana" size=2>. This is a 
+      simple bit wise operation, and this kind of thing is used a lot in the 
+      Quake3 code. If you don't understand how it works, hopefully you will when 
+      you read this. The <I>surfaceFlags</I> member of the <I>tr</I> struct is a 
+      normal <I>int</I> and because an <I>int</I> is 32bits, using bit wise 
+      operations you can use an <I>int</I> as 32 Boolean variables. You might be 
+      wondering why you would want to go through the trouble of use bit wise 
+      operations when you can use 32 qbool variables instead. The biggest 
+      advantage for Quake3 is that an <I>int</I>, depend on the compiler/cpu, 
+      can take the same amount of memory as a bool (32 bits - for speed 
+      reasons). So if you want to send 32 qbool's over a network, you might need 
+      to send as much as 1024 bits. But if you use an int, it only task 32 bits 
+      to send the same amount of info. So doing it this way makes the best use 
+      of available bandwidth. Also, because of the same reasons, an <I>int</I> 
+      uses less memory that 32 qbool's. Using a single flag <I>int</I> also 
+      helps keep all related info together. So overall it's a better way of 
+      doing it. The only downside is it can be a little confusing.</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>The three main operators you'll use 
+      when doing bit operations are |, &amp; and ~. If you have any experience 
+      with logic gates (specially OR, AND and NOT), this should be pretty 
+      familiar to you. Because a computer needs to store data in binary format, 
+      everything is nothing but a group of 1's and 0's. In this case, an 
+      <I>int</I>, is 32 of these 'bits'. So you need to think in binary when 
+      working with bits. If you where to store the value '1' inside of an 
+      <I>int</I>, the computer would store it as 0000 0000 0000 0000 0000 0000 
+      0000 0001 (it's common practice to have binary numbers in groups of 4, 
+      like the way you use a "," in normal (decimal) numbers). So the only bit 
+      set in this <I>int</I> is the 1st bit (we go from right to left when 
+      counting the bits). The 2nd bit has a value of '2', the 3rd bit is '4', 
+      the 4th is '8', etc.. each time you move to the right the value of the bit 
+      doubles. To make it easier for you, instead of having to remember that bit 
+      9 has a value of 512, you can use the bit shift operators "&lt;&lt;" and 
+      "&gt;&gt;". These will move the number on the left along the row of bits 
+      in the direction they point. The number on the right is the number of 
+      times to shift-the-bits. So "1 &lt;&lt; 5" means move '1' to the left 5 
+      times. Since one is "0000 0000 0000 0000 0000 0000 0000 0001" this will 
+      give the result "0000 0000 0000 0000 0000 0000 0010 0000". The &gt;&gt; 
+      works the same, but moves the number to the left. &gt;&gt; isn't used much 
+      in the Q3 code, so we wont bother with it much here either. You can also 
+      Hexadecimal numbers, with Hexadecimal (or Hex for short) each column has a 
+      max value of 15. We use F to represent 15, since we can't use an extra 
+      column. So Hex goes from 0 to F and 9+1 = A. 128 in hex is 80 (that's zero 
+      1's and eight 16's - 8x16 = 128). In C we need to put 0x in front of a hex 
+      number, so the the compiler knows where' using hex instead of decimal. So 
+      if you see "#define SURF_NODRAW 0x80", you know it means the same as 
+      "#define SURF_NODRAW 128". Working in hex can make it easier with big 
+      numbers, but if your not comfortable with it you can use (1 &lt;&lt; 15) 
+      for defining you bit flags. If you want some more info on the way that hex 
+      &amp; binary work, you should have a look <A 
+      href="http://chem.csustan.edu/JTB/HELP/HEX/hex-def.htm">here</A>.</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>Now back to those &amp;, | and ~ 
+      things. &amp; is a bit wise and, which means only set bit X to one in the 
+      result if bit X is one on both side of the &amp;. So that means (0001 
+      &amp; 0001) would return 0001, since the 1st bit is one in both numbers. 
+      (0010 &amp; 0001) would return 0000, because there are not bits that are 1 
+      in both numbers. (0101 &amp; 0110) would return 0100, because the 3rd bit 
+      is the only one that is 1 in both numbers. So lets say we have an 
+      <I>int</I> called <I>surfaceFlags</I> that has a value of 19. In binary 
+      that would look like "0000 0000 0000 0000 0000 0000 0001 0011", bit 1, 2 
+      and 5 are the only ones that are set (i.e. 'on' or '1'). Then we might 
+      have another number called SURF_NOIMPACT, which has a value of 16. In 
+      binary that is "0000 0000 0000 0000 0000 0000 0001 0000". This number only 
+      has one bit set, the 5th bit, this is so we can check if this flag is set 
+      by using &amp;. If we use &amp; on both of these numbers, we'll get the 
+      answer 0000 0000 0000 0000 "0000 0000 0001 0000" because bit 5 is the only 
+      one that is set in both numbers. You can see this better if use columns, 
+      like this :</FONT></P>
+      <P><FONT face="Courier New">0000 0000 0000 0000 0000 0000 0001 0011 
+      &amp;<BR>0000 0000 0000 0000 0000 0000 0001 0000</FONT></P>
+      <P><FONT face="Courier New">0000 0000 0000 0000 0000 0000 0001 
+      0000</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>If we want to check for the 
+      SURF_NOIMPACT bit in a program, we would do this :</FONT></P>
+      <P><FONT face="Courier New" size=2>if( (surfaceFlags &amp; SURF_NOIMPACT) 
+      == SURF_NOIMPACT )</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>If the SURF_NOIMPACT bit is set, 
+      the &amp; operator will return SURF_NOIMPACT if not, it'll return 0. So we 
+      use == to check if it returns the value we're looking for. In C, 0 means 
+      false and any other number means true (including negative numbers, like 
+      -1). So if we wanted we could miss of the "== SURF_NOIMPACT" part and it 
+      would still mean the same thing. You should use "== SURF_IMPACT" if it 
+      makes it easier for you to understand, but it's not required.</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>The | operator is similar to &amp;, 
+      but each bit in the result will be 1 if either of the numbers have that 
+      bit set. For example):</FONT></P>
+      <P><FONT face="Courier New">0100 1000 |<BR>0000 1010</FONT></P>
+      <P><FONT face="Courier New">0100 1010</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>I'm using 8 bits here to save on 
+      typing, but it still works the same for any number of bits. The | operator 
+      isn't much use inside of an if statement, because it would be true unless 
+      both side of the | are 0. and we could use == for that, which would make 
+      our code more readable. But what | is good for is settings bits to 1. As 
+      you can see from the above example, using | sets all the bits that are set 
+      in both inputs. So if we do </FONT><FONT face="Tahoma, Verdana" 
+      size=2>"</FONT><FONT face="Courier New" size=2>surfaceFlags = surfaceFlags 
+      | SURF_NOIMPACT",</FONT><FONT face="Tahoma, Verdana" size=2> it would set 
+      the SURF_NOIMPACT bit to 1. It doesn't matter if it is already one or not, 
+      it will asways get set to 1 after we use this statement. Like the + and - 
+      operators, we can use an = with the | to save us some typing. Whereas i+=1 
+      would add 1 to i, "surfaceFlags |= SURF_NOIMPACT" will OR surfaceFlags 
+      with SURF_NOIMPACT, giving the same effect as the last bit of code. So to 
+      set a bit you use |=, and to check if a bit is set you use 
+      &amp;.</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>The only thing we need to know now 
+      is how to unset a bit. For that we use the ~ operator (bit-wise not). ~ 
+      only works on one number, the number to the right of it. What it does is 
+      invert the bits, so all the 1's become 0's and all the 0's become 1's. So 
+      "~0001" is the same as "1110". Once we have the opposite of the bit we 
+      want off, we &amp; it to turn it off. Like this :</FONT></P>
+      <P><FONT face="Courier New">0000 1000 ~&nbsp;<BR>1111 0111</FONT></P>
+      <P><FONT face="Courier New">1111 0111 &amp;<BR>0100 1010</FONT></P>
+      <P><FONT face="Courier New">0100 0010</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>So to set the SURF_NOIMPACT to bit 
+      to 0 in our surfaceExample, we do this "surfaceExample = surfaceExample 
+      &amp; ~SURF_NOIMPACT". As with the | operator, you use a shortcut like 
+      this "surfaceExample &amp;= ~SURF_NOIMPACT". So hopefully now things like 
+      "if ( tr.surfaceFlags &amp; SURF_NOIMPACT )" will make sense to 
+      you.</FONT></P>
+      <H3><FONT face="Tahoma, Verdana">#define, #if, #else, etc</FONT></H3>
+      <P><FONT face="Tahoma, Verdana" size=2>Another thing that a people seem 
+      confused about is what "#define" actually does. Some people think of it as 
+      "const int" or "cosnt float", but that's not exactly true. As will all the 
+      commands that start with #, they are commands for the compiler. You can 
+      probably tell what #include does from the way it's used. When the compiler 
+      sees a #include command, it replaces that command with the contents of the 
+      file. As if you had pasted the contents of one file into another. Using a 
+      similar analogy, the #define command works a lot like the Find &amp; 
+      Replace command you have in your word processor. When the compiler sees 
+      "#define X 10", it searches the file and replaces each occurrence of "X" 
+      with "10". It doesn't replace any X's that are part of a string, so 
+      printf("X is %d", X) will work the way you want it too. As with the 
+      #include command, #define doesn't change your source file. The find &amp; 
+      replace only happens on the copy of the file that the compiler has in it's 
+      memory. Using #define for your constant values saves you from manually 
+      going through your file and changing each instance of your constant by 
+      hand. It also lets you using meaningfull names instead of obscure numbes. 
+      </FONT><FONT face="Tahoma, Verdana" size=2>"if ( tr.surfaceFlags &amp; 
+      SURF_NOIMPACT )", makes a lot more sense than "if ( tr.surfaceFlags &amp; 
+      0x10)".&nbsp;</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>But I said #define is <I>almost</I> 
+      the same as find &amp; replace. That's because #define can take 
+      parameters. So you could do somthing like</FONT></P>
+      <P><FONT face="Courier New">#define greet(s) printf("Hello %s\n", 
+      s)</FONT></P>
+      <P><FONT face="Courier New">greet("Wilka");</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>When the compiler sees this, it 
+      will replace greet("Wilka")<I> </I>with printf("Hello %s\n", "Wilka"). 
+      There isn't much of a point in this #define (also know as <I>macros</I>), 
+      as it doesn't help very much. But if you look in q_shard.h, you'll see 
+      that id have used macros for most of the vector commands. If they didn't 
+      do this, it would have been much more awkward to copy one vector to 
+      another.&nbsp;</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>Another commonly used # command is 
+      #if. Like the normal if command in, #if is used to only do something if a 
+      condition is true. But unlike the C if command, #if is used to optionally 
+      compile sections of code. You use #endif to close you #if, and you can use 
+      #else to compile a different section of code if the #if is false. So with 
+      this block of code</FONT></P>
+      <P><FONT face="Courier New">#if 1<BR>&nbsp;&nbsp;&nbsp; 
+      printf("Hello\n");<BR>#else<BR>&nbsp;&nbsp;&nbsp; 
+      printf("Goodbye\n");<BR>#endif</FONT><FONT face="Tahoma, Verdana" 
+      size=2><BR></FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>only the printf("hello\n"); command 
+      will be compiled, the printf("Goodbye\n"); will be missed out. A variation 
+      on the #if command is #ifdef, which is used to test if something is 
+      defined (via #define). So using #ifdef, you might see this kind of 
+      thing.</FONT></P>
+      <P><FONT face="Courier New">#ifdef WIN32<BR>&nbsp;&nbsp; char szSystem[] = 
+      {"Win32"};<BR>#else<BR>&nbsp;&nbsp; char szSytem[] = 
+      {"Unknown"};<BR>#endif</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>szSytem will be created with a 
+      value of "Win32" if you have "#define WIN32" in your code, if you don't it 
+      will have a value of "Unknown". You can see a better example of this in 
+      q_shared.h in the Quake3 source. "#if defined" can also be used in the 
+      same way as "#ifdef", it's up to you which one you use. They both have the 
+      same effect.</FONT></P>
+      <HR>
+
+      <P align=center><FONT face="Tahoma, Verdana" size=2>Tutorial by <A 
+      href="mailto:wilka@frag.com">Wilka</A></FONT><FONT size=2><BR><FONT 
+      face="Tahoma, Verdana"><A href="http://wiretap.gamedesign.net/">Wiretap 
+      Development</A></FONT><BR><FONT face="Tahoma, Verdana"><A 
+      href="http://www.planetquake.com/wiretap">Wiretap HQ</A></FONT></FONT></P>
+      <P align=center>&nbsp;</P>
+      <P align=left>&nbsp;</P>
+      <P align=left>&nbsp;</P></TD></TR>
+  <TR align=left vAlign=top>
+    <TD height=465></TD></TR></TBODY></TABLE>
+<P>&nbsp;</P><!-- #EndTemplate --></BODY></HTML>

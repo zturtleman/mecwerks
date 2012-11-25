@@ -1,0 +1,120 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304520375"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0051)http://www.gamepl.com/q3a/code/plasmateleporter.htm -->
+<HTML><HEAD><TITLE>GamePlanet - Quake 3 Arena</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE>A:link {
+	COLOR: #000000; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #000000; TEXT-DECORATION: none
+}
+A:active {
+	COLOR: #000000; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #868686; TEXT-DECORATION: underline
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY aLink=#808080 bgColor=#ffffff leftMargin=2 link=#000000 topMargin=0 
+vLink=#808080>
+<DIV align=left>
+<TABLE bgColor=#ffffff border=0 borderColor=#000000 borderColorDark=#000000 
+borderColorLight=#000000 cellPadding=2 height="100%" width=768>
+  <TBODY>
+  <TR>
+    <TD bgColor=#000000 colSpan=2 height=39 vAlign=top width=766>
+      <TABLE bgColor=#ffffff border=0 height="100%" width="100%">
+        <TBODY>
+        <TR>
+          <TD><A href="http://www.gamepl.com/index.shtml"><IMG alt=GamePlanet 
+            border=0 height=29 src="Teleporting Plasma Gun_files/logo.gif" 
+            width=182> </A></TD></TR></TBODY></TABLE></TD></TR>
+  <TR>
+    <TD bgColor=#000000 height="100%" vAlign=top width=151>
+      <TABLE bgColor=#ffffff border=0 cellPadding=0 height="100%" 
+        width="100%"><TBODY>
+        <TR>
+          <TD height="100%" vAlign=top><B><FONT face=Verdana size=2><A 
+            href="http://www.gamepl.com/index.shtml">Planet:</A><BR>- 
+            </FONT></B><FONT face=Verdana size=1><A 
+            href="http://www.gamepl.com/index.shtml">News</A><BR>- <A 
+            href="http://www.gamepl.com/contests.html">Contests</A><BR>- <A 
+            href="http://www.gamepl.com/staff.html">Staff</A> </FONT>
+            <P><B><FONT face=Verdana size=2>Quake 3 Arena:<BR></FONT></B><FONT 
+            face=Verdana size=1><FONT color=#000000 face="Verdana, Arial" 
+            size=1>- <A href="http://www.gamepl.com/q3a/index.htm">Home</A><BR>- 
+            <A href="http://www.gamepl.com/q3a/tuts.htm">Tutorials</A><BR>- <A 
+            href="http://www.gamepl.com/q3a/maps.htm">Maps</A><BR>- <A 
+            href="http://www.gamepl.com/q3a/files.htm">Files</A><BR>- <A 
+            href="http://www.gamepl.com/q3a/reviews.htm">Reviews</A><BR>- <A 
+            href="http://www.gamepl.com/q3a/mods.htm">Mods</A><BR>- <A 
+            href="http://www.gamepl.com/q3a/models.htm">Models</A> 
+            </FONT><BR><BR></FONT><FONT face=Verdana 
+            size=2><B>Games:<BR></B></FONT><FONT face=Verdana size=1>- <A 
+            href="http://www.gamepl.com/jk/">Jedi Knight</A><BR>- <A 
+            href="http://www.gamepl.com/q3a/">Quake 3 Arena</A><BR>- <A 
+            href="http://www.gamepl.com/ut/">Unreal 
+Tournament</A><BR></FONT></P>
+            <P><FONT face=Verdana size=2><B>Hosted Sites:<BR></B></FONT><FONT 
+            face=Verdana size=1>- <A href="http://rae.gamepl.com/">Rebel 
+            Alliance Editors</A><BR>- <A 
+            href="http://www.gamepl.com/hostme.html">Get 
+            Hosted</A></FONT><BR></P></TD></TR></TBODY></TABLE></TD>
+    <TD bgColor=#000000 height="100%" vAlign=top width=617>
+      <TABLE bgColor=#ffffff border=0 height="100%" width="100%">
+        <TBODY>
+        <TR>
+          <TD bgColor=#000000 height=28 vAlign=top>
+            <TABLE bgColor=#ffffff border=0 height="100%" width="100%">
+              <TBODY>
+              <TR>
+                <TD><FONT face=Verdana size=2><B>Quake 3 Arena/Teleporting 
+                  Plasma Gun:</B></FONT></TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD bgColor=#ffffff height="100%" vAlign=top><SMALL><SMALL><FONT 
+            face=Verdana><STRONG>Okay this tutorial is simple, open up 
+            g_missile.c. Find this part:</STRONG><BR></FONT></SMALL></SMALL>
+            <P><FONT color=#dd0000 face=Verdana size=1>// impact damage<BR>if 
+            (other-&gt;takedamage) {<BR>// FIXME: wrong damage direction?<BR>if 
+            ( ent-&gt;damage ) {<BR>vec3_t velocity;<BR>if( LogAccuracyHit( 
+            other, &amp;g_entities[ent-&gt;r.ownerNum] ) ) { 
+            g_entities[ent-&gt;r.ownerNum].client-&gt;ps.persistant[PERS_ACCURACY_HITS]++; 
+            hitClient = qtrue;<BR>}<BR>BG_EvaluateTrajectoryDelta( 
+            &amp;ent-&gt;s.pos, level.time, velocity );<BR>if ( VectorLength( 
+            velocity ) == 0 ) { velocity[2] = 1; // stepped on a 
+            grenade<BR>}<BR>G_Damage (other, ent, 
+            &amp;g_entities[ent-&gt;r.ownerNum], velocity,<BR>ent-&gt;s.origin, 
+            ent-&gt;damage, 0, ent-&gt;methodOfDeath); <BR>}<BR>}</FONT></P>
+            <P><SMALL><SMALL><SMALL><FONT 
+            face=Verdana><BR></FONT></SMALL></SMALL></SMALL><B><FONT 
+            color=#000000 face=Verdana size=1>And replace it with 
+            this:</FONT></B><SMALL><SMALL><SMALL><FONT 
+            face=Verdana><BR></FONT></SMALL></SMALL></SMALL></P>
+            <P><FONT color=#008000 face=Verdana size=1>// impact damage<BR>if 
+            (other-&gt;takedamage) {<BR>// FIXME: wrong damage direction?<BR>if 
+            ( ent-&gt;damage ) { <BR>vec3_t velocity;<BR>if( LogAccuracyHit( 
+            other, &amp;g_entities[ent-&gt;r.ownerNum] ) ) { 
+            g_entities[ent-&gt;r.ownerNum].client-&gt;ps.persistant[PERS_ACCURACY_HITS]++; 
+            hitClient = qtrue;<BR>}<BR>BG_EvaluateTrajectoryDelta( 
+            &amp;ent-&gt;s.pos, level.time, velocity );<BR>if ( VectorLength( 
+            velocity ) == 0 ) { velocity[2] = 1; // stepped on a 
+            grenade<BR>}<BR>if (!Q_stricmp(ent-&gt;classname, "plasma")) { 
+            <BR>G_Damage (other, ent, &amp;g_entities[ent-&gt;r.ownerNum], 
+            velocity,<BR>ent-&gt;s.origin, ent-&gt;damage, <BR>0, 
+            ent-&gt;methodOfDeath);<BR>if(other-&gt;health &gt; 0) { 
+            <BR>SelectSpawnPoint( other-&gt;client-&gt;ps.origin, origin, angles 
+            ); <BR>TeleportPlayer( other, origin, angles );<BR>}<BR>} else { 
+            G_Damage (other, ent, &amp;g_entities[ent-&gt;r.ownerNum], velocity, 
+            ent-&gt;s.origin, ent-&gt;damage, 0, 
+            ent-&gt;methodOfDeath);<BR>}<BR>}<BR>}</FONT></P>
+            <P><FONT face=Verdana><B><SMALL><SMALL>Created by <A 
+            href="http://www.inolen.com/">Inolen</A></SMALL></SMALL><BR><SMALL><SMALL>Email: 
+            </B><A href="mailto:admin@inolen.com"><STRONG>Contact 
+            Me</STRONG></A></SMALL></SMALL> </B><SMALL><SMALL><A 
+            href="mailto:admin@inolen.com"><STRONG>Contact 
+            Me</STRONG></A></SMALL></SMALL></FONT></P>
+            <P><FONT face=Verdana><SMALL><SMALL><STRONG>Give credit where 
+            needed!</STRONG></SMALL></SMALL></FONT> 
+  </P></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></DIV></BODY></HTML>

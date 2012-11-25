@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0055)http://quakestyle.telefragged.com/quake3/tutorial12.htm -->
+<HTML><HEAD><TITLE>Quake Style - Quake 3 Tutorials - Weapon Mods - Homing Rockets!!</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	FONT-FAMILY: verdana
+}
+TABLE {
+	FONT-FAMILY: verdana
+}
+TR {
+	FONT-FAMILY: verdana
+}
+TD {
+	FONT-FAMILY: verdana
+}
+INPUT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+TEXTAREA {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+SELECT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+OPTION {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+PRE {
+	FONT-FAMILY: verdana; FONT-WEIGHT: bold
+}
+A {
+	COLOR: #00ff00
+}
+A:hover {
+	COLOR: white; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=black text=#ffff80><FONT size=1>
+<DIV align=right>
+<TABLE border=0 cellSpacing=0 cellborder="0">
+  <TBODY>
+  <TR>
+    <TD align=middle><FONT size=1><B><FONT color=white>Quake Style - Quake 3 
+      Tutorials</FONT><BR><FONT color=#bbcc77>Weapon Mods </FONT><FONT 
+      color=#ff8000>- Homing Rockets!!</FONT><BR>Makes your rocket launcher 
+      shoot homing missiles! </B></FONT></TD></TR></TBODY></TABLE></DIV><BR><!-- START TUTORIAL -->I'm sure 
+you'll all love this one. Firstly and most importantly, credit goes out to <A 
+href="mailto:chilton@scci-ad.com">Chris Hilton</A> for his Quake 2 homing 
+missile tutorial on QDevels, which this one is mainly based off. 
+<BR><BR><B>Warning:</B> To do this tutorial you will need to have done the <A 
+href="http://quakestyle.telefragged.com/cgi-bin/view_tut.cgi?id=10">FindRadius 
+for Quake 3</A> and <A 
+href="http://quakestyle.telefragged.com/cgi-bin/view_tut.cgi?id=11">Visible for 
+Quake 3</A> tutorials. Thankyou :) <BR><BR>Open up g_missile.c. This is the only 
+file we will be changing! <BR>Find the fire_rocket function, take out the <FONT 
+color=#ff00ff><B>old code</FONT></B> and insert the <FONT color=#00ffff><B>new 
+code</FONT></B>: <BR><PRE><FONT size=1>
+/*
+=================
+fire_rocket
+=================
+*/
+gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
+	gentity_t	*bolt;
+
+	VectorNormalize (dir);
+
+	bolt = G_Spawn();
+	bolt-&gt;classname = "rocket";
+<FONT color=#ff00ff>	bolt-&gt;nextthink = level.time + 10000;
+	bolt-&gt;think = G_ExplodeMissile;</FONT>
+<FONT color=#00ffff>	bolt-&gt;nextthink = level.time + 60;
+	bolt-&gt;think = G_HomingMissile;</FONT>
+	bolt-&gt;s.eType = ET_MISSILE;
+	bolt-&gt;r.svFlags = SVF_USE_CURRENT_ORIGIN;
+	bolt-&gt;s.weapon = WP_ROCKET_LAUNCHER;
+	bolt-&gt;r.ownerNum = self-&gt;s.number;
+	bolt-&gt;parent = self;
+	bolt-&gt;damage = 100;
+	bolt-&gt;splashDamage = 100;
+	bolt-&gt;splashRadius = 120;
+	bolt-&gt;methodOfDeath = MOD_ROCKET;
+	bolt-&gt;splashMethodOfDeath = MOD_ROCKET_SPLASH;
+	bolt-&gt;clipmask = MASK_SHOT;
+
+	bolt-&gt;s.pos.trType = TR_LINEAR;
+	bolt-&gt;s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
+	VectorCopy( start, bolt-&gt;s.pos.trBase );
+	VectorScale( dir, 900, bolt-&gt;s.pos.trDelta );
+	SnapVector( bolt-&gt;s.pos.trDelta );			// save net bandwidth
+	VectorCopy (start, bolt-&gt;r.currentOrigin);
+
+	return bolt;
+}
+</FONT></PRE><BR>OK. Next, just above that function, insert a new one: <BR><PRE><FONT size=1><FONT color=#00ffff>
+/*
+================
+G_HomingMissile
+
+================
+*/
+void G_HomingMissile( gentity_t *ent )
+{
+	gentity_t	*target = NULL;
+	gentity_t	*blip = NULL;
+	vec3_t  dir, dir2, blipdir, start;
+	vec_t	speed;
+
+	while ((blip = findradius(blip, ent-&gt;r.currentOrigin, 1000)) != NULL)
+	{
+		if (!blip-&gt;client)
+			continue;
+		if (blip == ent-&gt;parent)
+			continue;
+		if (blip-&gt;health &lt;= 0)
+			continue;
+		if (blip-&gt;client-&gt;sess.sessionTeam == TEAM_SPECTATOR)
+			continue;
+		if ( (g_gametype.integer == GT_TEAM || g_gametype.integer == GT_CTF) &amp;&amp; blip-&gt;client-&gt;sess.sessionTeam == blip-&gt;parent-&gt;client-&gt;sess.sessionTeam)
+			continue;
+		if (!visible (ent, blip))
+			continue;
+
+		VectorSubtract(blip-&gt;r.currentOrigin, ent-&gt;r.currentOrigin, blipdir);
+		blipdir[2] += 16;
+		if ((target == NULL) || (VectorLength(blipdir) &lt; VectorLength(dir)))
+		{
+			target = blip;
+			VectorCopy(blipdir, dir);
+		}
+	}
+
+	if (target != NULL)
+	{
+		VectorCopy( ent-&gt;r.currentOrigin, start );
+		VectorCopy( ent-&gt;r.currentAngles, dir2 );
+
+		// target acquired, nudge our direction toward it
+		VectorNormalize(dir);
+		VectorScale(dir, 0.4, dir);
+		VectorAdd(dir, dir2, dir);
+		VectorNormalize(dir);
+
+		VectorCopy ( start, ent-&gt;s.pos.trBase );
+		VectorScale ( dir, 100, ent-&gt;s.pos.trDelta );
+		SnapVector ( ent-&gt;s.pos.trDelta );                      // save net bandwidth
+		VectorCopy ( start, ent-&gt;r.currentOrigin );
+		VectorCopy ( dir, ent-&gt;r.currentAngles );
+	}
+
+	ent-&gt;nextthink = level.time + 20;
+}
+</FONT>
+</FONT></PRE><BR>Alright, that should be it. Compile, and play. <BR><BR>Have fun 
+shooting homing missiles of death. <BR><BR><B>Update:</B> <BR>I've been having 
+some *ahem* problems with this tutorial. Various problems have been reported. 
+The only thing I can reccomend is to not trust this tutorial completely. <BR>If 
+anybody actually has definite fixes to this then feel free to <A 
+href="mailto:samthorogood@yahoo.com">e-mail me</A> with them. Thanks. <!--- END TUTORIAL ---><BR><BR><FONT color=#ff8000><B>-- Credits:</B></FONT> 
+<BR>&nbsp;&nbsp; Tutorial by <A 
+href="mailto:samthorogood@yahoo.com"><B>(nobody)</B></A> <BR>&nbsp;&nbsp; Return 
+to <A href="http://quakestyle.telefragged.com/tuts.shtml"><B>QS 
+Tutorials</B></A> <BR><BR><FONT color=#ff8000><B>-- Important:</B></FONT> 
+<BR>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please 
+give us credit. <BR>&nbsp;&nbsp; Our code is copyrighted, but we give permission 
+to everyone to use it in any way they see fit, as long as we are recognized. 
+</FONT></BODY></HTML>

@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0053)http://www.planetquake.com/qdevels/quake2/2_5_98.html -->
+<HTML><HEAD><TITLE>Quake DeveLS - Concussion Grenades</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<SCRIPT language=JavaScript>
+<!-- Hide from non-Jscript browsers
+function msg(msgtext)
+{
+window.status=msgtext
+return
+}
+//-->
+</SCRIPT>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY aLink=#ffdd00 bgColor=#000000 link=#ffdd00 text=#eeeecc 
+vLink=#ffdd00><FONT color=#ffdd00 face="Arial Black" size=4>Quake DeveLS - 
+Concussion Grenades</FONT> 
+<P><FONT color=#eeeecc face="Tahoma, Arial" size=2>
+<P><B>Author:</B> <A href="mailto:cryect@captured.com">John Rittenhouse 
+</A><BR><B>Difficulty:</B> <FONT color=#ffdd00><B>Easy </B></FONT>
+<P><FONT color=#eeeecc face="Tahoma, Arial" size=2><FONT color=#ffdd00 
+face=Arial size=2><B>Let's Do It...</B>
+<P></FONT>Alright here is those concussion grenades from Team Fortress with some 
+things added in. This code is not taken from the Team Fortress source code at 
+all and is total written new by me, John Rittenhouse. SO here we go. Also make 
+notice I set my grenades up so they can be killed so make sure you do that 
+tutorial I forget who did that one but thanx.
+<P>Okay open up "g_weapon.c" now add at the end this code.
+<P>
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>/*
+===========================
+Concussion Grenades
+===========================
+*/
+void Concussion_Explode (edict_t *ent)
+   {
+     vec3_t      offset,v;
+     edict_t *target;
+	float Distance, DrunkTimeAdd;	
+    // Move it off the ground so people are sure to see it
+    VectorSet(offset, 0, 0, 10);    
+    VectorAdd(ent-&gt;s.origin, offset, ent-&gt;s.origin);
+
+    if (ent-&gt;owner-&gt;client)
+       PlayerNoise(ent-&gt;owner, ent-&gt;s.origin, PNOISE_IMPACT);
+
+    target = NULL;
+    while ((target = findradius(target, ent-&gt;s.origin, 520)) != NULL)
+    {
+        if (!target-&gt;client)
+            continue;       // It's not a player
+        if (!visible(ent, target))
+            continue;       // The grenade can't see it
+		// Find distance
+		VectorSubtract(ent-&gt;s.origin, target-&gt;s.origin, v);
+		Distance = VectorLength(v);
+		// Calculate drunk factor
+		if(Distance &lt; 520/10)
+			DrunkTimeAdd = 20; //completely drunk
+        else
+            DrunkTimeAdd = 1.5 * 20 * ( 1 / ( ( Distance - 520*2 ) / (520*2) - 2 ) + 1 ); //partially drunk
+        if ( DrunkTimeAdd &lt; 0 )
+            DrunkTimeAdd = 0; // Do not make drunk at all.
+    
+              
+        // Increment the drunk time
+        if(target-&gt;DrunkTime &lt; level.time)
+			target-&gt;DrunkTime = DrunkTimeAdd+level.time;
+		else
+			target-&gt;DrunkTime += DrunkTimeAdd;               
+	}
+
+   // Blow up the grenade
+   BecomeExplosion1(ent);
+}
+
+void fire_concussiongrenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius)
+{
+	edict_t	*grenade;
+	vec3_t	dir;
+	vec3_t	forward, right, up;
+
+	vectoangles (aimdir, dir);
+	AngleVectors (dir, forward, right, up);
+
+	grenade = G_Spawn();
+	VectorCopy (start, grenade-&gt;s.origin);
+	VectorScale (aimdir, speed, grenade-&gt;velocity);
+	VectorMA (grenade-&gt;velocity, 200 + crandom() * 30.0, up, grenade-&gt;velocity);
+	VectorMA (grenade-&gt;velocity, crandom() * 10.0, right, grenade-&gt;velocity);
+	VectorSet (grenade-&gt;avelocity, 300, 300, 300);
+	grenade-&gt;movetype = MOVETYPE_BOUNCE;
+	grenade-&gt;clipmask = MASK_SHOT;
+	grenade-&gt;solid = SOLID_BBOX;
+	grenade-&gt;s.effects |= EF_GRENADE;
+	VectorClear (grenade-&gt;mins);
+	VectorClear (grenade-&gt;maxs);
+	grenade-&gt;s.modelindex = gi.modelindex ("models/objects/grenade/tris.md2");
+	grenade-&gt;owner = self;
+	grenade-&gt;touch = Grenade_Touch; //Stuff for cluster grenades when they explode
+	grenade-&gt;nextthink = level.time + timer;
+	grenade-&gt;think = Concussion_Explode; //stuff for cluster grenades exploding
+	grenade-&gt;dmg = damage;
+	grenade-&gt;dmg_radius = damage_radius;
+	grenade-&gt;classname = "concussion";
+	VectorSet(grenade-&gt;mins, -3, -3, 0);
+	VectorSet(grenade-&gt;maxs, 3, 3, 6);
+	grenade-&gt;mass = 2;
+	grenade-&gt;health = 10;
+	grenade-&gt;die = Grenade_Die;
+	grenade-&gt;takedamage = DAMAGE_YES;
+	grenade-&gt;monsterinfo.aiflags = AI_NOSTEP;
+
+	gi.linkentity (grenade);
+}
+</PRE></FONT></BLOCKQUOTE>Alright now open up "p_view.c" and goto "void 
+SV_CalcViewOffset (edict_t *ent)" add this at the top of it. 
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>	edict_t *Bub;
+	float		bob;
+</PRE></FONT></BLOCKQUOTE>ALright now go below the code 
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>	if (bobcycle &amp; 1)
+		delta = -delta;
+	angles[ROLL] += delta;
+</PRE></FONT></BLOCKQUOTE>and add this now. 
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>		//add angles based on drunkness
+		if (ent-&gt;DrunkTime &gt; level.time)
+		{
+			bubble = bubble + 1;
+			if (bubble == 10)
+			{
+				Bub = G_Spawn();
+				Bub-&gt;movetype = MOVETYPE_NOCLIP;
+				Bub-&gt;clipmask = MASK_SHOT;
+				Bub-&gt;solid = SOLID_NOT;
+				VectorClear (Bub-&gt;mins);
+				VectorClear (Bub-&gt;maxs);
+				VectorSet (Bub-&gt;velocity,0,0,10);
+				Bub-&gt;s.modelindex = gi.modelindex ("sprites/s_bubble.sp2");
+				Bub-&gt;nextthink = level.time + 2;
+				Bub-&gt;think = G_FreeEdict;
+				VectorCopy(ent-&gt;s.origin,Bub-&gt;s.origin);
+				gi.linkentity(Bub);
+				bubble = 0;
+			}
+			ent-&gt;client-&gt;ps.rdflags |= RDF_UNDERWATER;
+			if(YDirection)
+				ent-&gt;DizzyYaw += random()*6;
+			else
+				ent-&gt;DizzyYaw -= random()*6;
+			if(PDirection)
+				ent-&gt;DizzyPitch += random()*5;
+			else
+				ent-&gt;DizzyPitch -= random()*5;
+			if(RDirection)
+				ent-&gt;DizzyRoll += random()*3;
+			else
+				ent-&gt;DizzyRoll -= random()*3;
+			if (ent-&gt;DizzyYaw &lt; -35)
+				YDirection = 1;
+			if (ent-&gt;DizzyYaw &gt; 35)
+				YDirection = 0;
+			if (ent-&gt;DizzyPitch &lt; -25)
+				PDirection = 1;
+			if (ent-&gt;DizzyPitch &gt; 25)
+				PDirection = 0;
+			if (ent-&gt;DizzyRoll &lt; -25)
+				RDirection = 1;
+			if (ent-&gt;DizzyRoll &gt; 25)
+				RDirection = 0;
+			angles[YAW] += ent-&gt;DizzyYaw;
+			angles[PITCH] += ent-&gt;DizzyPitch;
+			angles[ROLL] += ent-&gt;DizzyRoll;
+			}
+</PRE></FONT></BLOCKQUOTE>Now goto the end of the sub "void G_SetClientEffects 
+(edict_t *ent)" and add this. 
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>	if (ent-&gt;DrunkTime&gt;level.time)
+		ent-&gt;client-&gt;ps.rdflags |= RDF_UNDERWATER;
+</PRE></FONT></BLOCKQUOTE>Okay this should work. I hope all the bugs are out of 
+this. 
+<P><A href="mailto:cryect@captured.com">John Rittenhouse </A>. 
+<P><!-- Quake DeveLS Standard Footer -->
+<TABLE border=0 cellPadding=0 cellSpacing=0 width=700 VALIGN="TOP">
+  <TBODY>
+  <TR>
+    <TD>
+      <CENTER><FONT color=#eeeeee face=ARIAL size=1>
+      <P>This site, and all content and graphics displayed on it,<BR>are 
+      ©opyrighted to the <A 
+      href="http://www.planetquake.com/qdevels/index.shtml" 
+      onmouseover="msg('Quake Developers library site')">Quake DeveLS</A> team. 
+      All rights received.<BR>Got a suggestion? Comment? Question? Hate mail? <A 
+      href="mailto:puke@planetquake.com" 
+      onmouseover="msg('Email Quake DeveLS')">Send it</A> to us!<BR>Oh yeah, 
+      this site is best viewed in 16 Bit or higher, with the resolution on 
+      800*600.<BR>Thanks to <A href="http://www.planetquake.com/" 
+      onmouseover="msg('Planet Quake')">Planet Quake</A> for their great help 
+      and support with hosting.<BR>Best viewed with <A 
+      href="http://www.netscape.com/" onmouseover="msg('Netscape 4')">Netscape 
+      4</A><BR></FONT></CENTER></P></TD></TR></TBODY></TABLE></P></FONT></FONT></BODY></HTML>

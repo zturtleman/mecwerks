@@ -1,0 +1,833 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304589890"></SCRIPT><!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Author" content="Mark Smeltzer">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (Win98; I) [Netscape]">
+   <title>Q3 Tutorial: Adding Customizable Weapon Switching</title>
+</head>
+<body text="#FFFFFF" bgcolor="#000000" link="#FFFF00" vlink="#FFCC00" alink="#FFFFCC">
+<font face="Arial,Helvetica"><font color="#FFFFFF"><font size=-1>This
+code is Copyright (c) 2000 by Mark "WarZone" Smeltzer. You may freely use
+this code as long a credit for its existance is given to the author.</font></font></font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica">Author:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Mark "WarZone" Smeltzer</font>
+<br><font face="Arial,Helvetica">Contact Email:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+warzone@planetquake.com</font>
+<br><font face="Arial,Helvetica">Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Assimilation Tutorial #1: Customizable Weapon Switching</font>
+<br><font face="Arial,Helvetica">Difficulty:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Medium - Hard (easy to cut-n-paste, a bit difficult to fully understand)</font>
+<br><font face="Arial,Helvetica">Estimated Completion Time:&nbsp;&nbsp;
+10 - 20 minutes</font>
+<p><font face="Arial,Helvetica">Coolness Factor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+93.687%</font>
+<br><font face="Arial,Helvetica">Usefulness Factor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+98.234%</font>
+<br><font face="Arial,Helvetica">Ease Of Use Factor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+42.713%</font>
+<p><font face="Arial,Helvetica">Improvement Suggestion:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Develope an easy to use GUI program or UI extension to easily set the cg_weaponOrder
+variable</font>
+<p><font face="Arial,Helvetica"><a href="#history">Click here for revision
+history</a></font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica">Downloads:</font>
+<p><font face="Arial,Helvetica">I will be posting a compiled versions tutorial
+(implemented in unmodified Q3A source) in both DLL and QVM formats.</font>
+<br><font face="Arial,Helvetica">I will also post a version of the Q3A
+source with this tutorial fully implemented.</font>
+<p><font face="Arial,Helvetica">check back in a day or two...</font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica">Tutorial Overview:</font>
+<p><font face="Arial,Helvetica">This tutorial will allow each client that
+plays your mod to have their own customizable weapon switching. Quake2
+had locked weapon precedences, but back in the days of the original Quake
+each player could choose their own precedences. So in Quake2 the BFG was
+the "best" gun, then the rail gun, then hyperblaster, then rocket launcher,
+etc. But in Quake you could choose your own order.</font>
+<p><font face="Arial,Helvetica">So what cool weapon switching features
+did Quake3 bring us? None; sadly. In Quake3 you have two options: auto
+switch, and manual switch. Autoswitch means that any time you pick up a
+weapon you will automatically use it. Even if you've got the BFG in hands
+and you pick up a shot gun you'll be forced to draw the shot gun. Talk
+about lame... And manual switch is even worse! In manual mode it never
+forces you to draw a gun. So you have to manually switch to the guns as
+you pick them up.</font>
+<p><font face="Arial,Helvetica">Neither of the methods in Quake3 is acceptable
+to the hard core gamer. So we're going to do something about it : )</font>
+<p><font face="Arial,Helvetica">This tutorial will show you how to implement
+Quake style weapon switching which is fully customizable on a per user
+basis. Each user will have a cvar "cg_weaponOrder" that controls their
+weapon preferences. Let's get started then...</font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica">Color Codes:</font>
+<p><font face="Arial,Helvetica">Text in <font color="#00FFFF">cyan</font>
+is code that needs to be added. Text in <font color="#FF0000">red</font>
+is code that needs to be deleted/commented out.</font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica">Files Changed:</font>
+<p><font face="Arial,Helvetica">We'll be modifying the following files:</font>
+<ul>
+<li>
+<font face="Arial,Helvetica">cg_weapons.c</font></li>
+
+<li>
+<font face="Arial,Helvetica">cg_main.c (fix added 2/10/00)</font></li>
+
+<li>
+<font face="Arial,Helvetica">cg_local.h</font></li>
+
+<li>
+<font face="Arial,Helvetica">cg_event.c</font></li>
+
+<li>
+<font face="Arial,Helvetica">g_items.c (fix added 2/11/00)</font></li>
+
+<li>
+<font face="Arial,Helvetica">g_main.c</font></li>
+
+<li>
+<font face="Arial,Helvetica">bg_public.h (fix added 2/11/00)</font></li>
+</ul>
+<font face="Arial,Helvetica">So this is both a server side and client side
+modification. It can be done client side only, but by doing so you'll loose
+some important functionality (which will be explained later).</font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica">The Tutorial:</font>
+<p><font face="Arial,Helvetica">First open cg_local.h and find the "cg_main.c"
+definitions:</font>
+<blockquote><tt>//</tt>
+<br><tt>// cg_main.c</tt>
+<br><tt>//</tt>
+<br><tt>const char *CG_ConfigString( int index );</tt>
+<br><tt>const char *CG_Argv( int arg );</tt>
+<p><tt>void QDECL CG_Printf( const char *msg, ... );</tt>
+<br><tt>void QDECL CG_Error( const char *msg, ... );</tt>
+<p><tt>void CG_StartMusic( void );</tt>
+<p><tt>void CG_UpdateCvars( void );</tt>
+<p><tt>int CG_CrosshairPlayer( void );</tt>
+<br><tt>int CG_LastAttacker( void );</tt>
+<p><tt><font color="#00FFFF">//WarZone</font></tt>
+<br><tt><font color="#00FFFF">#define NUM_WEAPS 9</font></tt>
+<br><tt><font color="#00FFFF">extern&nbsp; int cg_weaponsCount;</font></tt>
+<br><tt><font color="#00FFFF">extern&nbsp; int weaponOrder[NUM_WEAPS];</font></tt>
+<br><tt><font color="#00FFFF">extern&nbsp; int weaponRawOrder[NUM_WEAPS];</font></tt>
+<br><tt><font color="#00FFFF">int RateWeapon (int weapon);</font></tt>
+<br><tt><nobr><font color="#00FFFF">int NextWeapon (int curr);</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">int PrevWeapon (int curr);</font></nobr></tt></blockquote>
+<font face="Arial,Helvetica">Save and close cg_local.h, we're done with
+that file.</font>
+<p><font face="Arial,Helvetica">Now open cg_main.c and find the cvar definitions:</font>
+<blockquote><tt>vmCvar_t cg_deferPlayers;</tt>
+<br><tt>vmCvar_t cg_drawTeamOverlay;</tt>
+<br><tt>vmCvar_t cg_teamOverlayUserinfo;</tt>
+<p><tt><font color="#00FFFF">vmCvar_t cg_weaponOrder; //WarZone</font></tt>
+<br><tt><font color="#00FFFF">int cg_weaponsCount = -1; //WarZone</font></tt></blockquote>
+<font face="Arial,Helvetica">Now find the cvar table:</font>
+<blockquote><tt>&nbsp;{ &amp;cg_buildScript, "com_buildScript", "0", 0
+}, // force loading of all possible data amd error on failures</tt>
+<br><tt>&nbsp;{ &amp;cg_paused, "cl_paused", "0", CVAR_ROM },</tt>
+<br><tt>&nbsp;{ &amp;cg_blood, "com_blood", "1", CVAR_ARCHIVE },</tt>
+<br><tt>&nbsp;{ &amp;cg_syncronousClients, "g_syncronousClients", "0",
+0 }<font color="#00FFFF">,</font> // communicated by systeminfo</tt>
+<br><tt><font color="#00FFFF">&nbsp;{ &amp;cg_weaponOrder, "cg_weaponOrder",
+"1/2/3/4/5/6/7/8/9", CVAR_ARCHIVE }, //WarZone</font></tt></blockquote>
+<font face="Arial,Helvetica">Note: you might need to add a comma at the
+end of the cg_syncronousClients definition (I put that comma in cyan but
+its hardly obvious).</font>
+<p><font face="Arial,Helvetica">Now we're going to add the bulk of my new
+code. The new code will live right below the cvar table:</font>
+<blockquote><tt><nobr>&nbsp;{ &amp;cg_buildScript, "com_buildScript", "0",
+0 }, // force loading of all possible data amd error on failures</nobr></tt>
+<br><tt><nobr>&nbsp;{ &amp;cg_paused, "cl_paused", "0", CVAR_ROM },</nobr></tt>
+<br><tt><nobr>&nbsp;{ &amp;cg_blood, "com_blood", "1", CVAR_ARCHIVE },</nobr></tt>
+<br><tt><nobr>&nbsp;{ &amp;cg_syncronousClients, "g_syncronousClients",
+"0", 0 }, // communicated by systeminfo</nobr></tt>
+<br><tt><nobr>&nbsp;{ &amp;cg_weaponOrder, "cg_weaponOrder", "1/2/3/4/5/6/7/8/9",
+CVAR_ARCHIVE }, //WarZone</nobr></tt>
+<br><tt><nobr>};</nobr></tt>
+<p><tt><nobr><font color="#FFFFFF">int&nbsp; cvarTableSize = sizeof( cvarTable
+) / sizeof( cvarTable[0] );</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">//&lt;WarZone></font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">int weaponOrder[NUM_WEAPS];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">int weaponRawOrder[NUM_WEAPS];</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">int NextWeapon (int curr)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">{</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int i;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int w = -1;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; for (i = 0; i &lt; NUM_WEAPS;
+i++)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (weaponRawOrder[i]
+== curr)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; w =
+i;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; }</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; if (w == -1)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; return curr; //shouldn't
+happen</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; return weaponRawOrder[(w + 1)
+% NUM_WEAPS];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">}</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">int PrevWeapon (int curr)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">{</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int i;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int w = -1;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; for (i = 0; i &lt; NUM_WEAPS;
+i++)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (weaponRawOrder[i]
+== curr)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; w =
+i;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; }</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; if (w == -1)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; return curr; //shouldn't
+happen</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; return weaponRawOrder[w - 1 >=
+0 ? w - 1 : NUM_WEAPS - 1];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">}</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">int RateWeapon (int weapon)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">{</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; weapon--;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; if (weapon > 8 || weapon &lt;
+0)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; return 0; //bad
+weapon</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; return weaponOrder[weapon];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">}</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">int contains(int *list, int size, int
+number)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">{</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int i;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; for (i = 0; i &lt; size; i++)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (list[i] == number)
+return 1;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; return 0;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">}</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">void UpdateWeaponOrder (void)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">{</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; char *order = cg_weaponOrder.string;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; char weapon[3];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int i, start;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int tempOrder[NUM_WEAPS];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int weapUsed[NUM_WEAPS];</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; int temp;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; weapon[1] = '\0';</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; memset(tempOrder, 0, sizeof(tempOrder));</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; memset(weapUsed, 0, sizeof(weapUsed));</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; i = 0;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; while (order != NULL &amp;&amp;
+*order != '\0' &amp;&amp; i &lt; NUM_WEAPS)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; weapon[0] = *order;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; order++;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (*order != '\\'
+&amp;&amp; *order != '/') //typo fixed 2/10/00</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; weapon[1]
+= *order;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; weapon[2]
+= '\0';</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; order++;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; } else {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; weapon[1]
+= '\0';</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (*order != '\0')</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; order++;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; temp = atoi( weapon
+);</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (temp &lt; 1
+|| temp > NUM_WEAPS)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CG_Printf(
+"Error: %i is out of range. Ignoring..\n", temp );</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; else if ( contains(
+tempOrder, sizeof(tempOrder)/sizeof(tempOrder[0]), temp ) )</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CG_Printf(
+"Error: %s (%i) already in list. Ignoring..\n", (BG_FindItemForWeapon(
+temp ))->pickup_name, temp );</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; } else {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; tempOrder[i]
+= temp;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; weapUsed[temp
+- 1] = 1;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; i++;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; }</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; //error checking..</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; start = 0;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; for (i = 0; i &lt; NUM_WEAPS;
+i++)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; {</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if (weapUsed[i])</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; continue;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; CG_Printf( "Error:
+%s (%i) not in list. Adding it to front of the list..\n", (BG_FindItemForWeapon(
+i + 1 ))->pickup_name, i + 1 );</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; weaponRawOrder[start++]
+= i + 1;</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; }</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; //build the raw order list</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; for (i = start; i &lt; NUM_WEAPS;
+i++)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; weaponRawOrder[i]
+= tempOrder[i - start];</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">&nbsp; //built the remaping table</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp; for (i = 0; i &lt; NUM_WEAPS;
+i++)</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">&nbsp;&nbsp;&nbsp; weaponOrder[weaponRawOrder[i]
+- 1] = i + 1;</font></nobr></tt>
+<p><tt><nobr><font color="#00FFFF">}</font></nobr></tt>
+<br><tt><nobr><font color="#00FFFF">//&lt;/WarZone></font></nobr></tt></blockquote>
+<font face="Arial,Helvetica">Ok now let's talk about what that code does
+for a sec. We just added NextWeapon(), PrevWeapon(), RateWeapon(), contains(),
+and UpdateWeaponOrder(). UpdateWeaponOrder() will be called everytime a
+player modifies their weapon order. NextWeapon() and PrevWeapon() are used
+to cycle through the players' weapon precendeces. RateWeapon() returns
+the "rating" of a weapon which is used to determine if a new weapon is
+better than the one the player is already carrying. contains() is a simple
+helper function which returns true if a list contains a certain value.</font>
+<p><font face="Arial,Helvetica">Now find CG_UpdateCvars():</font>
+<blockquote><tt>void CG_UpdateCvars( void ) {</tt>
+<br><tt>&nbsp;int&nbsp;&nbsp; i;</tt>
+<br><tt>&nbsp;cvarTable_t *cv;</tt>
+<p><tt>&nbsp;for ( i = 0, cv = cvarTable ; i &lt; cvarTableSize ; i++,
+cv++ ) {</tt>
+<br><tt>&nbsp; trap_Cvar_Update( cv->vmCvar );</tt>
+<br><tt>&nbsp;}</tt>
+<p><tt>&nbsp;// check for modications here</tt>
+<p><tt>&nbsp;// If team overlay is on, ask for updates from the server.&nbsp;
+If its off,</tt>
+<br><tt>&nbsp;// let the server know so we don't receive it</tt>
+<br><tt>&nbsp;if ( drawTeamOverlayModificationCount != cg_drawTeamOverlay.modificationCount
+) {</tt>
+<br><tt>&nbsp; drawTeamOverlayModificationCount = cg_drawTeamOverlay.modificationCount;</tt>
+<p><tt>&nbsp; if ( cg_drawTeamOverlay.integer > 0 ) {</tt>
+<br><tt>&nbsp;&nbsp; trap_Cvar_Set( "teamoverlay", "1" );</tt>
+<br><tt>&nbsp; } else {</tt>
+<br><tt>&nbsp;&nbsp; trap_Cvar_Set( "teamoverlay", "0" );</tt>
+<br><tt>&nbsp; }</tt>
+<br><tt>&nbsp;}</tt>
+<p><tt><font color="#00FFFF">&nbsp; //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; if ( cg_weaponsCount != cg_weaponOrder.modificationCount
+)</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; UpdateWeaponOrder();</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; cg_weaponsCount = cg_weaponOrder.modificationCount;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<br><tt>}</tt></blockquote>
+<font face="Arial,Helvetica">That code will call <font color="#FFFFFF">UpdateWeaponOrder()
+whenever the cvar "cg_weaponOrder" is modified.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Save and close cg_main.c,
+we're done with that file.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Next open cg_weapons.c
+and find the function CG_DrawWeaponSelect(). You can either comment out,
+or delete the old function. Replace it with this function instead:</font></font>
+<blockquote><tt><font color="#00FFFF">void CG_DrawWeaponSelect( void )
+{</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; i;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; bits;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; count;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; weap;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; x, y, w;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;char *name;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;float *color;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;// don't display if dead</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;if ( cg.predictedPlayerState.stats[STAT_HEALTH]
+&lt;= 0 ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;color = CG_FadeColor( cg.weaponSelectTime,
+WEAPON_SELECT_TIME );</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;if ( !color ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;trap_R_SetColor( color );</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;// showing weapon select clears pickup
+item display, but not the blend blob</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;cg.itemPickupTime = 0;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;// count the number of weapons owned</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;bits = cg.snap->ps.stats[ STAT_WEAPONS
+];</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;count = 0;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;for ( i = 1 ; i &lt; NUM_WEAPS ; i++
+) { //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; if ( bits &amp; ( 1 &lt;&lt;
+i ) ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; count++;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;x = 320 - count * 20;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;y = 380;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;weap = weaponRawOrder[NUM_WEAPS - 1];
+//WarZone -- select last weapon</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;for ( i = 0 ; i &lt; NUM_WEAPS ; i++
+) { //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; weap = NextWeapon( weap );</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp; if ( !( bits &amp; ( 1 &lt;&lt;
+weap ) ) ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; continue;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; }</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp; CG_RegisterWeapon( weap );</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp; // draw weapon icon</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; CG_DrawPic( x, y, 32, 32, cg_weapons[weap].weaponIcon
+);</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp; // draw selection marker</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; if ( weap == cg.weaponSelect
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; CG_DrawPic( x-4,
+y-4, 40, 40, cgs.media.selectShader );</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; }</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp; // no ammo cross on top</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; if ( !cg.snap->ps.ammo[ weap
+] ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; CG_DrawPic( x, y,
+32, 32, cgs.media.noammoShader );</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; }</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp; x += 40;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;// draw the selected name</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;if ( cg_weapons[ cg.weaponSelect ].item
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; name = cg_weapons[ cg.weaponSelect
+].item->pickup_name;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; if ( name ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; w = CG_DrawStrlen(
+name ) * BIGCHAR_WIDTH;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; x = ( SCREEN_WIDTH
+- w ) / 2;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; CG_DrawBigStringColor(x,
+y - 22, name, color);</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;trap_R_SetColor( NULL );</font></tt>
+<br><tt><font color="#00FFFF">}</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">This new function will
+display the weapons' icons in the player's customized weapon order -- very
+cool : )</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Now scroll down a
+bit and replace the function CG_NextWeapon_f() with this function:</font></font>
+<blockquote><tt><font color="#00FFFF">void CG_NextWeapon_f( void ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; i;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; original;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;if ( !cg.snap ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;if ( cg.snap->ps.pm_flags &amp; PMF_FOLLOW
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;cg.weaponSelectTime = cg.time;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;original = cg.weaponSelect;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp; for ( i = 0 ; i &lt; NUM_WEAPS ; i++
+) { //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; cg.weaponSelect = NextWeapon( cg.weaponSelect
+);//WarZone</font></tt>
+<p><tt><font color="#00FFFF">&nbsp; if ( cg.weaponSelect == WP_GAUNTLET
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; continue;&nbsp; // never cycle
+to gauntlet</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; if ( CG_WeaponSelectable( cg.weaponSelect
+) ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; break;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<br><tt><font color="#00FFFF">}</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">This function taps into
+the NextWeapon() function we added to cg_main.c to select the next weapon
+from the user's customized weapon order.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Scroll down again
+and replace CG_PrevWeapon_f() with this function:</font></font>
+<blockquote><tt><font color="#00FFFF">void CG_PrevWeapon_f( void ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; i;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp; original;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;if ( !cg.snap ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;if ( cg.snap->ps.pm_flags &amp; PMF_FOLLOW
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;cg.weaponSelectTime = cg.time;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;original = cg.weaponSelect;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;for ( i = 0 ; i &lt; NUM_WEAPS ; i++
+) { //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; cg.weaponSelect = PrevWeapon( cg.weaponSelect
+); //WarZone</font></tt>
+<p><tt><font color="#00FFFF">&nbsp; if ( cg.weaponSelect == WP_GAUNTLET
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; continue;&nbsp; // never cycle
+to gauntlet</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; if ( CG_WeaponSelectable( cg.weaponSelect
+) ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; break;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;}</font></tt>
+<br><tt><font color="#00FFFF">}</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">This function taps into
+the PrevWeapon() function we added to cg_main.c to select the weapon before
+the current weapon (not to be confused with "select the last weapon I was
+using" functionality) from the user's customized weapon order.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Keep scrolling down
+and replace CG_OutOfAmmoChange() with this function:</font></font>
+<blockquote><tt><font color="#00FFFF">void CG_OutOfAmmoChange( void ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; int&nbsp; i;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; int&nbsp; weap;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp; cg.weaponSelectTime = cg.time;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; weap = weaponRawOrder[NUM_WEAPS -
+1]; //WarZone -- pick the best weapon they have</font></tt>
+<p><tt><font color="#00FFFF">&nbsp; for ( i = 0 ; i &lt; NUM_WEAPS ; i++,
+weap = PrevWeapon( weap )) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if ( CG_WeaponSelectable(
+weap ) ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (weap !=
+WP_GAUNTLET)</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cg.weaponSelect = weap;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+return;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<p><tt><font color="#00FFFF">&nbsp; cg.weaponSelect = WP_GAUNTLET;</font></tt>
+<br><tt><font color="#00FFFF">}</font></tt>
+<br>&nbsp;</blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">This causes the best
+weapon the player has (accoring to their customized weapon order) to be
+selected. If no suitable weapon is found, the Gauntlet will be selected.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Save and close cg_weapons.c,
+we're done with that file.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Next open cg_event.c
+and find the function CG_ItemPickup() and replace it with this one:</font></font>
+<blockquote><tt><font color="#00FFFF">static void CG_ItemPickup( int itemNum,
+int isnewitem ) { //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; cg.itemPickup = itemNum;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; cg.itemPickupTime = cg.time;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; cg.itemPickupBlendTime = cg.time;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; // see if it should be the grabbed
+weapon</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; if ( bg_itemlist[itemNum].giType ==
+IT_WEAPON</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; &amp;&amp; isnewitem
+) //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; // select it immediately</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if ( cg_autoswitch.integer
+&amp;&amp; bg_itemlist[itemNum].giTag != WP_MACHINEGUN ) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (RateWeapon(
+bg_itemlist[itemNum].giTag) > RateWeapon( cg.weaponSelect )) //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cg.weaponSelectTime = cg.time;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cg.weaponSelect = bg_itemlist[itemNum].giTag;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; }</font></tt>
+<br><tt><font color="#00FFFF">}</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">If you were paying attention
+just then, you'd have noticed that I changed the function header for CG_ItemPickup()
+to include a new parameter "isnewitem". This is the part of the code where
+this modification switches from client side only to include server side
+changes. The reasoning behind this is that the client module has no effective
+way of deciding if the player has just collected an item, or it the player
+has had one for a while. There are methods of bypassing the server code,
+but none of them worked effectively (it is possible to create an "oldweapons"
+variable and compare the current set against the old set, but this method
+breaks when the player dies and looses all of his weapons at once).</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Now find the CG_EntityEvent()
+function and scroll down to the EV_ITEM_PICKUP event:</font></font>
+<blockquote><tt><font color="#00FFFF">&nbsp; case EV_ITEM_PICKUP2:</font></tt>
+<br><tt><font color="#00FFFF">&nbsp; DEBUGNAME("EV_ITEM_PICKUP");</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; es->number = es->otherEntityNum;
+//this is a bit of a hack.. but it works GRREAT!</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; case EV_ITEM_PICKUP:</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; DEBUGNAME("EV_ITEM_PICKUP");</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; gitem_t *item;</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; int&nbsp; index;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; int&nbsp;&nbsp; isnewitem; //WarZone</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; index = es->eventParm;&nbsp;
+// player predicted</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; isnewitem = es->otherEntityNum2;
+//WarZone</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; if ( index &lt; 1 || index >=
+bg_numItems ) {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp;&nbsp; break;</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; item = &amp;bg_itemlist[ index
+];</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; // powerups and team items will
+have a separate global sound, this one</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; // will be played at prediction
+time</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; if ( item->giType == IT_POWERUP
+|| item->giType == IT_TEAM) {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp;&nbsp;&nbsp; trap_S_StartSound
+(NULL, es->number, CHAN_AUTO, trap_S_RegisterSound( "sound/items/n_health.wav"
+) );</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; } else {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp;&nbsp;&nbsp; trap_S_StartSound
+(NULL, es->number, CHAN_AUTO, trap_S_RegisterSound( item->pickup_sound
+) );</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; }</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; // show icon and name on status
+bar</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; if ( es->number == cg.snap->ps.clientNum
+) {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;</font><font color="#FF0000">&nbsp;&nbsp;&nbsp;
+CG_ItemPickup( index ); //kill this line</font></tt>
+<br><tt><font color="#FF0000">&nbsp;</font><font color="#00FFFF">&nbsp;&nbsp;&nbsp;
+CG_ItemPickup( index, isnewitem ); //WarZone</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; }</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; break;</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">Here again is the reference
+of new server code. The es->otherEntityNum2 must be set server side so
+that the client code will know whether the item being picked up is a new
+item or not. The new "EV_ITEM_PICKUP2" event will be explained further
+down.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Next scroll down
+to the EV_GLOBAL_ITEM_PICKUP event and make the following change:</font></font>
+<blockquote><tt><font color="#FFFFFF">&nbsp;case EV_GLOBAL_ITEM_PICKUP:</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; DEBUGNAME("EV_GLOBAL_ITEM_PICKUP");</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; gitem_t *item;</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; int&nbsp; index;</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; index = es->eventParm;&nbsp;
+// player predicted</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; if ( index &lt; 1 || index >=
+bg_numItems ) {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp;&nbsp;&nbsp; break;</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; item = &amp;bg_itemlist[ index
+];</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; // powerup pickups are global</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; trap_S_StartSound (NULL, cg.snap->ps.clientNum,
+CHAN_AUTO, trap_S_RegisterSound( item->pickup_sound ) );</font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;&nbsp; // show icon and name on status
+bar</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; if ( es->number == cg.snap->ps.clientNum
+) {</font></tt>
+<br><tt><font color="#FF0000">&nbsp;&nbsp;&nbsp;&nbsp; CG_ItemPickup( index
+); //kill this line</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp; CG_ItemPickup( index,
+1 ); //WarZone</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;&nbsp; }</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; }</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; break;</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">That's it for cg_event.c,
+save and close.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Finally open g_items.c
+(in the /game code) and find the Touch_Item() function. We're only going
+to be making a few small changes:</font></font>
+<blockquote><tt><font color="#FFFFFF">void Touch_Item (gentity_t *ent,
+gentity_t *other, trace_t *trace) {</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;int&nbsp;&nbsp; respawn;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;int&nbsp;&nbsp; had = 1; //WarZone</font></tt>
+<br><tt><font color="#FFFFFF">...</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;case IT_WEAPON:</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; if ( other->client->ps.stats[STAT_WEAPONS]
+&amp; (1 &lt;&lt; ent->item->giTag) )</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; had = 1;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; else</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; had = 0;</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; respawn = Pickup_Weapon(ent, other);</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp; break;</font></tt>
+<br><tt><font color="#FFFFFF">...</font></tt>
+<br><tt><font color="#FF0000">&nbsp;if ( other->client->pers.predictItemPickup)
+{ //kill these lines</font></tt>
+<br><tt><font color="#FF0000">&nbsp;&nbsp; G_AddPredictableEvent( other,
+EV_ITEM_PICKUP, ent->s.modelindex );</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;if ( 0 ) { //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp; //do nothing...</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;} else {</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; //WarZone</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; gentity_t *event;</font></tt>
+<p><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; event = G_TempEntity(ent->s.origin,
+EV_ITEM_PICKUP2);</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; event->s.eventParm = ent->s.modelindex;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; event->s.otherEntityNum
+= other->s.number;</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; event->s.otherEntityNum2
+= !had; //WarZone -- used to tell cgame if its a new weapon</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;&nbsp;&nbsp; event->r.svFlags |= SVF_BROADCAST;
+//broadcast it to everyone</font></tt>
+<p><tt><font color="#FF0000">&nbsp;&nbsp;&nbsp; G_AddEvent( other, EV_ITEM_PICKUP,
+ent->s.modelindex ); //kill this line</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;}</font></tt>
+<br><tt><font color="#FFFFFF">...</font></tt>
+<br><tt><font color="#FFFFFF">}</font></tt></blockquote>
+<font color="#FFFFFF"><font face="Arial,Helvetica">Note: The "</font><tt>...</tt><font face="Arial,Helvetica">"
+lines mean "some code in between" -- do not put the "</font><tt>...</tt><font face="Arial,Helvetica">"
+lines in your code.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">If you were paying
+attention just then you realized that we just made a drastic change to
+the item pickup logic. The reasoning behind this is that (first and foremost)
+predicted events can only have one parameter; the second reason to this
+is that the predictable event structure isn't very reliable. Have you ever
+been playing Q3 and run over a weapon, but not hear the pick up sound?
+If so that is because the predictable events structure is getting flooded
+and the EV_ITEM_PICKUP event is getting lost.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Now the EV_ITEM_PICKUP
+events will be sent via an external temp entity to ensure that these vital
+event messages are not lost in the heat of combat.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Alright save and
+close g_items.c, done with that file.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Now for the last
+and final addition! Open g_main.c (also in /game) and scroll down to the
+end of the cvar table:</font></font>
+<blockquote><tt>&nbsp;{ &amp;g_inactivity, "g_inactivity", "0", 0, 0, qtrue
+},</tt>
+<br><tt>&nbsp;{ &amp;g_debugMove, "g_debugMove", "0", 0, 0, qfalse },</tt>
+<br><tt>&nbsp;{ &amp;g_debugDamage, "g_debugDamage", "0", 0, 0, qfalse
+},</tt>
+<br><tt>&nbsp;{ &amp;g_debugAlloc, "g_debugAlloc", "0", 0, 0, qfalse },</tt>
+<br><tt>&nbsp;{ &amp;g_motd, "g_motd", "", 0, 0, qfalse },</tt>
+<br><tt>&nbsp;{ &amp;g_blood, "com_blood", "1", 0, 0, qfalse },</tt>
+<p><tt>&nbsp;{ &amp;g_podiumDist, "g_podiumDist", "80", 0, 0, qfalse },</tt>
+<br><tt>&nbsp;{ &amp;g_podiumDrop, "g_podiumDrop", "70", 0, 0, qfalse },</tt>
+<p><tt>&nbsp;{ &amp;g_allowVote, "g_allowVote", "1", 0, 0, qfalse }<font color="#00FFFF">,
+//WarZone -- make sure there is a comma after this line</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;{ NULL, "g_supportsWeaponOrder", "1",
+CVAR_SERVERINFO | CVAR_ROM, 0, qfalse } //WarZone</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">This additional cvar
+allows players to see which servers support the cg_weaponOrder variable.
+This is important because the new client code will not be compatible with
+standard Q3A servers. It would be very easy to make a filter for GameSpy
+(et al) to filter out servers that don't have g_supportsWeaponOrder set
+to 1.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Save and close g_main.c,
+we're almost done...</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">We almost forgot
+to define EV_ITEM_PICKUP2! Whoops.. so, open up </font>bg_public.h<font color="#FFFFFF">
+and make this quick addition:</font></font>
+<blockquote><tt><font color="#FFFFFF">&nbsp;EV_POWERUP_QUAD,</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;EV_POWERUP_BATTLESUIT,</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;EV_POWERUP_REGEN,</font></tt><tt><font color="#FFFFFF"></font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;EV_GIB_PLAYER,&nbsp;&nbsp; // gib a
+previously living player</font></tt><tt><font color="#FFFFFF"></font></tt>
+<p><tt><font color="#FFFFFF">&nbsp;EV_DEBUG_LINE,</font></tt>
+<br><tt><font color="#FFFFFF">&nbsp;EV_TAUNT</font><font color="#00FFFF">,
+//make sure there is a comma here!</font></tt>
+<br><tt><font color="#00FFFF">&nbsp;EV_ITEM_PICKUP2,&nbsp;&nbsp; // WarZone
+-- used to create a temp entity to send the pickup message</font></tt><tt><font color="#00FFFF"></font></tt>
+<p><tt><font color="#FFFFFF">} entity_event_t;</font></tt></blockquote>
+<font face="Arial,Helvetica"><font color="#FFFFFF">Save and close
+</font>bg_public.h<font color="#FFFFFF">,
+we're ALL DONE!</font></font>
+<p>
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">End Notes:</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">You'll need to do
+a recompile on the cgame and game code to see the changes in action. Now
+I'll explain how the new cg_weaponOrder variable works. The default value
+for it is "1/2/3/4/5/6/7/8/9" which tells the game the order that you want
+the weapons to switch in. The default order will yield a result similar
+in concept to the Quake2 weapon switching code (if newWeapon > myWeapon
+then switchWeapons): if you're holding a shotgun (3) and pick up a rocket
+launcher (5), the rocket launcher will be selected. If you're holding a
+rocket launcher (5) and pick up a grenade launcher (4) the rocket launcher
+will remain selected.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">Each weapon has a
+number assigned to it that corresponds to the key press required to activate
+that weapon:</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">1 = Gauntlet</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">2 = Machine Gun</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">3 = Shot Gun</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">4 = Grenade Launcher</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">5 = Rocket Launcher</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">6 = Lightning Gun</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">7 = Rail Gun</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">8 = Plasma Gun</font></font>
+<br><font face="Arial,Helvetica"><font color="#FFFFFF">9 = BFG 10K</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">My personal preference
+for the weapon order is "1/2/3/4/6/8/5/7/9" which is very similar to Quake2's
+weapon order.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">If your mod is going
+to need more than 9 weapons, you'll need to change the NUM_WEAPS #define
+we added to cg_local.h to the appropriate value. The cg_weaponOrder string
+needs to be formated as follows:</font></font>
+<ul>
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">xx\xx\xx</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">xx/xx/xx</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">x/xx\xx</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">xx\x/xx</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">x/x\x</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">x/x/x</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">x\x\x</font></font></li>
+</ul>
+<font face="Arial,Helvetica"><font color="#FFFFFF">Meaning the string can
+contain up to two consectutive integer digits followed by a seperator which
+must be either a forward slash or a back slash (/ or \). Duplicate or invalid
+entries are ignored and missing entries are inserted at the begining of
+the list. So the string "2/2/3/3/4/5/6/7/8/8/8/9" will yield the same end
+result as "1/2/3/4/5/6/7/8/9" because the missing "1" is inserted at the
+front of the list and the duplicate values are ignored.</font></font>
+<p><font face="Arial,Helvetica"><font color="#FFFFFF">If you have any questions
+or comments please email me at <a href="mailto:warzone@planetquake.com?subject=Weapon Switching Tutorial">warzone@planetquake.com</a>.</font></font>
+<br>
+<hr SIZE=0 WIDTH="100%">
+<br><a NAME="history"></a><font face="Arial,Helvetica"><font color="#FFFFFF">Revision
+history:</font></font>
+<blockquote><font face="Arial,Helvetica"><font color="#FFFFFF">2/11/00:</font></font>
+<ul>
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">added the definition
+of EV_ITEM_PICKUP2</font></font></li>
+
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">fixed additions to g_items.c
+-- some color coding was incorrect</font></font></li>
+</ul>
+</blockquote>
+
+<blockquote><font face="Arial,Helvetica"><font color="#FFFFFF">2/10/00:</font></font>
+<ul>
+<li>
+<font face="Arial,Helvetica"><font color="#FFFFFF">fixed a typo in UpdateWeaponOrder()
+(look for //typo fixed)</font></font></li>
+</ul>
+</blockquote>
+
+<hr SIZE=0 WIDTH="100%">
+<br><font face="Arial,Helvetica"><font color="#FFFFFF"><font size=-1>This
+code is Copyright (c) 2000 by Mark "WarZone" Smeltzer. You may freely use
+this code as long a credit for its existance is given to the author.</font></font></font>
+</body>
+</html>

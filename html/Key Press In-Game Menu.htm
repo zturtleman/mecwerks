@@ -1,0 +1,173 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304414968"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0070)http://www.inolen.com/index.phtml?file=./programming/keypressmenu.html -->
+<HTML><HEAD><TITLE>www.inolen.com</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE>A:link {
+	COLOR: #336699; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #0000a0; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: black; TEXT-DECORATION: underline
+}
+A:hover {
+	TEXT-DECORATION: overline
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY bgColor=#eeeeee leftMargin=0 text=#000000 topMargin=0>
+<DIV align=center>
+<TABLE align=center border=0 cellPadding=0 cellSpacing=0 hspace="0" 
+  vspace="0"><TBODY>
+  <TR>
+    <TD align=middle bgColor=#eeeeee borderColor=#000000 colSpan=2 
+      vAlign=top><IMG height=150 src="Key Press In-Game Menu_files/logo.jpg" 
+      width=300> </TD></TR></TBODY></TABLE>
+<TABLE align=center border=1 borderColorDark=#ffffff borderColorLight=#000000 
+cellPadding=0 cellSpacing=0 width="80%" hspace="0" vspace="0">
+  <TBODY>
+  <TR align=middle vAlign=center>
+    <TD bgColor=#ffffff colSpan=2>
+      <DIV align=center><FONT face=Tahoma size=1><B><A 
+      href="http://www.inolen.com/index.phtml"><FONT face=Tahoma 
+      size=2>Main</FONT></A>&nbsp; |&nbsp; <A 
+      href="http://www.inolen.com/index.phtml?file=./maps.html"><FONT 
+      face=Tahoma size=2>Maps</FONT></A><FONT face=Tahoma size=2>&nbsp; |&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./programming.html">Programming</A>&nbsp;|&nbsp;<A 
+      href="http://www.inolen.com/index.phtml?file=./links.html">Links</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./files.html">Files</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./demos.html">Demos</A>&nbsp;|&nbsp; 
+      <A href="http://www.inolen.com/cgi-bin/Ultimate.cgi?action=intro" 
+      target=_blank>Forums</A></FONT></B></FONT> </DIV></TD></TR>
+  <TR>
+    <TD align=middle background="Key Press In-Game Menu_files/side.jpg" 
+    vAlign=top width=115>
+      <FORM action=http://www.inolen.com/cgi-bin/NewsPro/viewnews.cgi?search 
+      method=post><INPUT name=searchstring 
+      onblur="if (value == '') {value = 'Search News'}" 
+      onfocus="if (value == 'Search News') {value =''}" size=13 
+      style="BACKGROUND-COLOR: #ffffff; BORDER-BOTTOM: #336699 1px solid; BORDER-LEFT: #336699 1px solid; BORDER-RIGHT: #336699 1px solid; BORDER-TOP: #336699 1px solid; COLOR: #336699; FONT-FAMILY: Tahoma" 
+      value="Search News"> </FORM></TD>
+    <TD align=left bgColor=#ffffff vAlign=top>
+      <P><FONT color=#000000 face=Tahoma size=2><B>This tut shows how to make an 
+      in-game keypress menu( it's a menu that pops up and asks you what team you 
+      want to join in spectator mode, easily modified for use while actually 
+      playing ). The code is WELL documented, so I am just gonna tell you where 
+      to paste it, then you read it :) The best thing about this menu format is 
+      that it is SO easy to add new commands and such. I have had this code done 
+      for quite some time, but it had 1 bug. Thanks to <A 
+      href="http://www.q3f.com/">RR2D02</A> for showing me the nice little 
+      CG_Weapon_f hack :) Here we go!</B></FONT></P>
+      <P><B><FONT color=#000000 face=Tahoma size=2>First off, go into cg_local.h 
+      and lets declare our functions and add a variable. Go to about line 613 
+      and find:</FONT></B></P><PRE><B><FONT color=#ff0000 face=Tahoma size=2>	// development tool<BR>	refEntity_t		testModelEntity;<BR>	char			testModelName[MAX_QPATH];<BR>	qboolean		testGun;</FONT></B></PRE>
+      <P><B><FONT face=Tahoma size=2>Add right under it:</FONT></B></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>	// inolen<BR>	// is spec menu on?<BR>	qboolean        specMenu;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now go to about line 1261 and 
+      find:</B></FONT></P><PRE><B><FONT color=#ff0000 face=Tahoma size=2>qhandle_t CG_StatusHandle(int task);</FONT></B></PRE>
+      <P><FONT face=Tahoma size=2><B>Add this up under it:</B></FONT></P><PRE><B><FONT color=#0000a0 face=Tahoma size=2>// inolen<BR>// Declare our functions<BR>void CG_DrawSpecMenu( void );<BR>void CG_SpecMenuCmd( int num );</FONT></B></PRE>
+      <P><FONT face=Tahoma size=2><B>Now go into cg_weapons.c and at about line 
+      1393 find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>	num = atoi( CG_Argv( 1 ) );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Up under it add:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>	// inolen<BR>	// Leech user's input key<BR>	if( cg.specMenu == qtrue ) {<BR>		CG_SpecMenuCmd( num );<BR>		return;<BR>	}</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now its onto cg_draw.c to add in the last 2 
+      bits of code, first lets add the little bit, then the huge bit :) So 
+      find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>if ( cg.snap-&gt;ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {<BR>		CG_DrawSpectator();<BR>		CG_DrawCrosshair();<BR>		CG_DrawCrosshairNames();</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>And up under it add:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>		CG_DrawSpecMenu();</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now, for the core code! Go 
+      find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>/*<BR>=================<BR>CG_DrawVote<BR>=================<BR>*/</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>And directly ABOVE it add:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>/*<BR>=========================================================<BR>inolen's in-game menu system<BR>If you are a newbie to programming,<BR>this is quite a bit of code to take in.<BR>I have documented this code pretty well,<BR>so I would suggest reading it.<BR>As always if you have any problems, e-mail me at:<BR>admin@inolen.com<BR>http://www.inolen.com<BR>And remember, if you use this code in your mod,<BR>credit me for it!<BR>=========================================================<BR>*/<BR>// the text's height<BR>#define TEXT_HEIGHT 10<BR>// the struct to hold our menu information<BR>// hence the name of it, menuInfo :)<BR>typedef struct<BR>{<BR>	int  number;<BR>	char *string;	<BR>	vec4_t *color;<BR>	char *command;<BR>} menuInfo;</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B>// this array holds what    will be in the specMenu
+    menuInfo specMenu[] = { 
+    // Edit this to add new choices in your menu
+    // here are what the fields do:
+    // 1. This is the number the choice
+    // is in the menu
+    // 2. The text to appear for the choice
+    // 3. What color it is
+    // 4. What command to execute when the user
+    // selects it.
+    { 1, "Team Red", &amp;colorWhite, "team r" },
+    { 2, "Team Blue", &amp;colorWhite, "team b" },
+    { 3, "Team Free", &amp;colorWhite, "team f" },
+    // This lets the CG_DrawSpecMenu know
+    // there is no more to draw
+    {0, NULL}
+    };</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B>// Function we use to    make drawing any text for the menu easier
+    void CG_DrawMenuText( int x, int y, const char *s, vec4_t color ) {
+    CG_DrawStringExt( x, y, s, color, qfalse, qfalse, TEXT_HEIGHT, 12, 0 );
+    }</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B>/*
+    =================
+    CG_DrawSpecMenu
+    Draws the spec menu
+    =================
+    */
+    void CG_DrawSpecMenu( void ) {
+    vec4_t color;
+    char *menuString;
+    int n;
+    int w = 125;
+    // Amount of items in the menu
+    int count = 3;
+    int h = 230 - (( count * TEXT_HEIGHT+1 )/2);
+    int y = 240 - (( count * TEXT_HEIGHT+1 )/2);</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B> // lets CG_Weapon_f    know to
+    // use the users keys to make a selection
+    cg.specMenu = qtrue;
+    
+    // color of the menu's background
+    color[0] = 0.00f;
+    color[1] = 0.75f;
+    color[2] = 0.25f;
+    color[3] = 0.33f;
+    
+    // draw the rectangular background
+    CG_FillRect( 0, h, w, 480-( h * 2 ), color );</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B> // goes through all    the choices in our menu
+    // and draws them
+    for(n = 0; specMenu[n].string; n++) {
+    // tells it to stop when it reaches
+    // the choice with the text of NULL
+    if(specMenu[n].string == NULL) { 
+    return;
+    }
+    // Combines the selection's # and
+    // it't text string into a string to draw
+    menuString = va("%i.%s", specMenu[n].number, specMenu[n].string );
+    // Draws it with our above function
+    CG_DrawMenuText(0, y, menuString, *specMenu[n].color );
+    // add to the y number so next time it draws
+    // a selection, it is below the first one
+    y += TEXT_HEIGHT+1;
+    }
+    }</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B>/*
+    =================
+    CG_SpecMenuCmd
+    =================
+    */
+    void CG_SpecMenuCmd( int num ) {
+    int n;</B></FONT></PRE><PRE><FONT color=#0000a0 face=Tahoma size=2><B>   // goes through all the choices in our menu<BR>	// and matches the incoming choice to<BR>	// the choice's command
+    for(n = 0; specMenu[n].command; n++) {
+    // tells it to stop when it reaches
+    // the choice with the text of NULL
+    if(specMenu[n].command == NULL) { 
+    return;
+    }
+    // found the right choice
+    if( num == specMenu[n].number ) {
+    // Execute the command
+    trap_SendClientCommand( specMenu[n].command );
+    // Tells CG_Weapon_f to not monitor keys anymore
+    cg.specMenu = qfalse;
+    }
+    }
+    }</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Thats it, compile and enjoy!</B></FONT></P>
+      <P><FONT color=#000000 face=Tahoma size=2><B>I spend my time programming 
+      and writing these tutorials, so please feel free to use this code in your 
+      mod as long as www.inolen.com and the author receive 
+    credit.</B></FONT></P></TD></TR>
+  <TR>
+    <TD align=middle bgColor=#f9f9f9 colSpan=2 vAlign=center><FONT 
+      color=#000000 face=Tahoma size=2><B>Design Copyright inolen 
+    2000</B></FONT></TD></TR></TBODY></TABLE></DIV></BODY></HTML>

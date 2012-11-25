@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0054)http://quakestyle.telefragged.com/quake3/tutorial3.htm -->
+<HTML><HEAD><TITLE>Quake Style - Quake 3 Tutorials - Newbie Tutorials - Player Speeds</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	FONT-FAMILY: verdana
+}
+TABLE {
+	FONT-FAMILY: verdana
+}
+TR {
+	FONT-FAMILY: verdana
+}
+TD {
+	FONT-FAMILY: verdana
+}
+INPUT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+TEXTAREA {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+SELECT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+OPTION {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+PRE {
+	FONT-FAMILY: verdana; FONT-WEIGHT: bold
+}
+A {
+	COLOR: #00ff00
+}
+A:hover {
+	COLOR: white; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=black text=#ffff80><FONT size=1>
+<DIV align=right>
+<TABLE border=0 cellSpacing=0 cellborder="0">
+  <TBODY>
+  <TR>
+    <TD align=middle><FONT size=1><B><FONT color=white>Quake Style - Quake 3 
+      Tutorials</FONT><BR><FONT color=#bbcc77>Newbie Tutorials </FONT><FONT 
+      color=#ff8000>- Player Speeds</FONT><BR>How to modify player speed, derr 
+      :P </B></FONT></TD></TR></TBODY></TABLE></DIV><BR><!-- START TUTORIAL -->Well, 
+here it is, the slightly requested tutorial on how to change your player's 
+speed. <BR><BR>This one's real easy, only one line of code today. <BR><BR>Open 
+up "g_active.c", and go down to the function entitled: <BR><PRE><FONT size=1>
+void ClientThink_real( gentity_t *ent )
+</FONT></PRE><BR>(search for it, tis faster that way!) <BR>Then as usual, find 
+this section in the function and insert the <FONT color=#00ffff><B>blue 
+code</FONT></B>: <BR><PRE><FONT size=1>
+pm.trace = trap_Trace;
+pm.pointcontents = trap_PointContents;
+pm.debugLevel = g_debugMove.integer;
+pm.noFootsteps = ( g_dmflags.integer &amp; DF_NO_FOOTSTEPS ) &gt; 0;
+
+VectorCopy( client-&gt;ps.origin, oldOrigin );
+<FONT color=#00ffff>
+// (NOBODY): Change our movement speed!
+client-&gt;ps.speed *= 1.2;
+</FONT>
+// perform a pmove
+Pmove (&amp;pm);
+
+// save results of pmove
+...
+</FONT></PRE><BR>This increases your speed just as the "Haste" powerup would. Of 
+course you can change the 1.2 to any value you like, and of course, in tradition 
+of tutorials from me :) you can always use different values for different 
+classes. <BR><BR>Thankyou, please come again! :P~~ 
+<!--- END TUTORIAL ---><BR><BR><FONT color=#ff8000><B>-- Credits:</B></FONT> 
+<BR>&nbsp;&nbsp; Tutorial by <A 
+href="mailto:samthorogood@yahoo.com"><B>(nobody)</B></A> <BR>&nbsp;&nbsp; Return 
+to <A href="http://quakestyle.telefragged.com/tuts.shtml"><B>QS 
+Tutorials</B></A> <BR><BR><FONT color=#ff8000><B>-- Important:</B></FONT> 
+<BR>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please 
+give us credit. <BR>&nbsp;&nbsp; Our code is copyrighted, but we give permission 
+to everyone to use it in any way they see fit, as long as we are recognized. 
+</FONT></BODY></HTML>

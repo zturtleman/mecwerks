@@ -1,0 +1,376 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304516046"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0080)http://www.planetquake.com/humandebris/tutorials/Telefrag-Tutorial/Telefrag.html -->
+<HTML><HEAD><TITLE>Telefrag gun</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR>
+<META content="Jason [ Zygote ] Brownlee" name=Author>
+<META content="Convert the railgun into a Telefrag gun" name=Description></HEAD>
+<BODY aLink=#ff0000 bgColor=#000000 link=#3366ff text=#c0c0c0 
+vLink=#3366ff><B><FONT face=Verdana><FONT color=#ffffff>Convert the railgun into 
+a Telefrag gun.</FONT></FONT></B> <BR><FONT face=Verdana><FONT size=-1><FONT 
+color=#ffffff>Code Tutorial - by</FONT> <A 
+href="mailto:hop_cha@hotmail.com">Zygote</A> (<A 
+href="http://www.planetquake.com/humandebris">HUMAN DEBRIS</A>)</FONT></FONT> 
+<BR>&nbsp; 
+<P><B><FONT face=Verdana><FONT color=#ffffff><FONT size=-1>What the hell is a 
+"Telefrag gun"?</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT size=-1>We 
+will be modifying the railgun so when you shoot another player, instead of 
+killing them, you will teleport to where they are standing, hence telefrag them. 
+This makes the railgun a lot more fun to use, and creates one hell of an anti 
+camper / anti sniper feature.</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>The Telefrag gun is included as one of the 
+10 styles of Instagib in <A href="http://www.planetquake.com/humandebris">Human 
+Debris</A> mod <B>OSK:Arena</B></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1><B><FONT color=#ffffff>Note:</FONT></B> I am 
+not the worlds greatest programmer by a long shot, so don't go crazy if you see 
+a bit of bad programming in this tutorial. I would appreciate any suggested 
+improvements or corrections you can offer. The code has been tested extensively 
+and works fine.</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>In doing this tutorial I assume you know how 
+to compile the source, and have played with the code before.</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Okay, on with the tutorial. This is a server 
+side modification.</FONT></FONT> 
+<P><B><FONT face=Verdana><FONT color=#ffffff><FONT size=-1>Files to be 
+modified</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT size=-1><A 
+href="http://www.planetquake.com/humandebris/tutorials/Telefrag-Tutorial/Telefrag.html#g_local.h">g_local.h</A></FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1><A 
+href="http://www.planetquake.com/humandebris/tutorials/Telefrag-Tutorial/Telefrag.html#g_misc.c">g_misc.c</A></FONT></FONT> 
+<BR><FONT face=Verdana><FONT size=-1><A 
+href="http://www.planetquake.com/humandebris/tutorials/Telefrag-Tutorial/Telefrag.html#g_weapon.c">g_weapon.c</A></FONT></FONT> 
+
+<P><B><FONT face=Verdana><FONT color=#ffffff><FONT 
+size=-1>Outline</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>This is a reasonably simple operation. First we will have to create a 
+new TelefragPlayer function, which is a slightly modified version of the 
+TeleportPlayer function in g_misc.c. Then we will change the DO-WHILE in the 
+weapon_railgun_fire function in g_weapon.c to call our new TelefragPlayer 
+function. We will change the Railgun so that the projectile it fires will not 
+pass through multiple players.</FONT></FONT> 
+<P><A name=g_local.h></A><B><FONT face=Verdana><FONT color=#ffffff><FONT 
+size=-1>g_local.h</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>Go down to about halfway and find:</FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>//</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>// g_misc.c</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>//</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>void TeleportPlayer( 
+gentity_t *player, vec3_t origin, vec3_t angles );</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Now add this line:</FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>void TelefragPlayer( gentity_t 
+*player, vec3_t origin ); // same as above without the 
+angles</FONT></FONT></FONT> <BR>&nbsp; 
+<P><A name=g_misc.c></A><B><FONT face=Verdana><FONT color=#ffffff><FONT 
+size=-1>g_misc.c</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>Go down about 1/4 of the way until you find the following:</FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>void TeleportPlayer( 
+gentity_t *player, vec3_t origin, vec3_t angles ) {</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;gentity_t 
+*tent;</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// use temp events 
+at source and destination to prevent the effect</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// from getting dropped by 
+a second player event</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp;if ( player-&gt;client-&gt;sess.sessionTeam != 
+TEAM_SPECTATOR ) {</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp; tent = G_TempEntity( 
+player-&gt;client-&gt;ps.origin, EV_PLAYER_TELEPORT_OUT );</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp; 
+tent-&gt;s.clientNum = player-&gt;s.clientNum;</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp; tent = 
+G_TempEntity( origin, EV_PLAYER_TELEPORT_IN );</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp; tent-&gt;s.clientNum = 
+player-&gt;s.clientNum;</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp;}</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// unlink to make 
+sure it can't possibly interfere with G_KillBox</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;trap_UnlinkEntity 
+(player);</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;VectorCopy ( 
+origin, player-&gt;client-&gt;ps.origin );</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.origin[2] += 1;</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// spit the player 
+out</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;AngleVectors( angles, player-&gt;client-&gt;ps.velocity, NULL, 
+NULL );</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;VectorScale( player-&gt;client-&gt;ps.velocity, 400, 
+player-&gt;client-&gt;ps.velocity );</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.pm_time = 160;&nbsp; // hold 
+time</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.pm_flags |= 
+PMF_TIME_KNOCKBACK;</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// toggle the 
+teleport bit so the client knows to not lerp</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.eFlags ^= 
+EF_TELEPORT_BIT;</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// set 
+angles</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;SetClientViewAngle( player, angles );</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// kill anything 
+at the destination</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp;if ( player-&gt;client-&gt;sess.sessionTeam != 
+TEAM_SPECTATOR ) {</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp; G_KillBox (player);</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;}</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// save results of 
+pmove</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;BG_PlayerStateToEntityState( &amp;player-&gt;client-&gt;ps, 
+&amp;player-&gt;s, qtrue );</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;// use the precise 
+origin for linking</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp;VectorCopy( player-&gt;client-&gt;ps.origin, 
+player-&gt;r.currentOrigin );</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;if ( 
+player-&gt;client-&gt;sess.sessionTeam != TEAM_SPECTATOR ) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp; trap_LinkEntity (player);</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;}</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>}</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>This is the TeleportPlayer function. This 
+function is called when a player uses the Self Teleport Item, and when a player 
+goes through a teleporter. We will be using this as a base for our new 
+TelefragPlayer() function.</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>After the end of the above code, put the following:</FONT></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>void TelefragPlayer( 
+gentity_t *player, vec3_t origin ) { // removed angles</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;gentity_t 
+*tent;</FONT></FONT></FONT><FONT color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// use temp events 
+at source and destination to prevent the effect</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// from getting dropped by 
+a second player event</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;if ( player-&gt;client-&gt;sess.sessionTeam != 
+TEAM_SPECTATOR ) {</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp; tent = G_TempEntity( 
+player-&gt;client-&gt;ps.origin, EV_PLAYER_TELEPORT_OUT );</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp; 
+tent-&gt;s.clientNum = player-&gt;s.clientNum;</FONT></FONT></FONT><FONT 
+color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp; tent = 
+G_TempEntity( origin, EV_PLAYER_TELEPORT_IN );</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp; tent-&gt;s.clientNum = 
+player-&gt;s.clientNum;</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;}</FONT></FONT></FONT><FONT 
+color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// unlink to make 
+sure it can't possibly interfere with G_KillBox</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;trap_UnlinkEntity 
+(player);</FONT></FONT></FONT><FONT color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;VectorCopy ( 
+origin, player-&gt;client-&gt;ps.origin );</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.origin[2] += 1;</FONT></FONT></FONT><FONT 
+color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// 
+Zygote</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;// Remove angles and "spit-out"</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;/*</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// spit the 
+player out</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;AngleVectors( angles, player-&gt;client-&gt;ps.velocity, NULL, 
+NULL );</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;VectorScale( player-&gt;client-&gt;ps.velocity, 400, 
+player-&gt;client-&gt;ps.velocity );</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.pm_time = 160;&nbsp; // hold 
+time</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.pm_flags |= 
+PMF_TIME_KNOCKBACK;</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;*/</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// toggle the teleport bit 
+so the client knows to not lerp</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;player-&gt;client-&gt;ps.eFlags ^= 
+EF_TELEPORT_BIT;</FONT></FONT></FONT><FONT color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// 
+Zygote</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;// Remove angles</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>/*</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;// set angles</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;SetClientViewAngle( player, 
+angles );</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>*/</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;// kill anything at the destination</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;if ( 
+player-&gt;client-&gt;sess.sessionTeam != TEAM_SPECTATOR ) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp; G_KillBox (player);</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;}</FONT></FONT></FONT><FONT 
+color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// save results of 
+pmove</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;BG_PlayerStateToEntityState( &amp;player-&gt;client-&gt;ps, 
+&amp;player-&gt;s, qtrue );</FONT></FONT></FONT><FONT color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// use the precise 
+origin for linking</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;VectorCopy( player-&gt;client-&gt;ps.origin, 
+player-&gt;r.currentOrigin );</FONT></FONT></FONT><FONT color=#ff6666></FONT> 
+<P><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;if ( 
+player-&gt;client-&gt;sess.sessionTeam != TEAM_SPECTATOR ) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp; trap_LinkEntity (player);</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;}</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>}</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>You should notice, that it is an exact copy 
+of TeleportPlayer.</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>All that 
+has been done is block comment (</FONT><FONT color=#ffffcc><FONT size=-2>/* 
+*/</FONT></FONT><FONT size=-1>) all code that changes the players angles after 
+the teleport. The reasons is we want the player to be looking in exactly the 
+same place before and after the teleport.</FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-1>You will also notice we have commented the "spit-out" 
+code. What the "spit-out" code did was scale the players velocity forward in the 
+direction they are looking, and hold it for 160ms. This we commented because 
+after test playing, the "spit-out" becomes increasingly annoying.</FONT></FONT> 
+<BR>&nbsp; 
+<P><A name=g_weapon.c></A><B><FONT face=Verdana><FONT color=#ffffff><FONT 
+size=-1>g_weapon.c</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT 
+size=-1>Go down to about halfway, and find the following code:</FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>/*</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>=================</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>weapon_railgun_fire</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>=================</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>*/</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>#define MAX_RAIL_HITS 4</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>void 
+weapon_railgun_fire (gentity_t *ent) {</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>This marks the start of the 
+weapon_railgun_fire function. This code is called when a player fires the 
+railgun.</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>I have broken this 
+section up into 2 parts:</FONT></FONT> 
+<P><B><U><FONT face=Verdana><FONT size=-1>Stop the projectile when it hits a 
+player</FONT></FONT></U></B> <BR><FONT face=Verdana><FONT size=-1>The railgun 
+projectile can go through up to four players on one shot. We want to change it 
+so the projectile will stop after hitting one player.</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Find the following line:</FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ffffcc><FONT size=-2>#define MAX_RAIL_HITS 
+4</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Change it to:</FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>#define MAX_RAIL_HITS 
+1</FONT></FONT></FONT> 
+<P><B><U><FONT face=Verdana><FONT size=-1>Adding the Teleport to the 
+Telefrag</FONT></FONT></U></B> <BR><FONT face=Verdana><FONT size=-1>Find the 
+following line near the top of the function:</FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;damage = 100 * 
+s_quadFactor;</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Change it to:</FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;damage = 1000 * 
+s_quadFactor;</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>This 
+just makes the railgun's projectile hurt a lot more!</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Find the following code inside the 
+DO-WHILE:</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>&nbsp;</FONT><FONT 
+color=#ffffcc><FONT size=-2>&nbsp; if ( traceEnt-&gt;takedamage ) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;&nbsp; if( LogAccuracyHit( traceEnt, ent ) ) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;&nbsp;&nbsp; hits++;</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;&nbsp; 
+}</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, trace.endpos, 
+damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp; }</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>What this code does is, when the projectile 
+hits something that can be damaged, increment AccuracyHits and damage what was 
+hit.</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>We want to change this 
+bit of code to the following:</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-2><FONT color=#ff6666>&nbsp; </FONT><FONT color=#ffffcc>if ( 
+traceEnt-&gt;takedamage ) {</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ffffcc><FONT size=-2>&nbsp;&nbsp; if( LogAccuracyHit( traceEnt, ent ) ) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ffffcc><FONT 
+size=-2>&nbsp;&nbsp;&nbsp; hits++;</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ffffcc><FONT size=-2>&nbsp;&nbsp; 
+}</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp; // make sure you are a client and you are alive and not a 
+spectator</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp; if ((traceEnt-&gt;client) &amp;&amp; 
+(traceEnt-&gt;client-&gt;ps.pm_type != PM_DEAD) &amp;&amp; 
+(traceEnt-&gt;client-&gt;sess.sessionTeam != TEAM_SPECTATOR)) 
+{</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp;&nbsp; if ( OnSameTeam (traceEnt, ent)&nbsp; ) { // if the 
+attacker was on the same team</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp;&nbsp; if ( 
+!g_friendlyFire.integer ) { // if TF_NO_FRIENDLY_FIRE is 
+set</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, 
+trace.endpos, damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+break; // get out of here!</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp;&nbsp; }</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp; 
+}</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp;&nbsp; // Damage then teleport (kill box causes a strange 
+sound!?!?)</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, trace.endpos, 
+damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp; TelefragPlayer(ent, 
+traceEnt-&gt;r.currentOrigin); // teleport player</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp; 
+break;</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp; }</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp; // For Doors, Spectators, 
+Deadbodies...</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, 
+trace.endpos, damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT size=-2><FONT color=#ff6666>&nbsp; </FONT><FONT 
+color=#ffffcc>}</FONT></FONT></FONT> <BR>&nbsp; 
+<P><B><FONT face=Verdana><FONT size=-1>Analysis:</FONT></FONT></B> <BR><FONT 
+face=Verdana><FONT size=-1>You can see that we are doing a lot of checking on 
+the entity that the projectile hits. You could rewrite the checking a few 
+different ways if you want, and make it more stream lined.</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Is the entity a client, alive, and not a 
+spectator?</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;if ((traceEnt-&gt;client) &amp;&amp; 
+(traceEnt-&gt;client-&gt;ps.pm_type != PM_DEAD) &amp;&amp; 
+(traceEnt-&gt;client-&gt;sess.sessionTeam != TEAM_SPECTATOR)) 
+{</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>Is the entity on the same 
+team?</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp; if ( OnSameTeam (traceEnt, ent)&nbsp; ) {</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>The entity is on the same team and Friendly 
+Fire is ON (can damage team mates), Damage it normally, and break out of the 
+DO-WHILE</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp; if ( !g_friendlyFire.integer ) { // if TF_NO_FRIENDLY_FIRE 
+is set</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, 
+trace.endpos, damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+break; // get out of here!</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp;&nbsp; }</FONT></FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp; 
+}</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>The entity is not on the same team. Damage 
+it, THEN teleport to where the entity was standing, and break out of the 
+DO-WHILE</FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, trace.endpos, 
+damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp; TelefragPlayer(ent, 
+traceEnt-&gt;r.currentOrigin); // teleport player</FONT></FONT></FONT> <BR><FONT 
+face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;&nbsp;&nbsp; 
+break;</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT color=#ff6666><FONT 
+size=-2>&nbsp;&nbsp; }</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>The reason why we don't let TelefragPlayer dish out the damage with its 
+call to G_KillBox, is because it causes some sort of strange error noise. As 
+well as that, there is a chance the server could crash if two players try and 
+teleport to the one place at the exact same time. This method 
+(Damage-then-Teleport) is cleaner, and looks exactly the same in 
+game.</FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>The entity is not alive or is not a client, 
+or is a spectator, Damage it, and break out of the DO-WHILE</FONT></FONT> 
+<BR><FONT face=Verdana><FONT color=#ff6666><FONT size=-2>&nbsp;// For Doors, 
+Spectators, Deadbodies...</FONT></FONT></FONT> <BR><FONT face=Verdana><FONT 
+color=#ff6666><FONT size=-2>&nbsp;&nbsp; G_Damage (traceEnt, ent, ent, forward, 
+trace.endpos, damage, 0, MOD_RAILGUN);</FONT></FONT></FONT> 
+<P><FONT face=Verdana><FONT size=-1>The reason why we have to do all of that 
+checking is because when you damage an entity normally with G_Damage(), it does 
+all of the checking for you. Our new TelefragPlayer() does not do any checking, 
+so we have to do it all in advance.</FONT></FONT> <BR><FONT face=Verdana><FONT 
+size=-1>Another way to handle this would be to add all the checking into the 
+TelefragPlayer() function.</FONT></FONT> <BR>&nbsp; 
+<P><B><FONT face=Verdana><FONT color=#ffffff><FONT size=-1>Thats 
+It!</FONT></FONT></FONT></B> <BR><FONT face=Verdana><FONT size=-1>That is all 
+there is to it.</FONT></FONT> <BR><FONT face=Verdana><FONT size=-1>Compile the 
+code. Now load up your favorite level with a railgun in it (mine is q3tourney3), 
+and take it for a test toast!</FONT></FONT> <BR>&nbsp; </P></BODY></HTML>

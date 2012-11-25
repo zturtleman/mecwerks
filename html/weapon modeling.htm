@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0051)http://www.quake3mods.net/rg/tutorials/weaptut.html -->
+<HTML><HEAD><TITLE>T0oL's Quake3 Weapon Tutorial</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	BACKGROUND: #000040
+}
+.tutpage {
+	COLOR: #ffffff; FONT: 10pt Verdana, Arial, Helvetica, sans-serif
+}
+.headers {
+	COLOR: #ffffff; FONT: 25pt Verdana, Arial, Helvetica, sans-serif
+}
+.para1 {
+	COLOR: #00cccc; FONT-FAMILY: Arial, Helvetica; FONT-SIZE: 20px; LINE-HEIGHT: 28px; MARGIN-LEFT: 55px; MARGIN-TOP: -20px; TEXT-ALIGN: left
+}
+.para2 {
+	COLOR: #004080; FONT-FAMILY: Arial Black, Arial, Helvetica; FONT-SIZE: 45px; LINE-HEIGHT: 35px; MARGIN-LEFT: 15px; MARGIN-TOP: 5px; TEXT-ALIGN: left
+}
+.para3 {
+	COLOR: #005585; FONT-FAMILY: Arial Black, Arial, Helvetica; FONT-SIZE: 15px; LINE-HEIGHT: 35px; MARGIN-LEFT: 80px; MARGIN-TOP: -15px; TEXT-ALIGN: left
+}
+.notes {
+	COLOR: #ffaa00; FONT: 10pt Verdana, Arial, Helvetica, sans-serif
+}
+.notes2 {
+	COLOR: #ffaa00; FONT: 8pt Verdana, Arial, Helvetica, sans-serif; MARGIN-LEFT: 350px; MARGIN-TOP: -20px
+}
+.notes3 {
+	COLOR: #ffbf00; FONT: 8pt Verdana, Arial, Helvetica, sans-serif
+}
+.notes4 {
+	COLOR: #ffaa00; FONT: 8pt Verdana, Arial, Helvetica, sans-serif; MARGIN-LEFT: 20px; MARGIN-TOP: 0px
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=#000040 class=tutpage link=#ff0000 text=#ffffff>
+<DIV align=left class=para2>T0oL's</DIV>
+<DIV align=left class=para1>Quake3 Weapon</DIV>
+<DIV align=left class=para3>Tutorial: <I>part 1</I></DIV>
+<DIV align=left class=notes2>by Kalle 'T0oL' Hytönen</DIV>
+<HR align=left color=#ffbf00 width=500>
+
+<DIV align=left class=notes4><I>modified 22.1.2000</I></DIV><BR>
+<TABLE border=0 width=500>
+  <TBODY>
+  <TR>
+    <TD>
+      <DIV align=justify class=tutpage>This is a simple tutorial about how to 
+      get your own custom weapons work in Quake3. That means I'm not going to 
+      teach you how to model new weapons but how to make them work in the game 
+      itself. I consider myself as a beginner in Quake MOD development and that 
+      is why the quality of this tutorial is what it is. After all, this is my 
+      very first tutorial ever ;)</DIV><BR>
+      <DIV class=notes><B>Note!</B> This tutorial is based on how I've done it, 
+      and it may not be the best way (most likely). I think there are severals 
+      ways to do this.</DIV><BR>
+      <DIV align=justify class=tutpage>This tutorial assumes that you have these 
+      programs/tools:</DIV><BR>
+      <DIV class=notes3>
+      <LI>3D Studio MAX R2 or newer<BR>
+      <LI>Pop 'n' Plugs plugin for 3D Studio MAX (MD3 import/export)<BR>
+      <LI>Npherno's MD3 Compiler<BR></LI></DIV><BR>
+      <DIV align=justify class=tutpage>And now, let's get started...<BR><BR>
+      <DIV class=notes>We'll use Quake3's default weapon machinegun's barrel as 
+      a base here so that it's easier and we don't have to create any 
+      tags.</DIV><BR><B>Step 1.</B> Go to your /quake3/baseq3/ directory and 
+      open pak0.pk3 (use Winzip). Select 'machinegun_barrel.md3' and extract it 
+      to any directory. <IMG align=right src="weapon modeling_files/import.jpg" 
+      width=265> Create new directory called 'WeapTest' to your /quake3/ 
+      directory. Start 3D Studio MAX and press 'File-&gt;Import...' and select 
+      MD3 as filetype. Import 'machinegun_barrel.md3' into 3D Studio MAX and 
+      after that you should see the barrel of the machinegun (named b_barrel) 
+      and three tags: tag_barrel, tag_flash and tag_weapon.<BR><BR><B>Step 
+      2.</B> As you can see from the <I>Front</I> Viewport, the barrel is facing 
+      right and starts from the origo. Press 'Box' button in Create-&gt;Geometry 
+      and go to Keyboard Entry. Change parameters to what they are in the 
+      picture below and press 'Create'. Now it should look more or less like the 
+      one in the other picture. <IMG align=left 
+      src="weapon modeling_files/keybent.jpg"><BR><IMG 
+      src="weapon modeling_files/create.jpg"> </DIV><BR>
+      <DIV align=justify class=tutpage><B>Step 3.</B> Press 'Select by Name' 
+      button and choose 'b_barrel' from the list. Press 'Select' button. Delete 
+      object 'b_barrel'. Select the box 'Box01' we just made and change its name 
+      to 'b_barrel' (not sure if this is necessary). Let's not change the 
+      positions of the three tags now, you can do it later. Now you could map 
+      textures to your weapon but we don't go into that now. </DIV><BR>
+      <DIV align=justify class=tutpage><B>Step 4.</B> Make sure 'b_barrel' is 
+      still selected and go to 'Modify' and press 'UVW Map'. Press 
+      'Edit-&gt;Select All' to select everything. You might want to save your 
+      work now. Press 'File-&gt;Export Selected...' and choose MD3 from the Save 
+      type list. Type in filename 'machinegun_barrel.md3' and save your work to 
+      '/quake3/WeapTest/models/weapons2/machinegun/' </DIV><BR>
+      <DIV align=justify class=tutpage><B>Step 5.</B> Start Npherno's MD3 
+      Compiler and press 'Import Objects' button. Open the .md3 file you just 
+      saved. Press 'Rebuild Normals' and then 'OK'. Press Object: 'All' button 
+      to select all. After that press 'Export Objects' button and overwrite the 
+      old .md3 file. </DIV><BR>
+      <DIV class=notes>That's it! You can now run Quake3 and test your new 
+      weapon!<BR>Just type: <B>Quake3.exe +set fs_game WeapTest</B> </DIV><BR>
+      <DIV class=notes3>I hope at least some of you found this tutorial useful 
+      (it took me couple of hours to finish it) :D<BR>Feel free to <A 
+      href="mailto:kalleh@sci.fi">contact me</A> if you have something on your 
+      mind ;) <BR><BR>Visit <A href="http://www.quake3mods.net/rg/index.html" 
+      target=_blank>my Quake3 Mod page</A> 
+      <HR align=left color=#ffbf00 width=500>
+
+      <DIV align=center><IMG align=bottom 
+      src="weapon modeling_files/Count.gif"></DIV><BR>Tutorial by: Kalle 'T0oL' 
+      Hytönen<BR>Email: <A 
+      href="mailto:kalleh@sci.fi">kalleh@sci.fi</A><BR></DIV><BR></TD></TR></TBODY></TABLE></BODY></HTML>

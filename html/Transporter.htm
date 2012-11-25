@@ -1,0 +1,185 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304525812"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0069)http://www.inolen.com/index.phtml?file=./programming/transporter.html -->
+<HTML><HEAD><TITLE>www.inolen.com</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE>A:link {
+	COLOR: #336699; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #0000a0; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: black; TEXT-DECORATION: underline
+}
+A:hover {
+	TEXT-DECORATION: overline
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY bgColor=#eeeeee leftMargin=0 text=#000000 topMargin=0>
+<DIV align=center>
+<TABLE align=center border=0 cellPadding=0 cellSpacing=0 hspace="0" 
+  vspace="0"><TBODY>
+  <TR>
+    <TD align=middle bgColor=#eeeeee borderColor=#000000 colSpan=2 
+      vAlign=top><IMG height=150 src="Transporter_files/logo.jpg" width=300> 
+  </TD></TR></TBODY></TABLE>
+<TABLE align=center border=1 borderColorDark=#ffffff borderColorLight=#000000 
+cellPadding=0 cellSpacing=0 width="80%" hspace="0" vspace="0">
+  <TBODY>
+  <TR align=middle vAlign=center>
+    <TD bgColor=#ffffff colSpan=2>
+      <DIV align=center><FONT face=Tahoma size=1><B><A 
+      href="http://www.inolen.com/index.phtml"><FONT face=Tahoma 
+      size=2>Main</FONT></A>&nbsp; |&nbsp; <A 
+      href="http://www.inolen.com/index.phtml?file=./maps.html"><FONT 
+      face=Tahoma size=2>Maps</FONT></A><FONT face=Tahoma size=2>&nbsp; |&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./programming.html">Programming</A>&nbsp;|&nbsp;<A 
+      href="http://www.inolen.com/index.phtml?file=./links.html">Links</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./files.html">Files</A>&nbsp;|&nbsp; 
+      <A 
+      href="http://www.inolen.com/index.phtml?file=./demos.html">Demos</A>&nbsp;|&nbsp; 
+      <A href="http://www.inolen.com/cgi-bin/Ultimate.cgi?action=intro" 
+      target=_blank>Forums</A></FONT></B></FONT> </DIV></TD></TR>
+  <TR>
+    <TD align=middle background=Transporter_files/side.jpg vAlign=top 
+      width=115><FORM 
+      action=http://www.inolen.com/cgi-bin/NewsPro/viewnews.cgi?search 
+      method=post><INPUT name=searchstring 
+      onblur="if (value == '') {value = 'Search News'}" 
+      onfocus="if (value == 'Search News') {value =''}" size=13 
+      style="BACKGROUND-COLOR: #ffffff; BORDER-BOTTOM: #336699 1px solid; BORDER-LEFT: #336699 1px solid; BORDER-RIGHT: #336699 1px solid; BORDER-TOP: #336699 1px solid; COLOR: #336699; FONT-FAMILY: Tahoma" 
+      value="Search News"> </FORM></TD>
+    <TD align=left bgColor=#ffffff vAlign=top>
+      <P><FONT color=#000000 face=Tahoma size=2><B>This tut guides you through 
+      the process of converting the grenade launchers grenades to be little 
+      transportation balls( like UT's Translocator ) :) You can have 1 at a 
+      time. After firing a grenade type in the console( or set a bind to it 
+      )<BR>/telegren</B></FONT></P>
+      <P><B><FONT face=Tahoma size=2>Open up g_local.h, we need to define 
+      G_ExplodeMissile so other files besides where it is defined( g_missile.c ) 
+      can use it. So find this:</FONT></B></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>void G_AddPredictableEvent( gentity_t *ent, int event, int eventParm );
+ void G_AddEvent( gentity_t *ent, int event, int eventParm );
+ void G_SetOrigin( gentity_t *ent, vec3_t origin );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Up under those defines add 
+      this:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>void G_ExplodeMissile( gentity_t *ent );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>And also we have to let quake3 now where to 
+      teleport them and if there is a spot set yet, so go find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>	qboolean	botDelayBegin;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Up under it add:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>	vec3_t      teleloc;
+ 	int         istelepoint;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Now go into g_missile.c and find near the 
+      top:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>	if ( ent-&gt;s.eFlags &amp; EF_BOUNCE_HALF ) {
+ 		VectorScale( ent-&gt;s.pos.trDelta, 0.65, ent-&gt;s.pos.trDelta );
+ 		// check for stop
+ 		if ( trace-&gt;plane.normal[2] &gt; 0.2 &amp;&amp; VectorLength( ent-&gt;s.pos.trDelta ) &lt; 40 ) {
+ 			G_SetOrigin( ent, trace-&gt;endpos );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Add directly beneath it:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>		    ent-&gt;parent-&gt;istelepoint = 1;<BR> 	        VectorCopy(ent-&gt;r.currentOrigin, ent-&gt;parent-&gt;teleloc);<BR>			ent-&gt;parent-&gt;teleloc[2] += 6;</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>What that does is once the grenade stops, 
+      it lets quake3 know we have a spot to teleport to, then it adds 5 to the z 
+      coordinate on the grenades origin so that the player does not spawn in the 
+      ground, then it copies the grenades origing( after adding 5 to the z axis 
+      ) to the clients teleportation spot. Part of the players bounding box gets 
+      stuck in the ground if you don't add that/add less than 5, you get stuck 
+      in the ground. Its fun to add a 100 or so and go THUMP to the ground when 
+      you teleport. Now we need to edit some more stuff. Go find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>/*
+ =================
+ fire_grenade
+ =================
+ */</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Replace that little bit and its function 
+      below it with:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>void G_ExplodeGrenade( gentity_t *ent ) {
+ 	ent-&gt;parent-&gt;istelepoint = 0; // client cannot teleport
+ 	VectorClear( ent-&gt;parent-&gt;teleloc ); // clear the teleport location
+ 	G_ExplodeMissile( ent );
+ }
+ /*
+ =================
+ fire_grenade
+ =================
+ */
+ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir) {
+ 	gentity_t	*bolt;
+ 
+ 	VectorNormalize (dir);
+ 
+ 	bolt = G_Spawn();
+ 	bolt-&gt;classname = "grenade";
+ 	bolt-&gt;nextthink = level.time + 30000;
+ 	bolt-&gt;think = G_ExplodeGrenade;
+ 	bolt-&gt;s.eType = ET_MISSILE;
+ 	bolt-&gt;r.svFlags = SVF_USE_CURRENT_ORIGIN;
+ 	bolt-&gt;s.weapon = WP_GRENADE_LAUNCHER;
+ 	bolt-&gt;s.eFlags = EF_BOUNCE_HALF;
+ 	bolt-&gt;r.ownerNum = self-&gt;s.number;
+ 	bolt-&gt;parent = self;
+ 	bolt-&gt;damage = 100;
+ 	bolt-&gt;splashDamage = 100;
+ 	bolt-&gt;splashRadius = 150;
+ 	bolt-&gt;methodOfDeath = MOD_GRENADE;
+ 	bolt-&gt;splashMethodOfDeath = MOD_GRENADE_SPLASH;
+ 	bolt-&gt;clipmask = MASK_SHOT;
+ 
+ 	bolt-&gt;s.pos.trType = TR_GRAVITY;
+ 	bolt-&gt;s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;
+ 	VectorCopy( start, bolt-&gt;s.pos.trBase );
+ 	VectorScale( dir, 700, bolt-&gt;s.pos.trDelta );
+ 	SnapVector( bolt-&gt;s.pos.trDelta );			// save net bandwidth
+ 
+ 	VectorCopy (start, bolt-&gt;r.currentOrigin);
+ 
+ 	return bolt;
+ }</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Lemme explain what this 
+      does.<BR></B></FONT><FONT color=#0000a0 face=Tahoma 
+      size=2><B>bolt-&gt;nextthink = level.time + 30000;<BR></B></FONT><FONT 
+      face=Tahoma size=2><B>Runs G_ExplodeGrenade in 30 
+      seconds.<BR></B></FONT><FONT color=#0000a0 face=Tahoma 
+      size=2><B>bolt-&gt;think = G_ExplodeGrenade;<BR></B></FONT><FONT 
+      face=Tahoma size=2><B>Calls the function to explode the grenade, tells the 
+      program that you cannot teleport, then clears the grenades position for 
+      the owner so he has no where to teleport to. Now open up g_weapons.c and 
+      find:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>void weapon_grenadelauncher_fire (gentity_t *ent) {</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Replace it with this following 
+      code:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>void weapon_grenadelauncher_fire (gentity_t *ent) {
+ 	gentity_t	*m;
+ 	gentity_t *grenades = NULL;
+ 
+ 	while ((grenades = G_Find (grenades, FOFS(classname), "grenade")) != NULL)
+ 	{
+ 		if(grenades-&gt;r.ownerNum == ent-&gt;s.clientNum)  //make sure its ours
+ 		{
+ 			ent-&gt;istelepoint = 0; // client cannot teleport
+ 			VectorClear( ent-&gt;teleloc ); // clear the teleport location
+ 			grenades-&gt;think = G_ExplodeMissile;
+ 			grenades-&gt;nextthink = level.time;
+ 		}
+ 	}
+ 	// extra vertical velocity
+ 	forward[2] += 0.2;
+ 	VectorNormalize( forward );
+ 
+ 	m = fire_grenade (ent, muzzle, forward);
+ 	m-&gt;damage *= s_quadFactor;
+ 	m-&gt;splashDamage *= s_quadFactor;
+ }</B></FONT> <FONT face=Tahoma size=2><B> </B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>All that does is find any entities named 
+      "grenade" and then checks to see if its ours, if so it blows it up, then 
+      fires out our new one, so we can only have out 1 at a time.</B></FONT></P>
+      <P><B><FONT face=Tahoma size=2>Now in g_cmds.c lets add our teleportation 
+      command. Right below the #include line(s) at the top of the file 
+      add:</FONT></B></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>/*<BR>=================<BR>Cmd_TeleGren_f<BR>=================<BR>*/<BR>void Cmd_TeleGren_f (gentity_t *ent) {<BR>    if ( ent-&gt;istelepoint == 1 ) {<BR>		VectorCopy( ent-&gt;teleloc, ent-&gt;client-&gt;ps.origin );<BR>	} else {<BR>        G_Printf( S_COLOR_GREEN "No teleportation port\n" );<BR>	}<BR>}</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Then at the bottom of the file right up 
+      under:</B></FONT></P><PRE><FONT color=#ff0000 face=Tahoma size=2><B>	else if (Q_stricmp (cmd, "setviewpos") == 0)<BR>		Cmd_SetViewpos_f( ent );<BR>	else if (Q_stricmp (cmd, "stats") == 0)<BR>		Cmd_Stats_f( ent );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>Add:</B></FONT></P><PRE><FONT color=#0000a0 face=Tahoma size=2><B>	else if (Q_stricmp (cmd, "telegren") == 0)<BR> 		Cmd_TeleGren_f( ent );</B></FONT></PRE>
+      <P><FONT face=Tahoma size=2><B>There, we are done! Enjoy.</B></FONT></P>
+      <P><FONT color=#000000 face=Tahoma size=2><B>I spend my time programming 
+      and writing these tutorials, so please feel free to use this code in your 
+      mod as long as www.inolen.com and the author receive 
+    credit.</B></FONT></P></TD></TR>
+  <TR>
+    <TD align=middle bgColor=#f9f9f9 colSpan=2 vAlign=center><FONT 
+      color=#000000 face=Tahoma size=2><B>Design Copyright inolen 
+    2000</B></FONT></TD></TR></TBODY></TABLE></DIV></BODY></HTML>

@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0054)http://quakestyle.telefragged.com/quake3/tutorial9.htm -->
+<HTML><HEAD><TITLE>Quake Style - Quake 3 Tutorials - Introductory Tutorials - Compiling Q3 Without MSVC++</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	FONT-FAMILY: verdana
+}
+TABLE {
+	FONT-FAMILY: verdana
+}
+TR {
+	FONT-FAMILY: verdana
+}
+TD {
+	FONT-FAMILY: verdana
+}
+INPUT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+TEXTAREA {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+SELECT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+OPTION {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+PRE {
+	FONT-FAMILY: verdana; FONT-WEIGHT: bold
+}
+A {
+	COLOR: #00ff00
+}
+A:hover {
+	COLOR: white; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=black text=#ffff80><FONT size=1>
+<DIV align=right>
+<TABLE border=0 cellSpacing=0 cellborder="0">
+  <TBODY>
+  <TR>
+    <TD align=middle><FONT size=1><B><FONT color=white>Quake Style - Quake 3 
+      Tutorials</FONT><BR><FONT color=#bbcc77>Introductory Tutorials 
+      </FONT><FONT color=#ff8000>- Compiling Q3 Without MSVC++</FONT><BR>For 
+      those of you on a budget :) </B></FONT></TD></TR></TBODY></TABLE></DIV><BR><!-- START TUTORIAL -->This one 
+is fairly simple. <BR>First, get <A 
+href="http://tux.telefragged.com/file.pl?filename=include.zip&amp;dir=telefragged/quakestyle/">this 
+file</A>, also the <A 
+href="http://www.fileplanet.com/index.asp?file=35935">Quake 3 Source</A> (duh! 
+:) and if you haven't already, the <A 
+href="http://www.fileplanet.com/index.asp?file=35903">point release</A>. 
+<BR><BR>Make sure Quake 3 is installed to X:\QUAKE3\ (where X is any drive you 
+like!) and install both the point release and source code there. Then, extract 
+the "include.zip" to X:\QUAKE3\SOURCE\LCC\BIN\INCLUDE\. <BR><BR>Next, edit 
+C:\AUTOEXEC.BAT. Add this extra text on the end of your PATH statement. <BR><PRE><FONT size=1>
+PATH=C:\WINDOWS;C:\WINDOWS\COMMAND;<FONT color=#00ffff>C:\QUAKE3\BIN_NT;</FONT>
+</FONT></PRE><BR>DO NOT USE MY PATH LINE IN YOUR AUTOEXEC.BAT FILE. Simply add 
+the last part, "C:\QUAKE3\BIN_NT;" and make sure the drive is the correct 
+letter. <BR><BR>And that's basically it. Go to X:\QUAKE3\SOURCE\GAME\, and you 
+can run "game.bat" to compile the source code, which will generate a "qagame.vm" 
+file in X:\QUAKE3\BASEQ3\VM\. Just copy that to X:\QUAKE3\YourMod\VM\, and run 
+Quake 3 like this: <BR><PRE><FONT size=1>
+quake3 +set fs_game YourMod
+</FONT></PRE><BR>Of course change "YourMod" to well, anything you like. Have 
+fun! <!--- END TUTORIAL ---><BR><BR><FONT color=#ff8000><B>-- 
+Credits:</B></FONT> <BR>&nbsp;&nbsp; Tutorial by <A 
+href="mailto:samthorogood@yahoo.com"><B>(nobody)</B></A> <BR>&nbsp;&nbsp; Return 
+to <A href="http://quakestyle.telefragged.com/tuts.shtml"><B>QS 
+Tutorials</B></A> <BR><BR><FONT color=#ff8000><B>-- Important:</B></FONT> 
+<BR>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please 
+give us credit. <BR>&nbsp;&nbsp; Our code is copyrighted, but we give permission 
+to everyone to use it in any way they see fit, as long as we are recognized. 
+</FONT></BODY></HTML>

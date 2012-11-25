@@ -1,0 +1,467 @@
+
+
+<HTML>
+<HEAD>
+<TITLE>Q3 Center - The Gamers' Choice!</TITLE>
+<LINK rel="stylesheet" href="/pagestyle.css">
+<script language="JavaScript" type="text/javascript">
+<!--
+function go(where) {
+  if(where != "void" && where!="") location.href = where;
+}
+wallPaperWindowsLength = 0;
+
+function reply(tid,pid,cid,lang) {
+
+  url = "/reply.phtml?tid=" + tid + "&pid=" + pid + "&id=" + cid + "&language=" + lang + '&ref=%2Ffeatures%2Ffeatures.phtml%3Fid%3D121561%26language%3Den';
+  ipwindow = open("","prewindow","scrollbars=yes,toolbar=no,height=400,width=400");
+  ipwindow.location.href = url;
+        
+}
+
+function rateit(id,vote) {
+    if(vote != "") {
+		document.rate.content_id.value = id;
+		document.rate.vote.value = vote;
+		document.rate.submit();
+	}
+}
+
+function screenshot(cid,pid) {
+
+  url = "/screenshot.phtml?cid=" + cid + "&pid=" + pid;
+  ipwindow = open("","prewindow","scrollbars=yes,toolbar=no,height=630,width=710");
+  ipwindow.location.href = url;
+        
+}
+
+function relatedmedia(url) {
+
+  ipwindow = open("","prewindow","scrollbars=yes,toolbar=no,height=300,width=300");
+  ipwindow.location.href = url;
+        
+}
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+function MM_findObj(n, d) { //v4.0
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && document.getElementById) x=document.getElementById(n); return x;
+}
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function getWall(id,name) {
+  url = "/getwall.phtml?thisid=" + id + "&thisname=" + name;
+
+	ipwindow = open("","prewindow_"+wallPaperWindowsLength,"fullscreen=no,resizable=yes,scrollbars=yes,toolbar=yes,height=600,width=800");        
+        ipwindow.location.href = url;
+	wallPaperWindowsLength++;
+
+}
+
+function getFile(id,name) {
+  url = "/common/getfile.phtml?thisid=" + id + "&thisname=" + name;
+  ipwindow = open("","prewindow","scrollbars=no,toolbar=no,height=200,width=495");
+  ipwindow.location.href = url;
+}
+function localDate(dateStr) {
+  now = new Date();
+  var ar1 = now.toString().split(" ");
+  var addH = -100;
+  var addM = -100;
+  var gmt = new Array(new Array());
+  gmt["PST"] = -8;
+  gmt["MST"] = -7;
+  gmt["CST"] = -6;
+  gmt["EST"] = -5;
+  gmt["UTC"] = 0;
+  if(ar1[4].indexOf("+") != -1) {
+    var gm = ar1[4].split("+");
+    gm[2] = 0-gm[1].substr(0,2);
+    addH = Number(gm[2]);
+    gm[2] = 0-gm[1].substr(2,2);
+    addM = Number(gm[2]);
+  }
+  if(ar1[4].indexOf("-") != -1) {
+    var gm = ar1[4].split("-");
+    gm[2] = gm[1].substr(0,2);
+    addH = Number(gm[2]);
+    gm[2] = gm[1].substr(2,2);
+    addM = Number(gm[2]);
+  }
+  if(addH == -100) {
+    addH = gmt[ar1[4]];
+    addM = 0;
+  }
+  there = new Date(dateStr);
+  nowP = Date.parse(there);
+  if(addH > 0) nowP -= 3600000;
+  nowP += Number(addH)*3600000;
+  nowP += Number(addM)*60000;
+  realD = new Date(nowP);
+  real = realD.toLocaleString();
+  //  document.write(real[0] + " " + real[1] + " " + real[2] + " " +real[3]);
+  document.write(real);
+}
+//-->
+</script>
+
+ 
+</HEAD>
+<BODY bgcolor="#000000" marginwidth="0" marginheight="0" topmargin="0" leftmargin="0" text="#FFFFFF" link="#303A41" vlink="#303A41" alink="#303A41">
+
+<!-- Webserver: w17 --><!-- loginUrl: http://www.q3center.com/common/loginNew.phtml?ref=www.q3center.com&page=/features/features.phtml?id=121561&language=en !--><!-- loginUrl: http://www.q3center.com/common/members.phtml?ref=www.q3center.com&page=/features/features.phtml?id=121561&language=en !--><script language="JavaScript">
+<!--
+function MM_openBrWindow(theURL,winName,features) { //v2.0
+  window.open(theURL,winName,features);  
+}
+function login() {
+
+  window.open('http://www.q3center.com/common/loginNew.phtml?ref=www.q3center.com&page=/features/features.phtml?id=121561&language=en', 'Login', 'width=250,height=250,scrollbars=yes'); 
+}
+function member() {
+  window.open('http://www.q3center.com/common/members.phtml?ref=www.q3center.com&page=/features/features.phtml?id=121561&language=en', 'Member', 'width=500,height=600,scrollbars=yes'); 
+}
+//-->
+</script><!-- Place the following code where you want an ad to appear -->
+
+
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" background="/common/images/topplate/resize.gif">
+  <tr> 
+    <td> 
+      <table width="488" border="0" cellspacing="0" cellpadding="0" background="/common/images/topplate/resize.gif">
+				<tr> 
+          <td><img src="/common/images/topplate/metalcorner.gif" width="5" height="20"></td>
+				          <td><a href="javascript:login();"><img src="/common/images/topplate/memberlogin.gif" width="80" height="20" border="0"></a></td>					
+			            <td><img src="/common/images/topplate/arrow.gif" width="10" height="20"></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/pc.gif" width="23" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/action.gif" width="47" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/roleplay.gif" width="62" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/simulation.gif" width="70" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/console.gif" width="56" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/strategy.gif" width="64" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/racing.gif" width="47" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+<td>
+</td>
+</tr>
+      </table>
+    </td>
+    <td background="/common/images/topplate/resize.gif" width="100%"><img src="/common/images/topplate/resize.gif" width="100%" height="20"></td>
+    <td>
+      <table width="88" border="0" cellspacing="0" cellpadding="0" background="/common/images/topplate/resize.gif">
+        <tr>
+          <td><img src="/common/images/topplate/metalcolumn.gif" width="3" height="20"></td>
+          <td><a href="javascript:;" onClick="MM_openBrWindow('/common/sitemap.html','navigation','width=540,height=450')"><img src="/common/images/topplate/mgonetwork.gif" width="82" height="20" border="0"></a></td>
+          <td><img src="/common/images/topplate/metalcorner.gif" width="5" height="20"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000">
+  <tr> 
+    <td></td>
+  </tr>
+</table>
+ 
+<TABLE width="100%" border="0" cellspacing="0" cellpadding="0">
+ <TR> 
+    <TD><img src="/images/top/topleft.jpg" width="152" height="136" usemap="#Map" border="0"><map name="Map"><area shape="rect" coords="10,51,127,84" href="http://www.mgon.com"></map></TD>
+    <TD><img src="/images/top/logo.jpg" width="379" height="136"></TD>
+    <TD background="/images/top/resize.jpg" width="100%"><img src="/images/misc/1pix.gif" width="1" height="1"></TD>
+    <TD><IMG src="/images/top/topright.jpg" width="209" height="136"></TD>
+ </TR>
+</TABLE>
+<!--bannerarea-->
+<TABLE width="100%" border="0" cellspacing="0" cellpadding="0">
+  <TR bgcolor="#000000">
+    <TD background="/images/bannersection/mgochannel.gif" bgcolor="#000000"><object
+classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=4,0,2,0" width="120" height="60" hspace="12" id="mgonFlash">
+				<param name=movie value="http://se.fs.mgon.com/flashmovies/mgochannel1.swf">
+              <param name=quality value=high>
+              <param name="menu" value="false"><param name="BGCOLOR" value="#000000">
+              <embed src="http://se.fs.mgon.com/flashmovies/mgochannel1.swf" quality=high pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"
+type="application/x-shockwave-flash" menu="false" width="120" height="60"
+hspace="12" name="mgonFlash" bgcolor="#000000"></embed></object></TD><TD
+width="100%" align="center" bgcolor="#000000"><!--Ad 468x60-->      <span class="smalltext"><!-- 468x60 --><iframe src="http://as1.falkag.de/server/rich.asp?cmd=ifr&dat=44903&xl=468&yl=60&opt=0" width=468 height=60 noresize scrolling="no" hspace="0" vspace="0" frameborder="0" marginheight="0" marginwidth="0"><nolayer><a href="http://as1.falkag.de/server/poor.asp?cmd=lnk&dat=44903&opt=0" target="_blank"><img src="http://as1.falkag.de/server/poor.asp?cmd=ban&dat=44903&opt=0" width=468 height=60 alt="Click Here." border="0"></a></nolayer><ilayer id="ad44903" visibility="hide" width=468 height=60></ilayer></iframe></span><!-- END --><!--/Ad 468x60--></TD><TD><img
+src="/images/bannersection/topright.gif"
+width="143" height="60"></TD></TR> </TABLE>
+<TABLE width="100%" border="0" cellspacing="0" cellpadding="0">
+  <TR>
+    <TD><IMG src="/images/bannersection/left.gif" width="500" height="18"></TD>
+    <TD background="/images/bannersection/resize.gif" width="100%"><img src="/images/misc/1pix.gif" width="1"
+height="1"></TD>
+    <TD><IMG src="/images/bannersection/right.gif" width="170" height="18"></TD>
+  </TR>
+</TABLE>
+<SCRIPT LANGUAGE="JavaScript">
+document.mgonFlash.play();
+</SCRIPT>
+
+<table width="100%" cellspacing="1" cellpadding="5" border="0">
+<tr>
+  <td width="100%" class="Headline" bgcolor="#25292E">&nbsp;
+  </td>
+  <td bgcolor="#25292E" class="Headline"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"><br>&nbsp;Navigation</td>
+</tr>
+</table>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="100%" bgcolor="#444E55"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"></td></tr>
+<tr><td width="100%" bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="150" height="2" border="0"></td></tr>
+<tr><td width="100%" bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"></td></tr>
+</table>
+
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td width="100%">
+<!-- Main Content -->
+
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr>
+    <td width="1%" valign="top" bgcolor="#303A41" align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000"><tr><td><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td></tr></table>
+    <p>        </td>
+    <td bgcolor="#000000" class="Headline"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+    <td bgcolor="#444E55" class="Headline"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+    <td width="99%" valign="top">
+
+<!-- MAIN BODY -->
+
+    <table width="100%" cellspacing="1" cellpadding="0" border="0">
+    <tr>
+      <td bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="10" height="1" border="0"></td>
+      <td width="100%" class="Headline" bgcolor="#3C0000">
+      <table width="100%" cellspacing="0" cellpadding="3" border="0">
+      <tr>
+        <td width="50%" valign="top" nowrap class="Headline">&nbsp;Team Weapons</td>
+        <td width="50%" align="right" valign="bottom" nowrap><span class="Bolded">Feature Type:</span> Coding Tutorials &nbsp; &nbsp; <span class="Bolded">Added:</span> 24/01 &nbsp;</td>
+      </tr>
+      </table>
+      </td>
+    </tr>
+    <tr>
+      <td bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="10" height="1" border="0"></td>
+      <td width="100%" bgcolor="#3C0000">
+      <table width="100%" cellspacing="0" cellpadding="3" border="0">
+      <tr>
+        <td width="100%" valign="top">&nbsp; <span class="Bolded">Author:</span> Corven&nbsp;</td>
+      </tr>
+      </table>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+      <table width="100%" cellspacing="0" cellpadding="0" border="0">
+      <tr><td width="100%" bgcolor="#444E55"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"></td></tr>
+      <tr><td width="100%" bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="150" height="2" border="0"></td></tr>
+      <tr><td width="100%" bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"></td></tr>
+      </table>
+      </td>      
+    </tr>
+    </table>
+    <table width="100%" cellspacing="0" cellpadding="15" border="0">
+    <tr>
+      <td width="100%">
+
+
+
+<p><i>How to give different weapons to different teams.</i>
+<p>
+
+<TABLE width="100%" border="0" cellspacing="0">
+<TR> 
+  <TD> 
+  <SPAN class="Headline">Rocket vs Rail</SPAN>
+  <P>   <SPAN class="LHeadline"><font color="#00FF00">Code to be Added or Changed</font></SPAN><br />
+<br />
+<span class="codepage">g_client.c</span><br />
+<br />
+Find the <b>ClientSpawn</b> function, all things in there are what happens when the player spawns in the game. Find the following lines:<br />
+<br />
+client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );<br />
+if ( g_gametype.integer == GT_TEAM ) {<br />
+	client->ps.ammo[WP_MACHINEGUN] = 50;<br />
+} else {<br />
+	client->ps.ammo[WP_MACHINEGUN] = 100;<br />
+}<br />
+<br />
+Now this tells the game to give them the machinegun, and if the gametype is a team game, then choose its amount of ammo. We are going to change and add to this, like so:<br />
+<br />
+<font color="#00FF00"><br />
+if ( g_gametype.integer == GT_TEAM ) {<br />
+if ( client->sess.sessionTeam == TEAM_RED ) {<br />
+    client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_ROCKET_LAUNCHER );<br />
+    client->ps.ammo[WP_ROCKET_LAUNCHER] = 20;<br />
+} else if ( client->sess.sessionTeam == TEAM_BLUE ) {<br />
+    client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_RAILGUN );<br />
+    client->ps.ammo[WP_RAILGUN] = 10;<br />
+} else {<br />
+	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );<br />
+	client->ps.ammo[WP_MACHINEGUN] = 50;<br />
+}<br />
+} else {<br />
+	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );<br />
+	client->ps.ammo[WP_MACHINEGUN] = 100;<br />
+}</font><br />
+<br />
+What we've done is first tell it to check if we're playing a team game, if so then check if the player is on TEAM_RED then give them the rocket launcher and ammo, else if they are on TEAM_BLUE give them the railgun and ammo, else give them the usual machinegun.<br />
+<br />
+But usually the first weapon they have is the machinegun, so we have to tell the game to make them use the rocketlauncher or railgun first instead, so look further down the same function till you see:<br />
+<br />
+	client->ps.weapon = WP_MACHINEGUN;<br />
+	client->ps.weaponstate = WEAPON_READY;<br />
+<br />
+And now change that too:<br />
+<font color="#00FF00">if ( client->sess.sessionTeam == TEAM_RED ) {<br />
+		client->ps.weapon = WP_ROCKET_LAUNCHER;<br />
+		client->ps.weaponstate = WEAPON_READY;<br />
+} else if ( client->sess.sessionTeam == TEAM_BLUE ) {<br />
+		client->ps.weapon = WP_RAILGUN;<br />
+		client->ps.weaponstate = WEAPON_READY;<br />
+} else {<br />
+		client->ps.weapon = WP_MACHINEGUN;<br />
+		client->ps.weaponstate = WEAPON_READY;<br />
+}</font><br />
+<br />
+Dont' forget if your planning on giving them different weapons like the rocket launcher or railgun that might not be in the map, it's a good idea to register those weapons as the game loads, so the needed weapon media is cache and ready to use.<br />
+<br />
+<span class="codepage">g_items.c</span><br />
+<br />
+Now find the <b>ClearRegisteredItems</b> funtion, these lines:<br />
+<br />
+RegisterItem( BG_FindItemForWeapon( WP_MACHINEGUN ) );<br />
+RegisterItem( BG_FindItemForWeapon( WP_GAUNTLET ) );<br />
+<br />
+Now add the following so it will register the weapons if we are playing a team game:<br />
+<br />
+<font color="#00FF00">if (g_gametype.integer == GT_TEAM) {<br />
+RegisterItem( BG_FindItemForWeapon( WP_ROCKET_LAUNCHER) );<br />
+RegisterItem( BG_FindItemForWeapon( WP_RAILGUN) );<br />
+}</font><br />
+<br />
+The above example is only for Team Deathmatch gametype, but ofcourse you could change the check so it does the same for every team based game using:<br />
+if (g_gametype.integer <font color="#00FF00"> >= </font> GT_TEAM) {  </TD>
+</TR>
+</TABLE>
+
+
+<p><TABLE width="100%" border="0" cellspacing="0">
+<TR>
+  <TD align="left">
+  </TD>
+  <TD align="right">
+  <a href="/features/features.phtml?id=121561&language=en&action=comments" class="Headline">Comments&nbsp;&raquo;</a>  </TD>
+</TR>
+</TABLE>
+
+
+      </td>
+    </tr>
+    </table>
+  
+    </td>
+  </tr>
+  </table>
+
+<!-- End of Main Content -->
+  </td>
+  <td bgcolor="#444E55"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+  <td bgcolor="#000000"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+  <td bgcolor="#303A41" valign="top"><img src="/images/misc/1pix.gif" width="158" height="1" border="0"><br>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000"><tr><td>
+
+<img src="/images/misc/1pix.gif" width="1" height="1" border="0"><br>
+
+
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000"><tr>
+<td bgcolor="#303A41" nowrap><img src="/images/misc/1pix.gif" width="10" height="25" border="0"></td>
+<td bgcolor="#000000"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+<td width="100%" bgcolor="#303A41" class="Bolded">&nbsp; Page 1</td>
+</tr></table><img src="/images/misc/1pix.gif" width="1" height="1" border="0"><br>
+
+
+
+        
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000"><tr>
+<td bgcolor="#303A41" nowrap><img src="/images/misc/1pix.gif" width="10" height="25" border="0"></td>
+<td bgcolor="#000000"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+<td width="100%" bgcolor="#3C0000" class="Bolded">&nbsp; <a href="/features/features.phtml?id=121561&action=comments">Comments</a> ( 0 )</td>
+</tr></table><img src="/images/misc/1pix.gif" width="1" height="1" border="0"><br>
+
+
+</td></tr></table>
+
+<p><table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000"><tr><td>
+
+<img src="/images/misc/1pix.gif" width="1" height="1" border="0"><br>
+<table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000"><tr>
+<td bgcolor="#303A41" nowrap><img src="/images/misc/1pix.gif" width="10" height="25" border="0"></td>
+<td bgcolor="#000000"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+<td width="100%" bgcolor="#3C0000" class="Bolded">&nbsp; <a href="/features/">Features Index</a></td>
+</tr></table><img src="/images/misc/1pix.gif" width="1" height="1" border="0"><br>
+
+</td></tr><tr><td>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000"><tr>
+<td bgcolor="#303A41" nowrap><img src="/images/misc/1pix.gif" width="10" height="25" border="0"></td>
+<td bgcolor="#000000"><img src="/images/misc/1pix.gif" width="1" height="1" border="0"></td>
+<td width="100%" bgcolor="#3C0000" class="Bolded">&nbsp; <a href="/">Home</a></td>
+</tr></table><img src="/images/misc/1pix.gif" width="1" height="1" border="0"><br>
+
+</td></tr></table>
+
+  </td>
+</tr>
+</table>
+
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td width="100%" bgcolor="#444E55"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"></td></tr>
+<tr><td width="100%" bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="150" height="2" border="0"></td></tr>
+<tr><td width="100%" bgcolor="#303A41"><img src="/images/misc/1pix.gif" width="150" height="1" border="0"></td></tr>
+</table>
+
+<table width="100%" cellspacing="0" cellpadding="10" border="0">
+<tr>
+  <td width="100%" align="center" valign="top" class="Bolded">Copyright © 2001 MGON International AB - <a href="#">Privacy statement</a></td>
+<form name="sortit" method="post" action="/features/features.phtml">
+<input type="hidden" name="sortby" value="">
+<input type="hidden" name="rel_subtype" value="">
+<input type="hidden" name="rel_type" value="">
+<input type="hidden" name="rel_product" value="1">
+<input type="hidden" name="opt1" value="">
+<input type="hidden" name="opt2" value="">
+<input type="hidden" name="opt3" value="">
+<input type="hidden" name="opt4" value="">
+<input type="hidden" name="opt5" value="">
+</form>
+</tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0055)http://quakestyle.telefragged.com/quake3/tutorial17.htm -->
+<HTML><HEAD><TITLE>Quake Style - Quake 3 Tutorials - Newbie Tutorials - Bouncing Plasma!</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<STYLE type=text/css>BODY {
+	FONT-FAMILY: verdana
+}
+TABLE {
+	FONT-FAMILY: verdana
+}
+TR {
+	FONT-FAMILY: verdana
+}
+TD {
+	FONT-FAMILY: verdana
+}
+INPUT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+TEXTAREA {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+SELECT {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+OPTION {
+	FONT-FAMILY: verdana; FONT-SIZE: 10px
+}
+PRE {
+	FONT-FAMILY: verdana; FONT-WEIGHT: bold
+}
+A {
+	COLOR: #00ff00
+}
+A:hover {
+	COLOR: white; TEXT-DECORATION: none
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=black text=#ffff80><FONT size=1>
+<DIV align=right>
+<TABLE border=0 cellSpacing=0 cellborder="0">
+  <TBODY>
+  <TR>
+    <TD align=middle><FONT size=1><B><FONT color=white>Quake Style - Quake 3 
+      Tutorials</FONT><BR><FONT color=#bbcc77>Newbie Tutorials </FONT><FONT 
+      color=#ff8000>- Bouncing Plasma!</FONT><BR>Changes the plasma so it 
+      bounces around after hitting solid objects. 
+</B></FONT></TD></TR></TBODY></TABLE></DIV><BR><!-- START TUTORIAL -->Bouncing 
+plasma! <BR><BR>This short tutorial shows you how to change the movement of the 
+plasma gun so the little plasma balls bounce around. <BR><BR>Open up g_missile.c 
+and go to around line 259 in the fire_plasma function and add the following line 
+of code: <BR><PRE><FONT size=1> <FONT color=#00ffff> 
+bolt-&gt;s.eFlags = EF_BOUNCE;
+</FONT> 
+</FONT></PRE><BR>This will make the plasma balls bounce against walls instead of 
+exploding. You could also change EF_BOUNCE to EF_BOUNCE_HALF and make it bounce 
+like grenades. <!--- END TUTORIAL ---><BR><BR><FONT color=#ff8000><B>-- 
+Credits:</B></FONT> <BR>&nbsp;&nbsp; Tutorial by <A 
+href="mailto:Gerbil@telefragged.com"><B>Gerbil!</B></A> <BR>&nbsp;&nbsp; Return 
+to <A href="http://quakestyle.telefragged.com/tuts.shtml"><B>QS 
+Tutorials</B></A> <BR><BR><FONT color=#ff8000><B>-- Important:</B></FONT> 
+<BR>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please 
+give us credit. <BR>&nbsp;&nbsp; Our code is copyrighted, but we give permission 
+to everyone to use it in any way they see fit, as long as we are recognized. 
+</FONT></BODY></HTML>

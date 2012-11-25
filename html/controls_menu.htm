@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0066)http://www.geocities.com/gumlass/html/tutorials/controls_menu.html -->
+<HTML><HEAD>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=#000000 text=#aaaaaa>
+<CENTER><IMG alt="Running Man" height=128 src="controls_menu_files/logo.jpg" 
+width=128> </CENTER>
+<H2>Adding items to the Controls Menu</H2><STRONG>by Gum-Lass</STRONG> 
+<BR><BR>In this tutorial we will: 
+<UL>
+  <LI>Add a new subsection to the controls menu. 
+  <LI>Add a binding for the grappling hook to it. </LI></UL><BR><BR>The finished 
+product will be something like this:<BR>
+<CENTER><IMG alt="Gum-Lass's Modified Controls Menu" height=300 
+src="controls_menu_files/controls_menu.jpg" width=400> </CENTER><BR><BR>First, 
+all the modifications will be made in <FONT 
+color=white>ui_controls2.c</FONT><BR>
+<UL>
+  <LI><FONT color=red>Red</FONT> indicates lines that have been added or 
+  changed. 
+  <LI><FONT color=blue>Blue</FONT> indicates lines from the original code. 
+</LI></UL><BR><BR>Now first we are going to add a new sub-section to the menu. 
+Because I'm doing the Running Man mod, I'll call it "RUN". So the new controls 
+menu will go: 
+<UL>
+  <LI>LOOK 
+  <LI>MOVE 
+  <LI>SHOOT 
+  <LI>MISC 
+  <LI>RUN </LI></UL>Then we are going to add a bindable action to the RUN section 
+of the menu.<BR><BR>Firstly, we must change the #defines :<BR>This may seem like 
+a waste of time, but it will help if you want to add other sub-sections.<BR>Add 
+this near the top of the file.<BR><BR><FONT color=red>// GLs : This is the 
+centre of the menu. I defined it so I could add more menus later. ;)<BR>#define 
+RM_CONTROLS_MENUMIDDLE 240<BR></FONT>where it says "control sections", add the 
+C_RUN #define and change the C_MAX #define<BR><BR><BR><FONT color=blue>// 
+control sections<BR>#define C_MOVEMENT 0<BR>#define C_LOOKING 1<BR>#define 
+C_WEAPONS 2<BR>#define C_MISC 3<BR><FONT color=red>#define C_RUN 4 // GLs : The 
+Running Man menu.<BR>#define C_MAX 5<BR></FONT></FONT><BR><BR>Then in the next 
+section:<BR>Notice how you have to add 1 to each of the #defines below ID_RUN. 
+<BR><BR><FONT color=blue>#define ID_MOVEMENT 100<BR>#define ID_LOOKING 
+101<BR>#define ID_WEAPONS 102<BR>#define ID_MISC 103<BR><FONT color=red>#define 
+ID_RUN 104 // GLs : The Running Man Menu.<BR>#define ID_DEFAULTS 105<BR>#define 
+ID_BACK 106<BR>#define ID_SAVEANDEXIT 107<BR>#define ID_EXIT 
+108<BR></FONT></FONT><BR><BR>Then below ID_CHAT4, we will define our grapple as 
+ID_WEAPON10.<BR><BR><FONT color=blue>#define ID_CHAT2 31<BR>#define ID_CHAT3 
+32<BR>#define ID_CHAT4 33<BR><FONT color=red>#define ID_WEAPON10 34 // GLs : 
+Next bindable action.<BR></FONT></FONT><BR><BR>Again in the next section you 
+must add 1 to all of the #defines <BR><BR><FONT color=red>// all others GLs : +1 
+added to all due to Grappling hook.<BR>#define ID_FREELOOK 35<BR>#define 
+ID_INVERTMOUSE 36<BR>#define ID_ALWAYSRUN 37<BR>#define ID_AUTOSWITCH 
+38<BR>#define ID_MOUSESPEED 39<BR>#define ID_JOYENABLE 40<BR>#define 
+ID_JOYTHRESHOLD 41<BR>#define ID_SMOOTHMOUSE 42<BR></FONT><BR><BR>Now in the 
+struct that follows add a line for the runningman sub-menu. <BR><BR><FONT 
+color=blue>menutext_s weapons;<BR>menutext_s misc;<BR><FONT color=red>menutext_s 
+runningman; // GLs : The Running Man submenu<BR></FONT><BR>menuaction_s 
+walkforward;<BR></FONT><BR><BR>. . . and another like this . . .<BR><BR><FONT 
+color=blue>menuaction_s chat3;<BR>menuaction_s chat4;<BR>menuradiobutton_s 
+joyenable;<BR>menuslider_s joythreshold;<BR><FONT color=red>menuaction_s 
+grap_hook; // GLs : The Grappling Hook.<BR></FONT>int section;<BR>qboolean 
+waitingforkey;<BR>char playerModel[64];<BR></FONT><BR><BR>Now we'll add the 
+binding data in the bind_t array, g_bindings[]<BR>Add a line like this at the 
+bottom of the declaration . . . <BR><BR><FONT color=blue>{"messagemode2","chat - 
+team", ID_CHAT2, ANIM_CHAT,-1,-1,-1,-1},<BR>{"messagemode3","chat - target", 
+ID_CHAT3, ANIM_CHAT,-1,-1,-1, -1},<BR>{"messagemode4","chat - attacker", 
+ID_CHAT4, ANIM_CHAT,-1,-1,-1,-1},<BR><FONT color=red>//GLs : Grappling Hook 
+Added as weapon 10.<BR>{"weapon 10", "Grappling Hook", ID_WEAPON10, 
+ANIM_WEAPON10, '0',-1,-1,-1},<BR></FONT>{(char*)NULL, (char*)NULL, 0, 0, 
+-1,-1,-1,-1},<BR></FONT><BR><BR>Note: the first field is the command you want to 
+bind, the second is the name you want to show up in the menu, the third is the 
+#define of the weapon (we added that at the start of this tut), the fourth is 
+the #define of the animation you want to play while selected. The fifth is the 
+default key you want it to be bound to. The sixth is the default alternate key 
+you would like the command to be bound to. The last 2 you should leave as -1 
+because this is where the menu system will store the keys users will 
+bind.<BR><BR>Next, we want to add our binding to a group. The static 
+menucommon_s arrays are these groups. Because we want to add our binding to a 
+new group (the "run" sub-menu) we must declare a new group.<BR>Add these lines 
+after the declaration of static menucommon_s *g_misc_controls[]<BR><BR><FONT 
+color=red>// GLs : The Running Man Menu.<BR>static menucommon_s *g_rm_controls[] 
+= {<BR>(menucommon_s 
+*)&amp;s_controls.grap_hook,<BR>NULL,<BR>};<BR></FONT><BR>Then just below it add 
+this line to the next group.<BR><BR><FONT color=blue>static menucommon_s 
+**g_controls[] = 
+{<BR>g_movement_controls,<BR>g_looking_controls,<BR>g_weapons_controls,<BR>g_misc_controls,<BR><FONT 
+color=red>g_rm_controls, // GLs : Adding it to the main 
+menu.<BR></FONT>};<BR></FONT><BR><BR>Add these lines in the Controls_Update( 
+void ) function. <BR><BR><FONT color=blue>// makes sure flags are right on the 
+group selection controls<BR>s_controls.looking.generic.flags &amp;= 
+~(QMF_GRAYED|QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR>s_controls.movement.generic.flags 
+&amp;= 
+~(QMF_GRAYED|QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR>s_controls.weapons.generic.flags 
+&amp;= 
+~(QMF_GRAYED|QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR>s_controls.misc.generic.flags 
+&amp;= ~(QMF_GRAYED|QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR><FONT color=red>// 
+GLs : Don't forget Running Man<BR>s_controls.runningman.generic.flags &amp;= 
+~(QMF_GRAYED|QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR></FONT><BR><BR>s_controls.looking.generic.flags 
+|= QMF_PULSEIFFOCUS;<BR>s_controls.movement.generic.flags |= 
+QMF_PULSEIFFOCUS;<BR>s_controls.weapons.generic.flags |= 
+QMF_PULSEIFFOCUS;<BR>s_controls.misc.generic.flags |= QMF_PULSEIFFOCUS;<BR><FONT 
+color=red>// GLs : Don't forget Running Man here 
+either.<BR>s_controls.runningman.generic.flags |= 
+QMF_PULSEIFFOCUS;<BR></FONT></FONT><BR><BR>That sets the right flags so that 
+your new item will pulse if the mouse moves over it.<BR><BR>Now, go down to 
+about line 645 and add a section like this below case C_MISC like so: 
+<BR><BR><FONT color=blue>case C_MISC:<BR>s_controls.misc.generic.flags &amp;= 
+~QMF_PULSEIFFOCUS;<BR>s_controls.misc.generic.flags |= 
+(QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR>break;<BR><FONT color=red><BR>case 
+C_RUN:<BR>s_controls.runningman.generic.flags &amp;= 
+~QMF_PULSEIFFOCUS;<BR>s_controls.runningman.generic.flags |= 
+(QMF_HIGHLIGHT|QMF_HIGHLIGHT_IF_FOCUS);<BR>break;<BR><BR></FONT>}<BR></FONT><BR><BR>Now 
+we must change something in the void Controls_MenuEvent( void* ptr, int event ) 
+function.<BR>This is about line 1090.<BR>As usual, add the lines in <FONT 
+color=red>Red</FONT> <BR><BR><FONT color=blue>case ID_MISC:<BR>if (event == 
+QM_ACTIVATED)<BR>{<BR>s_controls.section = C_MISC; 
+<BR>Controls_Update();<BR>}<BR>break;<BR><BR><FONT color=red>// GLs : The 
+Running Man Menu<BR>case ID_RUN:<BR>if (event == 
+QM_ACTIVATED)<BR>{<BR>s_controls.section = C_RUN; 
+<BR>Controls_Update();<BR>}<BR>break;<BR></FONT><BR><BR>case ID_DEFAULTS:<BR>if 
+(event == QM_ACTIVATED)<BR>{<BR>UI_ConfirmMenu( "SET TO DEFAULTS?", 
+Controls_ResetDefaults_Draw, Controls_ResetDefaults_Action 
+);<BR>}<BR>break;<BR></FONT><BR><BR>Now you should be able to switch to your 
+menu when you click on it.<BR><BR>Now comes the bit where we actually add all 
+these things to the menu.<BR>In the function <FONT color=white>void 
+Controls_MenuInit( void )</FONT> from about line 1245 change all the lines like 
+so.<BR><BR><FONT color=blue>s_controls.looking.generic.type = 
+MTYPE_PTEXT;<BR>s_controls.looking.generic.flags = 
+QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;<BR>s_controls.looking.generic.id = 
+ID_LOOKING;<BR>s_controls.looking.generic.callback = 
+Controls_MenuEvent;<BR>s_controls.looking.generic.x = 152;<BR><FONT 
+color=red>s_controls.looking.generic.y = RM_CONTROLS_MENUMIDDLE - 2 * 
+PROP_HEIGHT;<BR></FONT>s_controls.looking.string = 
+"LOOK";<BR>s_controls.looking.style = UI_RIGHT;<BR>s_controls.looking.color = 
+color_red;<BR><BR>s_controls.movement.generic.type = 
+MTYPE_PTEXT;<BR>s_controls.movement.generic.flags = 
+QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;<BR>s_controls.movement.generic.id = 
+ID_MOVEMENT;<BR>s_controls.movement.generic.callback = 
+Controls_MenuEvent;<BR>s_controls.movement.generic.x = 152;<BR><FONT 
+color=red>s_controls.movement.generic.y = RM_CONTROLS_MENUMIDDLE - 
+PROP_HEIGHT;<BR></FONT>s_controls.movement.string = 
+"MOVE";<BR>s_controls.movement.style = UI_RIGHT;<BR>s_controls.movement.color = 
+color_red;<BR><BR>s_controls.weapons.generic.type = 
+MTYPE_PTEXT;<BR>s_controls.weapons.generic.flags = 
+QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;<BR>s_controls.weapons.generic.id = 
+ID_WEAPONS;<BR>s_controls.weapons.generic.callback = 
+Controls_MenuEvent;<BR>s_controls.weapons.generic.x = 152;<BR><FONT 
+color=red>s_controls.weapons.generic.y = 
+RM_CONTROLS_MENUMIDDLE;<BR></FONT>s_controls.weapons.string = 
+"SHOOT";<BR>s_controls.weapons.style = UI_RIGHT;<BR>s_controls.weapons.color = 
+color_red;<BR><BR>s_controls.misc.generic.type = 
+MTYPE_PTEXT;<BR>s_controls.misc.generic.flags = 
+QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;<BR>s_controls.misc.generic.id = 
+ID_MISC;<BR>s_controls.misc.generic.callback = 
+Controls_MenuEvent;<BR>s_controls.misc.generic.x = 152;<BR><FONT 
+color=red>s_controls.misc.generic.y = RM_CONTROLS_MENUMIDDLE + 
+PROP_HEIGHT;<BR></FONT>s_controls.misc.string = "MISC";<BR>s_controls.misc.style 
+= UI_RIGHT;<BR>s_controls.misc.color = color_red;<BR><FONT color=red><BR>// GLs 
+: Initializing the Running Man Menu.<BR>s_controls.runningman.generic.type = 
+MTYPE_PTEXT;<BR>s_controls.runningman.generic.flags = 
+QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;<BR>s_controls.runningman.generic.id = 
+ID_RUN;<BR>s_controls.runningman.generic.callback = 
+Controls_MenuEvent;<BR>s_controls.runningman.generic.x = 
+152;<BR>s_controls.runningman.generic.y = RM_CONTROLS_MENUMIDDLE + 2 * 
+PROP_HEIGHT; // so it's below misc<BR>s_controls.runningman.string = "RUN"; // 
+GLs : Maybe try "RUNNING MAN" later?<BR>s_controls.runningman.style = 
+UI_RIGHT;<BR>s_controls.runningman.color = 
+color_blue;<BR></FONT></FONT><BR><BR>Then further down at about line 1430, do 
+like this.<BR><BR><FONT color=blue>s_controls.bfg.generic.type = 
+MTYPE_ACTION;<BR>s_controls.bfg.generic.flags = 
+QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;<BR>s_controls.bfg.generic.callback 
+= Controls_ActionEvent;<BR>s_controls.bfg.generic.ownerdraw = 
+Controls_DrawKeyBinding;<BR>s_controls.bfg.generic.id = ID_WEAPON9;<BR><FONT 
+color=red><BR>// GLs : Running Man's Grappling 
+Hook<BR>s_controls.grap_hook.generic.type = 
+MTYPE_ACTION;<BR>s_controls.grap_hook.generic.flags = 
+QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;<BR>s_controls.grap_hook.generic.callback 
+= Controls_ActionEvent;<BR>s_controls.grap_hook.generic.ownerdraw = 
+Controls_DrawKeyBinding;<BR>s_controls.grap_hook.generic.id = 
+ID_WEAPON10;<BR></FONT><BR>s_controls.attack.generic.type = 
+MTYPE_ACTION;<BR>s_controls.attack.generic.flags = 
+QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;<BR>s_controls.attack.generic.callback 
+= Controls_ActionEvent;<BR>s_controls.attack.generic.ownerdraw = 
+Controls_DrawKeyBinding;<BR>s_controls.attack.generic.id = 
+ID_ATTACK;<BR></FONT><BR><BR>We're almost done, I know it's been long, but we're 
+getting close.<BR>At about line 1610 add the following<BR><BR><FONT 
+color=blue>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.looking 
+);<BR>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.movement 
+);<BR>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.weapons 
+);<BR>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.misc );<BR><FONT 
+color=red>// GLs : The Running Man sub-menu<BR>Menu_AddItem( 
+&amp;s_controls.menu, &amp;s_controls.runningman 
+);<BR></FONT></FONT><BR><BR>Then this at about line 1660<BR><BR><FONT 
+color=blue>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.chat2 
+);<BR>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.chat3 
+);<BR>Menu_AddItem( &amp;s_controls.menu, &amp;s_controls.chat4 );<BR><FONT 
+color=red><BR>// GLs : Now Stuff on the Running Man Menu<BR>Menu_AddItem( 
+&amp;s_controls.menu, &amp;s_controls.grap_hook );<BR></FONT><BR>Menu_AddItem( 
+&amp;s_controls.menu, &amp;s_controls.back );<BR></FONT><BR><BR>And then we're 
+finished. Phew. That took a while.<BR>Anyway, I hope this was helpful for 
+everyone. I know it had me buggered for quite some time. I was beginning to 
+think there was an engine limited number of items one could have on a menu. 
+Luckily, <FONT color=white>Barry (SoWat!)</FONT> helped me out and so did <FONT 
+color=white>DrooG</FONT>. It turned out all I had wrong was that I just added 
+the grapple define after the last defined thing. BIG MISTAKE. You actually have 
+to add it after the bindable actions and add 1 to all the other defines. That is 
+:<BR>
+<H3>DO NOT JUST ADD #define ID_WEAPON10 42</H3>We'll anyway, I hope this has 
+been helpful.<BR><BR>If you have any questions (or if I've buggered up this 
+tutorial.), e-mail me (Gum-Lass) at <A 
+href="mailto:benjamin.horn@studentmail.newcastle.edu.au">benjamin.horn@studentmail.newcastle.edu.au</A> 
+and let me know what you think. Also, please check out my mod, "The Running 
+Man", at <A 
+href="http://www.geocites.com/gumlass">http://www.geocites.com/gumlass</A>. <IMG 
+height=1 src="controls_menu_files/serv.gif" width=1> <!-- Yahoo! Menu service --></TABLE></NOSCRIPT></SCRIPT>
+<SCRIPT language=JavaScript src="controls_menu_files/ygIELib5.js"></SCRIPT>
+
+<SCRIPT language=JavaScript>var yvContents='http://geocities.yahoo.com/toto?s=76000011&l=NE&b=1&t=949946229';yfEA(0);</SCRIPT>
+<!-- END Yahoo! Menu Service --></BODY></HTML>

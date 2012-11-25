@@ -1,0 +1,174 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304458906"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0056)http://www.planetquake.com/juz/tutes/tute_ammoshare.html -->
+<HTML><HEAD><TITLE>Juz's Slipgate</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<STYLE type=text/css>.normal {
+	COLOR: #ffffff; FONT-FAMILY: Verdana; FONT-SIZE: small; FONT-STYLE: normal; FONT-WEIGHT: normal
+}
+.heading {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: medium; FONT-STYLE: italic; FONT-WEIGHT: normal
+}
+.news {
+	COLOR: #ffffff; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal
+}
+.sitecategories {
+	COLOR: #000000; FONT-FAMILY: Verdana; FONT-SIZE: medium; FONT-STYLE: italic; FONT-WEIGHT: normal
+}
+A:link {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+A:active {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #006666; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: normal; TEXT-DECORATION: none
+}
+.code {
+	COLOR: #ffffff; FONT-FAMILY: Verdana; FONT-SIZE: x-small; FONT-STYLE: normal; FONT-WEIGHT: bold; LINE-HEIGHT: normal; VERTICAL-ALIGN: baseline
+}
+</STYLE>
+
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY aLink=#ffffff bgColor=#006666 link=#ffffff text=#ffffff vLink=#ffffff>
+<CENTER>
+<SCRIPT language=JavaScript>
+now = new Date(); 
+random = now.getTime();
+clickurl = "/accipiter/adclick.html/CID=00003995b354751a00000000/SITE=PQ/GENRE=ACTION/AREA=HOSTED/AAMSZ=IAB_FULL_BANNER";
+imageurl = "http://www.qksrv.net/image-792352-1063692";
+document.write('<a href="'+ clickurl +'?'+ random +'" target="_top"><img src="'+ imageurl +'?'+ random +'" width=468 height=60 border=0></a>');
+</SCRIPT>
+<NOSCRIPT><A 
+href="http://www.planetquake.com/accipiter/adclick.html/CID=00003995b354751a00000000/SITE=PQ/GENRE=ACTION/AREA=HOSTED/AAMSZ=IAB_FULL_BANNER" 
+target=_top><IMG border=0 height=60 src="Sharing Ammo_files/1063692-6.gif" 
+width=468></A></NOSCRIPT> </CENTER>
+<P> </P>
+<TABLE align=center border=0 cellPadding=1 cellSpacing=1 width=770>
+  <TBODY>
+  <TR align=middle bgColor=#000000 vAlign=center>
+    <TD>
+      <DIV align=center>
+      <TABLE border=0 cellPadding=1 cellSpacing=1 height="100%" width="100%">
+        <TBODY>
+        <TR>
+          <TD>
+            <DIV align=center class=normal><I class=normal>Juz's Slipgate - 
+            Tutorials</I></DIV></TD></TR>
+        <TR bgColor=#006666>
+          <TD bgColor=#669900 vAlign=center width="69%">
+            <DIV align=center>
+            <P>&nbsp;</P></DIV>
+            <BLOCKQUOTE>
+              <DIV align=center class=news>
+              <HR align=center color=#000000 noShade SIZE=2 width=70>
+
+              <P><SPAN class=heading>Ammo SharingTutorial</SPAN> </P>
+              <HR align=center color=#000000 noShade SIZE=2 width=70>
+
+              <P align=left><SPAN class=sitecategories>Introduction</SPAN></P>
+              <P align=left><SPAN class=news><SPAN class=News><SPAN 
+              class=news>This tutorial is taken from my mod <A 
+              href="http://www.planetquake.com/milk/classic" 
+              target=_blank>Classic Quake Arena</A>. Alot of people have been 
+              asking me how I got the shotgun and super shotgun to share the 
+              same ammo. There's no way (that I could see ;)) to get the two 
+              weapons to <I>actually </I>share ammo, so what you need is a bit 
+              of a workaround. I'll show you my way of doing it in this short 
+              tutorial. This tutorial assumes you have a good working knowledge 
+              of both C and the quake3 source code. </SPAN></SPAN></SPAN></P>
+              <P align=left><SPAN class=sitecategories>Preparatory 
+              coding</SPAN></P>
+              <P align=left><SPAN class=news><SPAN class=News><SPAN 
+              class=news><SPAN class=news>First of course you'll need the code 
+              in place for the two weapons you'd like to share ammo. The Shotgun 
+              is set up as normal, as <B>WP_SHOTGUN</B>, and my new single 
+              barrelled shotgun is <B>WP_SISHOTGUN</B>. The ammo for the single 
+              shotgun in bg_misc is <B>ammo_sishells</B>, but this doesn't 
+              matter, as this doesn't get used. Before you do any more coding, 
+              you should just check that both of the weapons work properly and 
+              use their ammo properly, then you're ready to get on with the rest 
+              of the coding. </SPAN></SPAN></SPAN></SPAN></P>
+              <P align=left><SPAN class=sitecategories>The Ammo Sharing code 
+              </SPAN></P></DIV>
+              <DIV align=left class=news>
+              <P>Now onto the actually ammo sharing code itself. The principal 
+              is to make sure that every time some ammo is picked up, or one of 
+              the sharing weapons is fired, the other weapon has the same amount 
+              of ammo. First, in <B>g_items.c</B>, at the end of the function 
+              <B>Add_Ammo</B>, after the line 
+              <B>ent-&gt;client-&gt;ps.ammo[weapon] += count;</B> :</P>
+              <P><B>if(weapon == WP_SHOTGUN) {</B></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=left 
+                class=news><B>ent-&gt;client-&gt;ps.ammo[WP_SISHOTGUN]=ent-&gt;client-&gt;ps.ammo[WP_SHOTGUN]; 
+                </B></DIV></BLOCKQUOTE>
+              <DIV align=left class=news>
+              <P><B>} else if (weapon == WP_SISHOTGUN){ </B></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=left class=news><B>ent-&gt;client-&gt;ps.ammo 
+                [WP_SHOTGUN]=ent-&gt;client-&gt;ps.ammo[WP_SISHOTGUN];</B></DIV></BLOCKQUOTE>
+              <DIV align=left class=news>
+              <P><B>}</B></P></DIV>
+              <DIV align=center class=news>
+              <P align=left><SPAN class=news><SPAN class=news><SPAN 
+              class=news>This makes sure that when ammo for the shotgun gets 
+              picked up, the ammo for the single shotgun gets the same amount of 
+              ammo, and vice versa. You shouldn't need the second branch of the 
+              if/else, as you shouldn't put any ammo for the single shotgun in 
+              your maps, but just incase I thought it was a good idea to put it 
+              in. This code also handles picking up weapons as well as ammo 
+              boxes. </SPAN></SPAN></SPAN></P>
+              <P align=left>Then you need to make sure that both weapons have 
+              the same amount of ammo after one of the sharing weapons has been 
+              fired. To do this you need to add some code to 
+              <B>bg_pmove.c</B>,<B> </B>in the function <B>PM_Weapon</B>, just 
+              before the line <B>PM_AddEvent( EV_FIRE_WEAPON );</B> :</P>
+              <P align=left><B>if(pm-&gt;ps-&gt;weapon == WP_SISHOTGUN) { 
+              </B></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=center class=news><B>pm-&gt;ps-&gt;ammo[ WP_SHOTGUN ] 
+                = pm-&gt;ps-&gt;ammo[ WP_SISHOTGUN ]; </B></DIV></BLOCKQUOTE>
+              <DIV align=center class=news>
+              <P align=left><B>} else if(pm-&gt;ps-&gt;weapon == WP_NAILGUN) { 
+              </B></P></DIV>
+              <BLOCKQUOTE>
+                <DIV align=center class=news><B>pm-&gt;ps-&gt;ammo[ 
+                WP_SUPERNAILGUN ] = pm-&gt;ps-&gt;ammo[ WP_NAILGUN ]; 
+              </B></DIV></BLOCKQUOTE>
+              <DIV align=center class=news>
+              <P align=left><B>}</B></P>
+              <P align=left>Everything is now set up. When you play the game you 
+              should find that both weapons always have the same amount of ammo. 
+              You can add some extra code so that one of the weapons uses two 
+              shells or whatever, you just have to make sure you cover all 
+              eventualities, such as the double-shot weapon having only 1 shell 
+              left. </P>
+              <P align=left class=Heading><SPAN class=news><SPAN 
+              class=sitecategories>Compiling/Running</SPAN></SPAN></P>
+              <P align=left><SPAN class=news><SPAN class=news>You should be able 
+              to compile and run your mod as usual. </SPAN></SPAN><SPAN 
+              class=news><SPAN class=news>Thanks for sticking with me throughout 
+              this tutorial, if you have any problems with it or i've left 
+              something out or got something wrong, please contact me at <A 
+              href="mailto:juz@planetquake.com">mailto:juz@planetquake.com</A></SPAN></SPAN></P>
+              <P align=left><SPAN class=news><SPAN class=News><SPAN 
+              class=normal>Juz</SPAN></SPAN></SPAN><SPAN class=normal><SPAN 
+              class=News> </SPAN></SPAN></P>
+              <BLOCKQUOTE>
+                <DIV align=left class=News></DIV></BLOCKQUOTE>
+              <P align=left class=Small>&nbsp;</P>
+              <P class=News>&nbsp;</P>
+              <P align=left>&nbsp;</P>
+              <P>&nbsp;</P>
+              <P>&nbsp;</P></DIV></BLOCKQUOTE></TD></TR>
+        <TR>
+          <TD>
+            <DIV align=center><SPAN class=normal><A 
+            href="http://www.planetquake.com/juz/tutes.html" target=_self><FONT 
+            color=#ffffff face=Verdana size=3>Back</FONT></A></SPAN> </DIV>
+            <DIV align=center 
+  class=normal></DIV></TD></TR></TBODY></TABLE></DIV></TD></TR></TBODY></TABLE><SPAN 
+class=heading></SPAN></BODY></HTML>

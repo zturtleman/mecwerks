@@ -1,0 +1,249 @@
+
+<html>
+<head>
+<title>Quake Style - Quake 3 Tutorials - Weapon Mods - Mega-Railgun</title>
+
+<style type="text/css">
+
+body, table, tr, td             { font-family: verdana }
+input, textarea, select, option { font-family: verdana; font-size: 10px }
+
+pre                             { font-family: verdana; font-weight: bold }
+
+A                               { color: #00ff00 }
+A:hover                         { color: white; text-decoration: none }
+
+</style>
+</head>
+
+<body bgcolor=black text=#ffff80>
+<font size=1>
+
+<div align=right>
+
+ <table cellspacing=0 cellborder=0 border=0>
+  <tr>
+   <td align=center>
+    <font size=1><b>
+
+    <font color=white>Quake Style - Quake 3 Tutorials</font><br>
+    <font color=#bbcc77>Weapon Mods </font><font color=#ff8000>- Mega-Railgun</font><br>
+    You can't hide behind walls no more!
+
+   </td>
+  </tr>
+ </table>
+
+</div>
+<br>
+
+<!-- START TUTORIAL -->
+This has been rather fun to play around with! It's fairly easy, too.<br><br>Open up g_weapons.c and replace the entire weapon_railgun_fire function with this one:<br>(change the #defines to anything you may find more appropriate, too)<br>
+<pre><font size=1><font color=#00FFFF>
+/*
+&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;
+weapon_railgun_fire
+&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;
+*/
+#define MAX_RAIL_HITS	4	// max people the rail can hit
+#define MAX_RAIL_SHOTS	2	// ie. how many times through walls
+#define RAIL_WALL_MAX	96	// how big a wall can be before it won't go through
+
+void weapon_railgun_fire (gentity_t *ent, int count)
+{
+	vec3_t	end, oldmuzzle;
+	trace_t	trace, trace2;
+	gentity_t	*tent;
+	gentity_t	*traceEnt;
+	int			damage;
+	int			radiusDamage;
+	int			i;
+	int			hits;
+	int			unlinked;
+	gentity_t	*unlinkedEntities[MAX_RAIL_HITS];
+
+	count++;
+
+	if (count > MAX_RAIL_SHOTS)
+	{
+		// too many shots through walls!
+		return;
+	}
+
+	damage &#061; 100 * s_quadFactor;
+	radiusDamage &#061; 30 * s_quadFactor;
+
+	VectorMA (muzzle, 8192, forward, end);
+
+	// trace only against the solids, so the railgun will go through people
+	unlinked &#061; 0;
+	hits &#061; 0;
+	do {
+		trap_Trace (&trace, muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT );
+		if ( trace.entityNum >&#061; ENTITYNUM_MAX_NORMAL ) {
+			break;
+		}
+		traceEnt &#061; &g_entities[ trace.entityNum ];
+		if ( traceEnt->takedamage )
+		{
+			if( LogAccuracyHit( traceEnt, ent ) )
+			{
+				hits++;
+			}
+			G_Damage (traceEnt, ent, ent, forward, trace.endpos, damage, 0, MOD_RAILGUN);
+		}
+		if ( trace.contents & CONTENTS_SOLID ) {
+			break;		// we hit something solid enough to stop the beam
+		}
+		// unlink this entity, so the next trace will go past it
+		trap_UnlinkEntity( traceEnt );
+		unlinkedEntities[unlinked] &#061; traceEnt;
+		unlinked++;
+	} while ( unlinked < MAX_RAIL_HITS );
+
+	// link back in any entities we unlinked
+	for ( i &#061; 0; i < unlinked; i++ ) {
+		trap_LinkEntity( unlinkedEntities[i] );
+	}
+
+	// the final trace endpos will be the terminal point of the rail trail
+
+	// snap the endpos to integers to save net bandwidth, but nudged towards the line
+	SnapVectorTowards( trace.endpos, muzzle );
+
+	// send railgun beam effect
+	tent &#061; G_TempEntity( trace.endpos, EV_RAILTRAIL );
+
+	// set player number for custom colors on the railtrail
+	tent->s.clientNum &#061; ent->s.clientNum;
+
+	VectorCopy( muzzle, tent->s.origin2 );
+	// move origin a bit to come closer to the drawn gun muzzle
+	VectorMA( tent->s.origin2, 4, right, tent->s.origin2 );
+	VectorMA( tent->s.origin2, -1, up, tent->s.origin2 );
+
+	// no explosion at end if SURF_NOIMPACT, but still make the trail
+	if ( trace.surfaceFlags & SURF_NOIMPACT ) {
+		tent->s.eventParm &#061; 255;	// don't make the explosion at the end
+	} else {
+		tent->s.eventParm &#061; DirToByte( trace.plane.normal );
+	}
+	tent->s.clientNum &#061; ent->s.clientNum;
+
+	// give the shooter a reward sound if they have made two railgun hits in a row
+	if ( hits &#061;&#061; 0 )
+	{
+		// complete miss
+		ent->client->accurateCount &#061; 0;
+	} else {
+		// check for "impressive" reward sound
+		ent->client->accurateCount +&#061; hits;
+		if ( ent->client->accurateCount >&#061; 2 )
+		{
+			ent->client->accurateCount -&#061; 2;
+			ent->client->ps.persistant[PERS_REWARD_COUNT]++;
+			ent->client->ps.persistant[PERS_REWARD] &#061; REWARD_IMPRESSIVE;
+			ent->client->ps.persistant[PERS_IMPRESSIVE_COUNT]++;
+			// add the sprite over the player's head
+			ent->client->ps.eFlags &&#061; ~(EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT | EF_AWARD_GAUNTLET );
+			ent->client->ps.eFlags |&#061; EF_AWARD_IMPRESSIVE;
+			ent->client->rewardTime &#061; level.time + REWARD_SPRITE_TIME;
+		}
+		ent->client->ps.persistant[PERS_ACCURACY_HITS]++;
+	}
+
+	// prepare for firing through the wall
+	VectorCopy (muzzle, oldmuzzle);
+	VectorCopy (trace.endpos, muzzle);
+	VectorMA (muzzle, RAIL_WALL_MAX, forward, muzzle);                
+
+	if ( !( trap_PointContents( muzzle, -1 ) & CONTENTS_SOLID ) )
+	{
+		trap_Trace (&trace2, muzzle, NULL, NULL, trace.endpos, ent->s.number, MASK_SHOT );
+		VectorCopy (trace2.endpos, muzzle);
+
+		weapon_railgun_fire( ent, count );
+	}
+
+	VectorCopy (oldmuzzle, muzzle);
+}
+</font>
+</font></pre><br>Only one more line to change now. Scroll down a bit further, and edit the FireWeapon function. All we need to do here is make sure an inital value of 0 railgun shots (ie. through walls) is passed to weapon_railgun_fire. Add in the <font color=#00FFFF><b>blue code</font></b> and take out the <font color=#FF00FF><b>old code</font></b>:<br>
+<pre><font size=1>
+/*
+&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;
+FireWeapon
+&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;&#061;
+*/
+void FireWeapon( gentity_t *ent ) {
+	if (ent->client->ps.powerups[PW_QUAD] ) {
+		s_quadFactor &#061; g_quadfactor.value;
+	} else {
+		s_quadFactor &#061; 1;
+	}
+
+	// track shots taken for accuracy tracking.  Grapple is not a weapon and gauntet is just not tracked
+	if( ent->s.weapon !&#061; WP_GRAPPLING_HOOK && ent->s.weapon !&#061; WP_GAUNTLET ) {
+		ent->client->ps.persistant[PERS_ACCURACY_SHOTS]++;
+	}
+
+	// set aiming directions
+	AngleVectors (ent->client->ps.viewangles, forward, right, up);
+
+	CalcMuzzlePoint ( ent, forward, right, up, muzzle );
+
+	// fire the specific weapon
+	switch( ent->s.weapon ) {
+	case WP_GAUNTLET:
+		Weapon_Gauntlet( ent );
+		break;
+	case WP_LIGHTNING:
+		Weapon_LightningFire( ent );
+		break;
+	case WP_SHOTGUN:
+		weapon_supershotgun_fire( ent );
+		break;
+	case WP_MACHINEGUN:
+		if ( g_gametype.integer !&#061; GT_TEAM ) {
+			Bullet_Fire( ent, MACHINEGUN_SPREAD, MACHINEGUN_DAMAGE );
+		} else {
+			Bullet_Fire( ent, MACHINEGUN_SPREAD, MACHINEGUN_TEAM_DAMAGE );
+		}
+		break;
+	case WP_GRENADE_LAUNCHER:
+		weapon_grenadelauncher_fire( ent );
+		break;
+	case WP_ROCKET_LAUNCHER:
+		Weapon_RocketLauncher_Fire( ent );
+		break;
+	case WP_PLASMAGUN:
+		Weapon_Plasmagun_Fire( ent );
+		break;
+	case WP_RAILGUN:
+		<font color=#FF00FF>weapon_railgun_fire( ent );</font>
+		<font color=#00FFFF>weapon_railgun_fire( ent, 0 );</font>
+		break;
+	case WP_BFG:
+		BFG_Fire( ent );
+		break;
+	case WP_GRAPPLING_HOOK:
+		Weapon_GrapplingHook_Fire( ent );
+		break;
+	default:
+// FIXME		G_Error( "Bad ent->s.weapon" );
+		break;
+	}
+}
+</font></pre><br>Well, have fun gibbing things through those thin Quake walls :)
+
+<!--- END TUTORIAL --->
+<br>
+<br><font color=#ff8000><b>-- Credits:</b></font>
+<br>&nbsp;&nbsp; Tutorial by <a href="mailto:samthorogood@yahoo.com"><b>(nobody)</b></a>
+<br>&nbsp;&nbsp; Return to <a href="../tuts.shtml"><b>QS Tutorials</b></a>
+<br>
+<br><font color=#ff8000><b>-- Important:</b></font>
+<br>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please give us credit.
+<br>&nbsp;&nbsp; Our code is copyrighted, but we give permission to everyone to use it in any way they see fit, as long as we are recognized.
+</body>
+</html>

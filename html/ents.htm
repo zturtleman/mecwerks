@@ -1,0 +1,288 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0061)http://www.planetquake.com/code3arena/articles/article1.shtml -->
+<HTML><HEAD><TITLE>Code3Arena</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY background=ents_files/bg.gif link=#c05f00 text=white vLink=#d16545><!-- BEGIN BANNER AD TABLE -->
+<TABLE align=center background=ents_files/bg.gif border=0 cellPadding=5 
+cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle vAlign=top width="100%">
+      <CENTER><A 
+      href="http://adclick.gamespy.com/cgi-bin/adclick.exe/CID=00001a60346ae9d200000000/site=PQ/AAMSZ=IAB_FULL_BANNER/AREA=ARTICLES" 
+      target=_top><IMG alt="Click for more information!" border=0 
+      src="ents_files/2Geeeks_Jan00_bannernew.gif"></A></CENTER></TD></TR></TBODY></TABLE><!-- END BANNER AD TABLE --><BR><!-- BEGIN LOGO IMAGE TABLE -->
+<TABLE align=center bgColor=#000000 border=1 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle><IMG alt=Code3Arena border=0 height=150 
+      src="ents_files/logo.gif" width=550> </TD></TR></TBODY></TABLE><!-- END LOGO IMAGE TABLE -->
+<P><!-- BEGIN MAIN TABLE HERE-->
+<TABLE align=center bgColor=#4b0202 border=0 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR><!-- BEGIN LEFT NAVBAR MENU *** REMOVED *** --><!-- BEGIN DIVIDER *** REMOVED *** --><!-- MAIN TEXT AREA -->
+    <TD bgColor=#000000 vAlign=top>
+      <TABLE bgColor=#000000 border=0 cellPadding=15 cellSpacing=10 width="100%" 
+      valign="top">
+        <TBODY>
+        <TR>
+          <TD vAlign=top><FONT color=#eeeeee face="Verdana, Arial" size=2>
+            <CENTER><B><FONT color=#c05f00 size=5>ARTICLE 1 - ENTITIES 
+            </FONT></B><BR>by <B><A 
+            href="mailto:sumfuka@planetquake.com">SumFuka</A></B></CENTER>
+            <P>This is the first in a series of 'articles' explaining various 
+            things about the quake3 game world. Every wondered how you interact 
+            with the game world ? This is the first question we're going to 
+            tackle... by working from the ground up. Quake's design hasn't 
+            changed much from quake1 thru to quake3... the most basic thing in 
+            the world is - yes, an <B>entity</B> !
+            <P><FONT color=#e07f44>
+            <H4>AN ENTITY ? </H4></FONT>Virtually anything you can name in the 
+            game world is an entity. A rocket ? That's a simple example of an 
+            entity. An ammo pack ? An entity. A player ? Again, that's an entity 
+            (albeit a special one). Let's take an example... urm... ummm... 
+            let's fire a rocket ! Here's how it works. 
+            <OL>
+              <LI>You press the fire button 
+              <LI>An empty <B>entity</B> slot is chosen (i.e. a slot that is not 
+              <B>inuse</B>) 
+              <LI>A rocket entity is created in that slot 
+              <LI>The rocket settings are defined (positioned just in front of 
+              you, aimed in a certain direction, moving at 900 units/second, 
+              etc) 
+              <LI>The rocket moves through the world until an event is triggered 
+              : 
+              <UL>
+                <LI>If the rocket hits something damageable (e.g. a player or a 
+                wall) then it explodes and the entity is removed 
+                <LI>If the rocket doesn't hit anything within 10 seconds, it 
+                explodes and the entity is removed 
+                <LI>If the rocket hits the sky then the entity is removed (no 
+                explosion). </LI></UL>
+              <LI>Once the entity is removed, the slot is marked not 
+              <B>inuse</B> and may be re-used </LI></OL>As you can see, a rocket's 
+            life is relatively short ! You might be thinking, is there a limit 
+            to the number of rockets that can simultaneously be flying around 
+            the map ? Well, yes.
+            <P><FONT color=#e07f44>
+            <H4>HOW MANY ENTITIES EXIST IN THE QUAKE WORLD ? </H4></FONT>Time to 
+            do some sleuth work. By the way, when we refer to the quake 'world', 
+            we mean the game world and everything in it (not 'quakeworld'). 
+            What's in the quake world ? Lots of things... like a map, like the 
+            players, and like... ENTITIES ! Jump into MSVC and do a "Find in 
+            Files" on 'g_entities'. In g_main.c at line 17 we can find : <FONT 
+            color=#ffffcc face="Verdana, Arial" size=3><PRE> gentity_t		g_entities[MAX_GENTITIES];
+</PRE></FONT>This line says that there exists a finite array of 
+            entities in the game world. This array is called 'g_entities' and is 
+            MAX_ENTITIES long. So what is the constant MAX_ENTITIES ?? Do a 
+            "Find in Files" on MAX_ENTITIES and we find q_shared.h line 718 (and 
+            717) to be quite interesting : <FONT color=#ffffcc 
+            face="Verdana, Arial" size=3><PRE> #define	GENTITYNUM_BITS		10		// don't need to send any more
+ #define	MAX_GENTITIES		(1 &lt;&lt; GENTITYNUM_BITS)
+</PRE></FONT>Ok, Carmack is exhibiting some guru-level C syntax 
+            here. Take my word that (x &lt;&lt; y) means to double x y times. 
+            Given that ENTITYNUM_BITS is 10, MAX_GENTITIES is therefore 2 to the 
+            power of 10, or 1024. In other words, there is room in the world for 
+            approximately 1024 rockets, players, weapons, armors etc at any one 
+            time.
+            <P><FONT color=#e07f44>
+            <H4>CAN THE ENTITIES RUN OUT ? </H4></FONT>What would happen if you 
+            sat at one end of a very long space map with the RL and held down 
+            the fire button ? Assuming that your rockets fly for the full ten 
+            seconds, you can have about 10 rockets in the air at once. (Remember 
+            that when a rocket explodes the entity can be re-used by the next 
+            rocket virtually right away). If you start a 32 player game with 
+            your mates and you all sit and fire into space, there would be about 
+            320 rockets flying through the air at any one time. We still haven't 
+            run out of entities...
+            <P>There is a certain number of entities that are permanently used 
+            during the whole game (for example, players, weapons and items). All 
+            other non-permanent entities follow the cycle <B>create - live a 
+            short life - reuse</B>. This is something to think about when you're 
+            coding mods - If you make a cluster grenade that splits into 100 
+            mini grenades, then one idiot could quickly run your world out of 
+            entities by firing a bunch of cluster grenades in quick succession.
+            <P>What happens if your world runs out of entities ? Assume the 
+            worst-case scenario, that your server will crash. If an entity is 
+            going to exist for a relatively long time, make sure that it isn't 
+            possible for huge numbers of them to exist at the same time.
+            <P><FONT color=#e07f44>
+            <H4>WHAT'S IN AN ENTITY ? </H4></FONT>Let's look at g_local.h, 
+            starting at line 49 : <FONT color=#ffffcc face="Verdana, Arial" 
+            size=3><PRE>struct gentity_s {
+	entityState_t	s;	// communicated by server to clients
+	entityShared_t	r;	// shared by both the server system and game
+
+	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
+	// EXPECTS THE FIELDS IN THAT ORDER!
+	//================================
+
+	struct gclient_s	*client;			// NULL if not a client
+
+	qboolean	inuse;
+
+	char		*classname;		// set in QuakeEd
+	int		spawnflags;		// set in QuakeEd
+
+	qboolean	neverFree;		// if true, FreeEntity will only unlink
+						// bodyque uses this
+
+	int		flags;			// FL_* variables
+
+	char		*model;
+	char		*model2;
+	int		freetime;		// level.time when the object was freed
+	
+	int		eventTime;	// events will be cleared
+	// EVENT_VALID_MSEC after set
+	qboolean	freeAfterEvent;
+	qboolean	unlinkAfterEvent;
+
+	qboolean	physicsObject;	// if true, it can be pushed by movers and fall
+					// off edges all game items are physicsObjects, 
+	float		physicsBounce;	// 1.0 = continuous bounce, 0.0 = no bounce
+	int		clipmask;	// brushes with this content value will be collided
+					// against when moving.  items and corpses
+					// do not collide against players, for instance
+
+	// movers
+	moverState_t moverState;
+	int			soundPos1;
+	int			sound1to2;
+	int			sound2to1;
+	int			soundPos2;
+	int			soundLoop;
+	gentity_t	*parent;
+	gentity_t	*nextTrain;
+	gentity_t	*prevTrain;
+	vec3_t		pos1, pos2;
+
+	char		*message;
+
+	int		timestamp;	// body queue sinking, etc
+
+	float		angle;		// set in editor, -1 = up, -2 = down
+	char		*target;
+	char		*targetname;
+	char		*team;
+	gentity_t	*target_ent;
+
+	float		speed;
+	vec3_t		movedir;
+
+	int		nextthink;
+	void		(*think)(gentity_t *self);
+	void		(*reached)(gentity_t *self);	// movers call this when
+						// hitting endpoint
+	void		(*blocked)(gentity_t *self, gentity_t *other);
+	void		(*touch)(gentity_t *self, gentity_t *other, trace_t *trace);
+	void		(*use)(gentity_t *self, gentity_t *other, gentity_t *activator);
+	void		(*pain)(gentity_t *self, gentity_t *attacker, int damage);
+	void		(*die)(gentity_t *self, gentity_t *inflictor, gentity_t *attacker,
+			int damage, int mod);
+
+	int		pain_debounce_time;
+	int		fly_sound_debounce_time;	// wind tunnel
+	int		last_move_time;
+
+	int		health;
+
+	qboolean	takedamage;
+
+	int		damage;
+	int		splashDamage;	// quad will increase this w/o increasing radius
+	int		splashRadius;
+	int		methodOfDeath;
+	int		splashMethodOfDeath;
+
+	int		count;
+
+	gentity_t	*chain;
+	gentity_t	*enemy;
+	gentity_t	*activator;
+	gentity_t	*teamchain;	// next entity in team
+	gentity_t	*teammaster;	// master of the team
+
+	int		watertype;
+	int		waterlevel;
+
+	int		noise_index;
+
+	// timing variables
+	float		wait;
+	float		random;
+
+	gitem_t		*item;	// for bonus items
+
+	qboolean	botDelayBegin;
+};
+</PRE></FONT>Right up the top there is some important stuff - an 
+            <B>entityState_t</B> and <B>entityShared_t</B>... these bits include 
+            general stuff like the location of the entity, the type of entity it 
+            is, the size of the bounding box, etc.
+            <P>Next comes <B>struct gclient_s *client;</B> - this is a pointer 
+            to additional information, if the entity is a 'client' (i.e. player 
+            or bot). If the entity is not a client, then this bit is NULL 
+            (unused).
+            <P>Further down we can see heaps of interesting fields - classname, 
+            speed, movedir, target, team etc. Not all of these fields are used 
+            with all entities... a red armor would not use the 'damage' fields, 
+            for example (wheras a rocket would). Most of these are pretty 
+            self-explanatory.
+            <P><FONT color=#e07f44>
+            <H4>"THINKING" ETC </H4></FONT>Lines 110-116 in g_local.h define 
+            <B>function pointers</B>. The names of these are <B>think, reached, 
+            blocked, touch, use, pain, die</B>. Although the syntax here is very 
+            hardcore (remember, Carmack is a codecutting God), it's quite easy 
+            to explain with an example.
+            <P>We want our rockets to explode after 10 seconds. Remember, from 
+            g_missile.c : <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	bolt-&gt;nextthink = level.time + 10000;
+	bolt-&gt;think = G_ExplodeMissile;
+</PRE></FONT>This means that after 10 seconds, the rocket 'thinks' 
+            and the function <B>G_ExplodeMissile</B> is called on the rocket 
+            entity. Similarly, a grenade explodes after 2.5 seconds. Can you 
+            find the code for this ? (Answer : g_missile.c line 294). 'Thinking' 
+            is a nice "fire and forget" mechanism - we create an entity, define 
+            what it does at some future time, and then forget about it - the 
+            game engine takes care of the entity from then on.
+            <P>10 times a second, the server checks if each entity is due to 
+            'think'. If yes, the 'think' function is run for that entity. 
+            Similarly, other entity functions are called in response to certain 
+            events. If a player is killed, then the <B>player_die</B> function 
+            is called (see g_client.c line 921). The same goes for touch, 
+            blocked, pain, etc.
+            <P><FONT color=#e07f44>
+            <H4>PERMANENT ENTITIES &amp; CLIENTS </H4></FONT>In q_shared.h we 
+            see that the maximum number of clients (players or bots) - 
+            <B>MAX_CLIENTS</B> - is 128. By definition, the first MAX_CLIENTS 
+            entities in <B>g_entities</B> are reserved for clients. Arrays in C 
+            are numbered from 0, so g_entities[0] is reserved for client 0, 
+            g_entities[1] for client 1... up to g_entities[127] for player 127.
+            <P>Just as there exists an array of entities in the world, there 
+            also exists an array of 'client information' structures - see line 
+            18 in g_main.c : <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE> gclient_t		g_clients[MAX_CLIENTS];
+</PRE></FONT>Here we have an array of 128 <B>gclient_t</B>'s (client 
+            information structures). And each of the first 128 <B>g_entities</B> 
+            point to a corresponding <B>g_client[x]</B>. For example, 
+            <B>g_entities[0]-&gt;client</B> points to <B>g_clients[0]</B>, etc. 
+            We'll have a look at what's in the client information structure 
+            another time.
+            <P>Well, entities really do make the world go round (well, they 
+            actually go around the world, kinda... anyway...). Another time 
+            we'll talk about temporary entities (rail trails, blood spurts and 
+            similar effects). Till then, remember... "West Side."
+            <P>
+            <P></P></FONT></TD></TR></TBODY></TABLE><!-- END MAIN TABLE --></TD></TR></TBODY></TABLE>
+<P>
+<TABLE bgColor=#000000 border=0 cellPadding=10 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle bgColor=#000000>[ <A 
+      href="http://www.planetquake.com/code3arena/index.shtml"><B>Home</B></A> ] 
+      [ <A 
+      href="http://www.planetquake.com/code3arena/articles/article2.shtml"><B>Next 
+      &gt;&gt;</B></A> ] <BR><BR></TD></TR></TBODY></TABLE>
+<P></P></BODY></HTML>

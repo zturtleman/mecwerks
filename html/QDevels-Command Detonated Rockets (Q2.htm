@@ -1,0 +1,244 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0055)http://www.planetquake.com/qdevels/quake2/29_5_98b.html -->
+<HTML><HEAD><TITLE>QDevels-Command Detonated Rockets (?)</TITLE>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2919.6307" name=GENERATOR>
+<META content="C:\PROGRAM FILES\MICROSOFT OFFICE\OFFICE\html.dot" 
+name=Template></HEAD>
+<BODY aLink=#ff0000 bgColor=#000000 link=#ffdd00 text=#eeeecc vLink=#ffdd00>
+<P>
+<SCRIPT language=JavaScript><!-- Hide from non-Jscript browsers
+function msg(msgtext)
+{
+window.status=msgtext
+return
+}
+//--></SCRIPT>
+<FONT face="Arial Black" size=4>
+<P>Quake Devels-Command Detonated Rockets</FONT><FONT face="Arial Black"> 
+</P></FONT><FONT face=Arial size=2>
+<P>Author: </FONT><A href="mailto:cat@ihug.co.nz"><FONT face=Arial size=2>Caton 
+Little</FONT></A> <BR><FONT face=Arial size=2>Difficulty: Medium</FONT> 
+</P><FONT color=#00ffff face=Arial size=2>
+<P>Pretty blue: God-Emperor Carmack's original code</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>Snot green: my heretical hackery</FONT> 
+</P><FONT face=Arial size=2>
+<P>This entertaining weapon was designed primarily to scare the crap outa people 
+who like hiding in hard to reach places and iritate innocent passers-by... you 
+know who you are. It fires a big, slow rocket which putters along for as long as 
+you hold the fire button down. When you release the button, it turns into a fast 
+rocket which rips off towards the nearest target. Great for shooting around 
+corners or into hidey holes.</FONT> </P><FONT face=Arial size=2>
+<P>First up, we need to keep track of the rocket so we know what to blow up if 
+the player dies or releases the attack button. Crack open g_local.h (where the 
+fun always starts) and stick a</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>edict_t *pet_rock;</FONT> </P><FONT face=Arial size=2>
+<P>line in the gclient_s struct. Initialise this field in 
+MoveClientToIntermission (p_hud.c) by putting these lines at the end. (The first 
+time the player enters the game, the function PutClientInServer zeros the whole 
+client struct, so there's no need to set pet_rock to NULL there):</FONT> 
+</P><FONT color=#00ff00 face=Arial size=2>
+<P>if(ent-client-pet_rock!=NULL)</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; G_FreeEdict(ent-client-pet_rock);</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>ent-client-pet_rock=NULL;</FONT> </P><FONT 
+face=Arial size=2>
+<P>We also want the rocket to blow up if the player dies (dead guys can't hold 
+down fire buttons, right?), so put this in player_die (p_client.c):</FONT> 
+</P><FONT color=#00ff00 face=Arial size=2>
+<P>if(self-client-pet_rock!=NULL)</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; Pet_Rocket_Detonate (self-client-pet_rock);</FONT> 
+</P><FONT face=Arial size=2>
+<P>OK. That'll make sure there are no rogue entities floating around. We also 
+have to make sure it behaves well in other conditions... like if the player 
+changes weapon or releases the button. Find these lines in Weapon_Generic, 
+(p_weapon.c) and add the green bits:</FONT> </P><FONT color=#00ffff face=Arial 
+size=2>
+<P>if((ent-client-newweapon)&amp;&amp;(ent-client-weaponstate 
+!=WEAPON_FIRING))</FONT> <BR><FONT color=#00ffff face=Arial size=2>{</FONT> 
+<BR><FONT color=#00ffff face=Arial size=2>&nbsp;&nbsp;&nbsp; 
+ent-client-weaponstate=WEAPON_DROPPING;</FONT> <BR><FONT color=#00ffff 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; 
+ent-client-ps.gunframe=FRAME_DEACTIVATE_FIRST;</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; if(ent-client-pet_rock!=NULL)</FONT> 
+<BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+Pet_Rocket_Detonate(ent-client-pet_rock);</FONT> <BR><FONT color=#ff0000 
+face=Arial size=2>&nbsp;</FONT><FONT color=#00ffff face=Arial 
+size=2>&nbsp;&nbsp; return;</FONT> <BR><FONT color=#00ffff face=Arial 
+size=2>}</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>if((ent-client-pet_rock!=NULL)&amp;&amp;((ent-client-buttons &amp; 
+BUTTON_ATTACK)==0))</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; Pet_Rocket_Detonate(ent-client-pet_rock);</FONT> 
+</P><FONT face=Arial size=2>
+<P>Also, modify the line that reads</FONT> </P><FONT color=#00ffff face=Arial 
+size=2>
+<P>if((ent-client-latched_buttons|ent-client-buttons)&amp; BUTTON_ATTACK)</FONT> 
+</P><FONT face=Arial size=2>
+<P>to</FONT> </P><FONT color=#00ffff face=Arial size=2>
+<P>if</FONT><FONT color=#00ff00 face=Arial size=2>(</FONT><FONT color=#00ffff 
+face=Arial size=2>((ent-client-latched_buttons|ent-client-buttons)&amp; 
+BUTTON_ATTACK)</FONT><FONT color=#00ff00 face=Arial 
+size=2>&amp;&amp;(ent-client-pet_rock==NULL))</FONT> </P><FONT face=Arial 
+size=2>
+<P>This makes sure that only one slow rocket can exist at a time (and stops a 
+stream of them coming out while the button is down). Okay, now the fun part... 
+first, find Weapon_RocketLauncher_Fire (p_weapon.c). If game balance matters to 
+you, you can change the damage and blast radius but the only line the really has 
+to be changed is</FONT> </P><FONT color=#00ffff face=Arial size=2>
+<P>ent-client-pet_rock=fire_pet_rocket(ent, start, forward, damage, 130, 
+damage_radius, radius_damage);</FONT> </P><FONT face=Arial size=2>
+<P>We have to return the rocket entity back, so we'll need a new fire_pet_rocket 
+function. Note also that the new rocket speed is only 130. This makes it a lot 
+easier to time the detonation. Make a copy of fire_rocket (g_weapon.c) and call 
+it fire_pet_rocket. (We ned to preserve the old fire_rocket for reasons that 
+will soon become apparent) Note that it has to return a gedict_t *. Once again, 
+there aren't many differences... just change</FONT> </P><FONT color=#00ffff 
+face=Arial size=2>
+<P>rocket-touch = rocket_touch;</FONT> <BR><FONT color=#00ffff face=Arial 
+size=2>rocket-think = G_FreeEdict;</FONT> </P><FONT face=Arial size=2>
+<P>to</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>rocket-touch = pet_rocket_touch</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>rocket-think = free_pet_rocket;</FONT> </P><FONT face=Arial size=2>
+<P>And put a</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>return rocket;</FONT> </P><FONT face=Arial size=2>
+<P>at the end. This gives something for client-pet_rock to do. The 
+free_pet_rocket function is small, but necessary, otherwise Terrible Things Will 
+Happen.</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>void free_pet_rocket(gedict_t *ent)</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>{</FONT> <BR><FONT color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; 
+if(ent-owner-client)</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+ent-owner-client-pet_rock==NULL;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; G_FreeEdict(ent);</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>}</FONT> </P><FONT face=Arial size=2>
+<P>Right, we're nearly there. Find the rocket_touch function (g_weapon.c), copy 
+it and mutate its sorry ass: Find the bit that handles sky collisions...</FONT> 
+</P><FONT color=#00ffff face=Arial size=2>
+<P>if (surf &amp;&amp; (surf-flags &amp; SURF_SKY))</FONT> <BR><FONT 
+color=#00ffff face=Arial size=2>{</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; if(ent-owner-client)</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+ent-owner-client-pet_rock=NULL;</FONT> <BR><FONT color=#00ffff face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; G_FreeEdict(ent);</FONT> <BR><FONT color=#00ffff 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; return;</FONT> <BR><FONT color=#00ffff 
+face=Arial size=2>}</FONT> </P><FONT face=Arial size=2>
+<P>and right at the end,</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>if(ent-owner-client)</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; ent-owner-client-pet_rock=NULL;</FONT> <BR><FONT 
+color=#00ffff face=Arial size=2>G_FreeEdict(ent);</FONT> </P><FONT face=Arial 
+size=2>
+<P>That just leaves one more function. Pet_Rocket_Detonate. This function blows 
+the original rocket up, finds the nearest visible monster or player and sends a 
+fast rockets off towards it.</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>void Pet_Rocket_Detonate(edict_t *ent)</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>{</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; vec3_t origin, aim, dir;</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; vec3_t forward, right, 
+up;</FONT> <BR><FONT color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; edict_t 
+*targ, *realtarg;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; trace_t tr;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; float best, curr;</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; int&nbsp; damage;</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; float damage_radius;</FONT> 
+<BR><FONT color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; int&nbsp; 
+radius_damage;</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp; // calculate position for the explosion entity</FONT> 
+<BR><FONT color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; 
+VectorMA(ent-s.origin, -0.02, ent-velocity, origin);</FONT> </P><FONT 
+color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp; T_RadiusDamage(ent, ent-owner, ent-radius_dmg, NULL, 
+ent-dmg_radius, MOD_R_SPLASH);</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp; targ=NULL;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; realtarg=NULL;</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; best=10000;</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; while((targ=findradius(targ, ent-s.origin, 
+2048))!=NULL)</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; {</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if(targ==ent)</FONT> <BR><FONT 
+color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+continue;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if(targ==ent-owner)</FONT> 
+<BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+continue;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+if(!((targ-svflags&amp;SVF_MONSTER)&amp;&amp;(targ-health0))&amp;&amp;(strcmp(targ-classname, 
+"player")!=0))</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+continue;</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; tr=gi.trace(ent-s.origin, NULL, 
+NULL, targ-s.origin, ent, MASK_SHOT);</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+if((tr.fraction&lt;1.0)&amp;&amp;(tr.ent!=targ))</FONT> <BR><FONT color=#00ff00 
+face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+continue;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VectorSubtract(ent-s.origin, 
+targ-s.origin, aim);</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; curr=VectorLength(aim);</FONT> 
+<BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if(curr&lt;best)</FONT> 
+<BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {</FONT> <BR><FONT 
+color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+best=curr;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+realtarg=targ;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; }</FONT> </P><FONT 
+color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp; damage=75;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; damage_radius=120;</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; radius_damage=75;</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; 
+if(ent-owner-client-quad_framenum level.framenum)</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; {</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; damage *=4;</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+radius_damage *=4;</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; }</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp; if(realtarg!=NULL)</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+VectorCopy(realtarg-s.origin, origin); //If there is one</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; else</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+VectorMA(ent-s.origin, 4, ent-velocity, origin); //Otherwise, straight 
+forward</FONT> <BR><FONT color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; 
+VectorSubtract(origin, ent-s.origin, aimdir);</FONT> <BR><FONT color=#00ff00 
+face=Arial size=2>&nbsp;&nbsp;&nbsp; vectoangles(aimdir, dir);</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; AngleVectors(dir, NULL, 
+right, up);</FONT> </P><FONT color=#00ff00 face=Arial size=2>
+<P>//Straight at the target</FONT> <BR><FONT color=#00ff00 face=Arial 
+size=2>&nbsp;&nbsp;&nbsp; AngleVectors(dir, forward, NULL, NULL);</FONT> 
+<BR><FONT color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; fire_rocket(ent, 
+ent-s.origin, forward, damage, 1300, damage_radius, radius_damage);</FONT> 
+</P><FONT color=#00ff00 face=Arial size=2>
+<P>&nbsp;&nbsp;&nbsp; ent-owner-client-pet_rock=NULL;</FONT> <BR><FONT 
+color=#00ff00 face=Arial size=2>&nbsp;&nbsp;&nbsp; G_FreeEdict(ent);</FONT> 
+<BR><FONT color=#00ff00 face=Arial size=2>}</FONT> </P><FONT face=Arial size=2>
+<P>That's that. Fun things to do with this could involve turing it into a MIRV 
+rocket, making it use more ammo and having a console command to switch it 
+off.</FONT> </P>
+<P>&nbsp;</P>
+<P><!-- Quake DeveLS Standard Footer --></P>
+<TABLE border=0 cellSpacing=0 width=700>
+  <TBODY>
+  <TR>
+    <TD vAlign=center>
+      <P align=center><FONT face=Arial size=1>This site, and all content and 
+      graphics displayed on it,<BR>are ©opyrighted to the </FONT><A 
+      href="http://www.planetquake.com/qdevels/index.shtml"><FONT face=Arial 
+      size=1>Quake DeveLS</FONT></A><FONT face=Arial size=1> team. All rights 
+      received.<BR>Got a suggestion? Comment? Question? Hate mail? </FONT><A 
+      href="mailto:puke@planetquake.com"><FONT face=Arial size=1>Send 
+      it</FONT></A><FONT face=Arial size=1> to us!<BR>Oh yeah, this site is best 
+      viewed in 16 Bit or higher, with the resolution on 800*600.<BR>Thanks to 
+      </FONT><A href="http://www.planetquake.com/"><FONT face=Arial 
+      size=1>Planet Quake</FONT></A><FONT face=Arial size=1> for there great 
+      help and support with hosting.<BR>Best viewed with </FONT><A 
+      href="http://www.netscape.com/"><FONT face=Arial size=1>Netscape 
+      4</FONT></A><FONT face=Arial size=1> or </FONT><A 
+      href="http://www.microsoft.com/ie"><FONT face=Arial size=1>IE 
+      3</FONT></A></P></TD></TR></TBODY></TABLE></BODY></HTML>

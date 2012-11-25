@@ -1,0 +1,168 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304771890"></SCRIPT><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0049)http://www.planetquake.com/lard/ultra/jetpack.htm -->
+<!--INSERTADTHISPAGE --><HTML><HEAD>
+<META content="text/html; charset=windows-1252" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2614.3500" name=GENERATOR></HEAD>
+<BODY aLink=#ff0000 bgColor=#000066 link=#cccccc text=#ffffff vLink=#999999>
+<STYLE>A:link {
+	COLOR: #44ff00; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #00dd00; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #aaefff; TEXT-DECORATION: underline
+}
+BODY {
+	scrollbar-face-color: #009900; scrollbar-shadow-color: #000066; scrollbar-highlight-color: #000033; scrollbar-3dlight-color: #000033; scrollbar-darkshadow-color: #000033; scrollbar-track-color: #000033; scrollbar-arrow-color: #CCFFFF
+}
+</STYLE>
+
+<CENTER>
+<TABLE border=5 cellPadding=0 cellSpacing=0 cols=1 height=283 width=473>
+  <TBODY>
+  <TR>
+    <TD align=middle vAlign=top><A 
+      href="http://adclick.gamespy.com/accipiter/adclick.html/CID=00003672b354751a00000000/SITE=PQ/GENRE=ACTION/AREA=HOSTED/AAMSZ=IAB_FULL_BANNER" 
+      target=_top><IMG alt="Click for more information!" border=0 
+      src="Jetpack_files/4anything_livve468_gamespy_April1.gif"></A>
+      <DIV style="POSITION: absolute; VISIBILITY: hidden"><IMG border=0 height=1 
+      src="Jetpack_files/index.gif" width=1></DIV></TD>
+  <TR>
+    <TD><A href="http://www.planetquake.com/lard"><IMG border=0 height=233 
+      src="Jetpack_files/clubtitle.jpg" 
+width=473></A></TD></TR></TBODY></TABLE></CENTER>
+<P><FONT face=Verdana>Here is the tutorial that I followed to come up with the 
+Jetpack in Ultra.&nbsp; This tutorial in essence, got the ball rolling for the 
+rest of the mod.&nbsp; This tutorial should be appearing on <A 
+href="http://www.planetquake.com/code3arena" target=_blank>Code3arena</A> 
+shortly.</FONT> <BR>&nbsp; <BR>&nbsp; 
+<TABLE bgColor=#000000 border=0 cellPadding=15 cellSpacing=10 width="100%" 
+valign="top">
+  <TBODY>
+  <TR>
+    <TD vAlign=top>
+      <CENTER><B><FONT face="Verdana, Arial"><FONT color=#c05f00><FONT 
+      size=+2>TUTORIAL - Jet Pack</FONT></FONT></FONT></B> <BR><FONT 
+      face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>by <B><A 
+      href="mailto:crawdad-cletis@austin.rr.com">Crawdad_Cletis</A></B></FONT></FONT></FONT></CENTER>
+      <P><FONT face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>This 
+      tutorial was created in response to a request on the quake3world forums 
+      requesting a Tribes style jetpack. It is intended to give you a start, not 
+      make the sweetest jetpack man has ever known.</FONT></FONT></FONT> 
+      <BR>&nbsp; <BR>&nbsp; 
+      <H4><FONT face="Verdana, Arial"><FONT color=#e07f44><FONT size=-1>1. NEW 
+      COMMAND BUTTON...</FONT></FONT></FONT></H4><FONT 
+      face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>First we need to 
+      define a button to use for activating the jetpack. Go to qshared.h and 
+      search for "BUTTON_ANY". Then add the line below right after 
+      it.&nbsp;</FONT></FONT></FONT> <PRE><FONT face="Verdana, Arial"><FONT size=+0><FONT color=#ffffcc>#define BUTTON_ANY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2048&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // any key whatsoever
+</FONT><FONT color=#ff6060>#define BUTTON_JETPACK&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4096&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // use the jetpack</FONT></FONT></FONT>
+
+
+</PRE>
+      <H4><FONT face="Verdana, Arial"><FONT color=#e07f44><FONT size=-1>2. 
+      CREATING A NEW MOVE FUNCTION</FONT></FONT></FONT></H4><FONT 
+      face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>Bust open 
+      bg_pmove.c. Add the following function anywhere north of the function 
+      PmoveSingle (I put it between PM_FlyMove and 
+      PM_AirMove).&nbsp;</FONT></FONT></FONT> <PRE><FONT face="Verdana, Arial"><FONT color=#ff6060><FONT size=+0>/*
+===================
+PM_JetpackMove
+
+Use the jetpack.
+===================
+*/
+static void PM_JetpackMove( void ) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; i;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vec3_t&nbsp; wishvel;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; float&nbsp;&nbsp; wishspeed;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vec3_t&nbsp; wishdir;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; float&nbsp;&nbsp; scale;
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // normal slowdown
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_Friction ();
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; scale = PM_CmdScale( &amp;pm-&gt;cmd );
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // user intentions
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if ( !scale ) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wishvel[0] = 0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wishvel[1] = 0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wishvel[2] = 255;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //&lt; this is upward thrust (bigger number, more thrust)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; } else {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i=0 ; i&lt;3 ; i++) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wishvel[i] = scale * pml.forward[i]*pm-&gt;cmd.forwardmove + scale * pml.right[i]*pm-&gt;cmd.rightmove;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; VectorCopy (wishvel, wishdir);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wishspeed = VectorNormalize(wishdir);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_Accelerate (wishdir, wishspeed, pm_jetpackaccelerate);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //&lt; use the jetpack acceleration factor
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_StepSlideMove( qtrue );&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; //&lt; make this true to make gravity affect you
+}</FONT></FONT></FONT>
+
+</PRE><FONT face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>Ok, 
+      this is the function that will control how you move while you are using 
+      the jetpack. It is mostly a copy of the PM_FlyMove function with a couple 
+      of changes. These changes are noted in the comments in the code above. Now 
+      we also need to define the acceleration rate for the jetpack. This number 
+      affects how quickly we accelerate in the direction we are jetting. This 
+      variable is also in bg_pmove.c, but it's right up at the top. Search for 
+      "pm_flyaccelerate" and add the following line right after 
+      it.&nbsp;</FONT></FONT></FONT> <PRE><FONT face="Verdana, Arial"><FONT size=+0><FONT color=#ffffcc>float&nbsp;&nbsp; pm_flyaccelerate = 8.0f;
+</FONT><FONT color=#ff6060>float&nbsp;&nbsp; pm_jetpackaccelerate = 5.0f;</FONT></FONT></FONT>
+
+</PRE>
+      <H4><FONT face="Verdana, Arial"><FONT color=#e07f44><FONT size=-1>3. 
+      SWITCHING IT ON</FONT></FONT></FONT></H4><FONT face="Verdana, Arial"><FONT 
+      color=#eeeeee><FONT size=-1>Now we need to make sure that our function is 
+      called when it is time to fly. Once again we will be adding a couple of 
+      lines to bg_pmove.c. Search for "else if ( 
+      pm-&gt;ps-&gt;powerups[PW_FLIGHT] )". It is in the function PmoveSingle. 
+      This group of if/else's determines what function calculates the movement 
+      for the player. We want to add our own jetpack movement here, so add the 
+      lines below...&nbsp;</FONT></FONT></FONT> <PRE><FONT face="Verdana, Arial"><FONT size=+0><FONT color=#ffffcc>if ( pm-&gt;ps-&gt;powerups[PW_FLIGHT] ) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // flight powerup doesn't allow jump and has different friction
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_FlyMove();
+
+</FONT><FONT color=#ff6060>} else if ( pm-&gt;cmd.buttons &amp; BUTTON_JETPACK ) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_JetpackMove();
+
+</FONT><FONT color=#ffffcc>} else if (pm-&gt;ps-&gt;pm_flags &amp; PMF_GRAPPLE_PULL) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_GrappleMove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // We can wiggle a bit
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_AirMove();
+} else if (pm-&gt;ps-&gt;pm_flags &amp; PMF_TIME_WATERJUMP) {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PM_WaterJumpMove();
+} else if ( pm-&gt;waterlevel &gt; 1 ) {</FONT></FONT></FONT></PRE><FONT 
+      face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>Basically, this 
+      just says to call our own jetpack movement function whenever the jetpack 
+      button is held down.&nbsp;</FONT></FONT></FONT> 
+      <H4><FONT face="Verdana, Arial"><FONT color=#e07f44><FONT size=-1>4. Using 
+      it...</FONT></FONT></FONT></H4><FONT face="Verdana, Arial"><FONT 
+      color=#eeeeee><FONT size=-1>To use the jetpack you'll need to bind a key. 
+      The button I used for it is button 12 and I bound it to the second mouse 
+      button. To do that you'll need to type "bind mouse2 +button12". Now, 
+      whenever you hold down the right mouse button, your jetpack will propel 
+      you upwards. (Note: this jetpack works like the ones in Tribes. It will 
+      only propel you upwards while you are not also trying to jet forwards, 
+      backwards or sideways. This would be exceedingly easy to change, however, 
+      and will be left as an excercise for the 
+      reader.)&nbsp;</FONT></FONT></FONT> 
+      <H4><FONT face="Verdana, Arial"><FONT color=#e07f44><FONT size=-1>4. 
+      Further enhancements...</FONT></FONT></FONT></H4><FONT 
+      face="Verdana, Arial"><FONT color=#eeeeee><FONT size=-1>&gt;From here, you 
+      could add sound and visual effects. You could implement a fuel/energy 
+      system to limit the amount of jettin' one can do. You could also play with 
+      the upward thrust and the acceleration values. Anyways, enjoy. Write me 
+      with any questions.</FONT></FONT></FONT> 
+      <P><FONT face="Verdana, Arial"><FONT color=#eeeeee><FONT 
+      size=-1>Cletis&nbsp;</FONT></FONT></FONT></P></TD></TR></TBODY></TABLE>
+<CENTER><!-- END MAIN TABLE --><B><FONT face=Verdana><A 
+href="http://www.planetquake.com/lard">Back to Club Lard</A></FONT></B> 
+<BR><B><FONT face=Verdana><A href="http://www.planetquake.com/lard/ultra">Back 
+to Club Lard Game Modifications</A></FONT></B></CENTER></BODY></HTML>

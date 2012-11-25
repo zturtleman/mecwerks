@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0055)http://www.planetquake.com/qdevels/quake2/23_8_98c.html -->
+<HTML><HEAD><TITLE>Quake DeveLS - Another Flashlight</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<SCRIPT language=JavaScript>
+<!-- Hide from non-Jscript browsers
+function msg(msgtext)
+{
+window.status=msgtext
+return
+}
+//-->
+</SCRIPT>
+
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY aLink=#ffdd00 bgColor=#000000 link=#ffdd00 text=#eeeecc 
+vLink=#ffdd00><FONT color=#ffdd00 face="Arial Black" size=4>Quake DeveLS - 
+Another Flashlight</FONT> 
+<P><FONT color=#eeeecc face="Tahoma, Arial" size=2>
+<P><B>Author:</B> <A href="mailto:TheGunslinger@ecr.net">Dustin 
+Ridenbaugh</A><BR><B>Difficulty:</B> <FONT color=#ffdd00><B>It was harder to 
+edit the sprite</B></FONT> 
+<P><FONT color=#eeeecc face="Tahoma, Arial" size=2>
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE></PRE></FONT></BLOCKQUOTE>Hey guys. This is The Gunslinger. I've had a 
+couple request to put up tutorials here, so here goes. This first one is a 
+remake of the flashlight. I don't know about you guys, but when I put it in my 
+code, the dang thing didn't work!?! Then I tried splicing some of the other code 
+together, and after about an hour, something working came out. So theres the 
+history, and here we go. By the way, this is a rewritten version of the laser 
+sight (thanks Geza).
+<P>
+<P>Make sure you have a compiler befor you try any of this. The last question I 
+want to have to awnser "What do you do after you have written the code". 
+Personally, I reccomend the LCC compiler. I used wordpad to edit the code, and 
+lcc to compile, and it works great.
+<P><FONT color=#ffdd00 face=Arial size=2><B>Prelim thingy's</B>
+<P></FONT>Open your g_local.h up and go to the end of the file where edict_s is. 
+Edit edict_s so that it looks like this. (Be careful, a lot of people acciedntly 
+will switch edict_s and edict_t) 
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>	// common data blocks
+	moveinfo_t		moveinfo;
+	monsterinfo_t	monsterinfo;
+
+	// Good sir, are you daft?
+	edict_t *flashlight;
+};
+
+void FL_think (edict_t *self);
+void FL_make(edict_t *self);
+</PRE></FONT></BLOCKQUOTE>Now open up g_cmds.c and edit the very bottom of the 
+file and edit it to look like this :
+<P>
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>	else if (Q_stricmp (cmd, "flashlight") == 0)
+		FL_make (ent);
+	else	// anything that doesn't match a command will be a chat
+		Cmd_Say_f (ent, false, true);
+}
+</PRE></FONT></BLOCKQUOTE><FONT color=#ffdd00 face=Arial size=2><B>This should 
+kill them</B>
+<P></FONT>For $#!t's and giggles, lets create a new file, and call it p_light.c. 
+Make it look like this: 
+<P>
+<BLOCKQUOTE><FONT color=#ffffbb face=Arial size=3><PRE>// Flashlight patch, by Dustin Ridenbaugh, TheGunslinger@ecr.net
+
+#include "g_local.h"
+
+
+/*
+8===============&gt;
+FL_make
+make the dang thing
+&lt;===============8
+*/
+
+void FL_make(edict_t *self) 
+{
+	vec3_t	start,forward,right,end;
+
+ 	if ( self-&gt;flashlight )
+	{
+		G_FreeEdict(self-&gt;flashlight);
+		self-&gt;flashlight = NULL;
+		return;
+	}
+
+	AngleVectors (self-&gt;client-&gt;v_angle, forward, right, NULL);
+
+	VectorSet(end,100 , 0, 0);
+	G_ProjectSource (self-&gt;s.origin, end, forward, right, start);
+
+	self-&gt;flashlight = G_Spawn ();
+	self-&gt;flashlight-&gt;owner = self;
+	self-&gt;flashlight-&gt;movetype = MOVETYPE_NOCLIP;
+	self-&gt;flashlight-&gt;solid = SOLID_NOT;
+	self-&gt;flashlight-&gt;classname = "flashlight";
+	self-&gt;flashlight-&gt;s.modelindex = gi.modelindex ("sprites/sight2.sp2");	// HEY KIDDYS NOTE THIS
+	self-&gt;flashlight-&gt;s.skinnum = 0;
+	self-&gt;flashlight-&gt;s.effects |= EF_HYPERBLASTER;		// Other effects can be used here, such as flag1, but these look corney and 
+								// dull. Try stuff and tell me if you find anything cool
+	self-&gt;flashlight-&gt;think = FL_think;
+	self-&gt;flashlight-&gt;nextthink = level.time + 0.1;
+}
+
+// Congratulations, and welcome to the middle of the file.
+
+/*
+8===============&gt;
+FL_make
+make the dang thing
+&lt;===============8
+*/
+
+void FL_think (edict_t *self)
+{
+	vec3_t start,end,endp,offset;
+	vec3_t forward,right,up;
+	trace_t tr;
+
+	AngleVectors (self-&gt;owner-&gt;client-&gt;v_angle, forward, right, up);
+
+	VectorSet(offset,24 , 6, self-&gt;owner-&gt;viewheight-7);
+	G_ProjectSource (self-&gt;owner-&gt;s.origin, offset, forward, right, start);
+	VectorMA(start,8192,forward,end);
+
+	tr = gi.trace (start,NULL,NULL, end,self-&gt;owner,CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_DEADMONSTER);
+
+	if (tr.fraction != 1)
+	{
+		VectorMA(tr.endpos,-4,forward,endp);
+		VectorCopy(endp,tr.endpos);
+	}
+
+	if ((tr.ent-&gt;svflags &amp; SVF_MONSTER) || (tr.ent-&gt;client))
+	{
+		if ((tr.ent-&gt;takedamage) &amp;&amp; (tr.ent != self-&gt;owner))
+		{
+			self-&gt;s.skinnum = 1;
+		}
+	}
+	else
+		self-&gt;s.skinnum = 0;
+
+	vectoangles(tr.plane.normal,self-&gt;s.angles);
+	VectorCopy(tr.endpos,self-&gt;s.origin);
+
+	gi.linkentity (self);
+	self-&gt;nextthink = level.time + 0.1;
+}
+
+</PRE></FONT></BLOCKQUOTE><FONT color=#ffdd00 face=Arial size=2><B>Make'in purty 
+lights and colors</B>
+<P></FONT>Well, the best way to accomplish the effect of funny lights and colors 
+in front of you is to get throughly plastered and high as Green Day , but Q2 is 
+kinda hard to play that way. This might be the next best. I don't know how 
+server friendly this is, but it works great none the less. The original 
+lasersight code used some "lss" thingy to find your sight edict_t. I didn't like 
+it(it wasn't purty) so I killed it. The code is pretty simple, and reminds me 
+alot of going back to ol' Quake1 and Team Fortress editing. That was fun stuff 
+wasn't it guys? Anyway...
+<P><FONT color=#ffdd00 face=Arial size=2><B>That funny looking sprite?!?</B>
+<P></FONT>Okay, someone may have noticed that this code does use a model, or I 
+mean sprite. You should have noticed is, unless your like me and just copy 
+everything straight from the .html file, and hope it works. Anyway, this is not 
+included in your pak file. However, you can make it using a hex editor. I would 
+highly recommend this for any experienced programer. !!!NAKED TEENAGE CHICKS!!! 
+That was to get the newbie's attention. DO NOT USE A HEX EDITOR IF YOU DON'T 
+HAVE A GOOD PROGRAMING BACKGROUND. Do not come whining to me because you 
+shuffeled your fat table :-)&gt;. You need to edit it so that the size is 0,0. 
+Its there, but its just too small to see. I'll try to see if I can post it 
+somewhere.
+<P>
+<P>I think thats all. If it don't work, well, too bad. Actully, if it doesn't 
+work, email me and I shall fix it ( :-(&gt; 'sigh'). 
+<P><A href="mailto:TheGunslinger@ecr.net">Dustin Ridenbaugh, The Gunslinger</A>. 
+
+<P><!-- Quake DeveLS Standard Footer -->
+<TABLE border=0 cellPadding=0 cellSpacing=0 width=700 VALIGN="TOP">
+  <TBODY>
+  <TR>
+    <TD>
+      <CENTER><FONT color=#eeeeee face=ARIAL size=1>
+      <P>This site, and all content and graphics displayed on it,<BR>are 
+      ©opyrighted to the <A 
+      href="http://www.planetquake.com/qdevels/index.shtml" 
+      onmouseover="msg('Quake Developers library site')">Quake DeveLS</A> team. 
+      All rights received.<BR>Got a suggestion? Comment? Question? Hate mail? <A 
+      href="mailto:puke@planetquake.com" 
+      onmouseover="msg('Email Quake DeveLS')">Send it</A> to us!<BR>Oh yeah, 
+      this site is best viewed in 16 Bit or higher, with the resolution on 
+      800*600.<BR>Thanks to <A href="http://www.planetquake.com/" 
+      onmouseover="msg('Planet Quake')">Planet Quake</A> for there great help 
+      and support with hosting.<BR>Best viewed with <A 
+      href="http://www.netscape.com/" onmouseover="msg('Netscape 4')">Netscape 
+      4</A><BR></FONT></CENTER></P></TD></TR></TBODY></TABLE></P></FONT></FONT></BODY></HTML>

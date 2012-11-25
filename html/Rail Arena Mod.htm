@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0054)http://www.frag.com/tectonic/quake3/tuts/railarena.htm -->
+<HTML><HEAD><TITLE>Q3Coding: Making a Rail Arena Mod</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type><LINK 
+href="../main.css" rel=stylesheet>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY bgColor=#ffffff>
+<TABLE border=0 width="75%">
+  <TBODY>
+  <TR align=left bgColor=#006699 vAlign=top>
+    <TD><!-- #BeginEditable "matiere" -->
+      <DIV align=left><B><FONT color=#ccccff face="Arial, Helvetica, sans-serif" 
+      size=4>Q3 Coding</FONT></B></DIV><!-- #EndEditable --></TD></TR>
+  <TR align=left bgColor=#ccccff vAlign=top>
+    <TD class=titre1>
+      <DIV align=left><FONT face="Tahoma, Verdana" size=2><!-- #BeginEditable "tit" --></FONT><FONT 
+      face="Arial, Helvetica, sans-serif" size=2><B>Making a Rail Arena 
+      Mod</B></FONT></DIV></TD></TR>
+  <TR align=left vAlign=top>
+    <TD height=465><!-- #BeginEditable "texte" -->
+      <P align=right><FONT face="Tahoma, Verdana" size=2><B>Date :</B> 
+      24/01/99<BR><B>Author(s) </B>: <A 
+      href="mailto:wilka@frag.com">Wilka</A><BR><B>Skill(s) :</B> 
+      Easy<BR><B>Source Project(s) :</B> Game<BR><B>Revision :</B> 2</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>This tutorial will cover the steps 
+      needed to make a 'Rail Arena' type mod (all weapons are Railgun's, and all 
+      the ammo boxes are&nbsp; slugs).&nbsp;</FONT></P>
+      <H4><FONT face="Arial, Helvetica, sans-serif">Setting Start 
+      Weapon</FONT></H4>
+      <P><FONT face="Tahoma, Verdana" size=2>The first thing we need to do is 
+      make sure that the players don't start with a machine gun, cos then they 
+      would just use that until they pick up a Railgun, and we don't want that. 
+      You could make the player start with a Railgun, but I'd rather have then 
+      running about helplessly with the gauntlet until the get a real weapon 
+      :)</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>So open up <B>g_client.c</B> and go 
+      down to line 1008, then add the code follow the code (the stuff in between 
+      //Wilka and //W is the new code)</FONT></P>
+      <P>
+      <FORM><TEXTAREA cols=92 name=S1 rows=13>// positively link the client, even if the command times are weird
+if ( ent-&gt;client-&gt;sess.sessionTeam != TEAM_SPECTATOR ) {
+	BG_PlayerStateToEntityState( &amp;client-&gt;ps, &amp;ent-&gt;s, qtrue );
+	VectorCopy( ent-&gt;client-&gt;ps.origin, ent-&gt;r.currentOrigin );
+	trap_LinkEntity( ent );
+}
+
+//Wilka
+//start the client with only the gaunlet
+client-&gt;ps.stats[STAT_WEAPONS] = (1 &lt;&lt; WP_GAUNTLET);
+client-&gt;ps.weapon = WP_GAUNTLET;
+//W
+
+// run the presend to set anything else
+ClientEndFrame( ent );</TEXTAREA></FORM>
+      <P><FONT face="Tahoma, Verdana" size=2>This is added after an triggers 
+      have been fired, so that any target_give entities wont start the player 
+      with a Railgun (all weapons are going to be Railgun's, so you wont be able 
+      to the give player any other weapon)</FONT></P>
+      <H4><FONT face="Arial, Helvetica, sans-serif">Spawning 
+      Railgun's</FONT></H4>
+      <P><FONT face="Tahoma, Verdana" size=2>Now that we've stopped the player 
+      running about with a machine gun, we need to change all weapons to 
+      Railgun's. For that we need to edit the <I>G_CallSpawn</I> function in 
+      <I>g_spawn.c</I> (line 248). Just after the classname is checked to make 
+      sure it's not NULL, we need to add our code to change class name to the 
+      one we want (a Railgun). So add the following code to 
+      <I>G_CallSpawn</I>.</FONT></P>
+      <P>
+      <FORM><TEXTAREA cols=92 name=S1 rows=14>	if ( !ent-&gt;classname ) {
+		G_Printf ("G_CallSpawn: NULL classname\n");
+		return qfalse;
+	}
+
+	//Wilka
+	//always spawn rail
+	if(Q_stricmp(ent-&gt;classname, "weapon_rocketlauncher") == 0)
+	{
+		strcpy(ent-&gt;classname, "weapon_railgun");
+	}
+	//W
+
+	// check item spawn functions
+	for ( item=bg_itemlist+1 ; item-&gt;classname ; item++ ) {</TEXTAREA></FORM>
+      <P><FONT face="Tahoma, Verdana" size=2>If you compile and test the mod, 
+      you'll see that all the Rocket Launchers are now Railgun's. But we want 
+      all weapons to be Railgun's, so this isn't good enough. We could check 
+      each for each weapon_* class name, using lots of if/else statements, the 
+      same way <I>ClientCommand</I> in <B>g_cmds.c </B>works, but since we only 
+      need to check if the class name starts with "weapon_" there's a much 
+      better way to do this. We need to write a function that will return the 
+      left part of a string for us. Instead of returning the first 7 chars, or 
+      the text up the first '_', we should pass an int telling the function how 
+      much of the string we want. Doing it this way means that the function 
+      could be used in other situations, without us needed to re-write any of it 
+      (and therefore change the old code that uses the function). So scroll up 
+      to just before the comment for <I>G_CallSpawn</I> (around line 253), and 
+      add this function.</FONT></P>
+      <P>
+      <FORM><TEXTAREA cols=92 name=S1 rows=19>//sets pszDest to iLen number of chars from the left of pszSource, pszSource doesn't get changed
+//NOTE: pszDest must be big enough to hold pszSource
+void G_WLK_GetLeft(const char *pszSource, char *pszDest,  int iLen)
+{
+	int iSize; //size of string we need to copy
+
+	//see how much space we need
+	iSize = strlen(pszSource);
+	
+	//is len less that size?
+	if(iLen &lt; iSize)
+		iSize = iLen;
+
+	//make a copy of the string
+	strcpy(pszDest, pszSource);
+
+	//end the string at iSize
+	pszDest[iSize] = '\0';
+}</TEXTAREA></FORM>
+      <P><FONT face="Tahoma, Verdana" size=2>This <I>G_WLK_GetLeft</I> function 
+      copies the source string (pszSource) using the<I> strcpy</I> function, 
+      then sets the char at position <I>iSize</I> to NULL ('/0', NULL and 0 are 
+      all the same thing. But it's better to use '/0' when working with text ) . 
+      In C, a string is terminated by a NULL. So we're marking the end of the 
+      string, at the position <I>iSize</I>. Now we can go back to 
+      <I>G_ClassSpawn</I> and change our code to use the function we just 
+      created. We can also add the code for ammo, since it's almost the same. So 
+      change the stuff inside of the //Wilka //W comments to look like 
+      this.</FONT></P>
+      <P>
+      <FORM><TEXTAREA cols=92 name=S1 rows=23>//Wilka
+char szClassRoot[80]; //for holding the left part of the class name
+//W
+
+if ( !ent-&gt;classname ) {
+	G_Printf ("G_CallSpawn: NULL classname\n");
+	return qfalse;
+}
+
+//Wilka
+//get the left 7 of the string
+G_WLK_GetLeft(ent-&gt;classname, szClassRoot, 7);
+//is it weapon_?
+if(Q_stricmp(szClassRoot, "weapon_") ==0)
+{
+	strcpy(ent-&gt;classname, "weapon_railgun");
+}
+//get the left 5 of the string
+G_WLK_GetLeft(ent-&gt;classname, szClassRoot, 5);
+//is it ammo_?
+if(Q_stricmp(szClassRoot, "ammo_") == 0)
+{
+	strcpy(ent-&gt;classname, "ammo_slugs");
+}
+//W</TEXTAREA></FORM>
+      <P><FONT face="Tahoma, Verdana" size=2>Now when you run this mod, all 
+      weapons will be replaced with Railgun's and all ammo will be replaced with 
+      Slugs. A good way to expand on this mod would be to add a cvar that sets 
+      the weapon to use, so it doesn't always need to be the Railgun. Something 
+      like <I>g_arenaWeapon</I>, then you can use a switch block to see what 
+      class name should be used instead of weapon_railgun. If you don't know how 
+      to create new cvars, or how switch statements works, have a look at my 
+      tutorial on <A 
+      href="http://www.frag.com/tectonic/quake3/tuts/wof.htm">creating a basic 
+      mod</A>.</FONT></P>
+      <P><FONT face="Tahoma, Verdana" size=2>I Fixed the textboxes in Netscape 
+      (I'd missed the form tag), thanks to WarZone for letting me 
+      know.</FONT></P>
+      <HR>
+
+      <P align=center><FONT face="Tahoma, Verdana" size=2>Tutorial by <A 
+      href="mailto:wilka@frag.com">Wilka</A></FONT><FONT size=2><BR><FONT 
+      face="Tahoma, Verdana"><A href="http://wiretap.gamedesign.net/">Wiretap 
+      Development</A></FONT><BR><FONT face="Tahoma, Verdana"><A 
+      href="http://www.planetquake.com/wiretap">Wiretap HQ</A></FONT></FONT></P>
+      <P align=center>&nbsp;</P>
+      <P align=left>&nbsp;</P>
+      <P align=left>&nbsp;</P></TD></TR></TBODY></TABLE>
+<P>&nbsp;</P><!-- #EndTemplate --></BODY></HTML>

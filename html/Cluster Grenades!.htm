@@ -1,0 +1,154 @@
+
+<html>
+<head>
+<title>Quake Style - Quake 3 Tutorials - Weapon Mods - Cluster Grenades!</title>
+
+<style type="text/css">
+
+body, table, tr, td             { font-family: verdana }
+input, textarea, select, option { font-family: verdana; font-size: 10px }
+
+pre                             { font-family: verdana; font-weight: bold }
+
+A                               { color: #00ff00 }
+A:hover                         { color: white; text-decoration: none }
+
+</style>
+</head>
+
+<body bgcolor=black text=#ffff80>
+<font size=1>
+
+<div align=right>
+
+ <table cellspacing=0 cellborder=0 border=0>
+  <tr>
+   <td align=center>
+    <font size=1><b>
+
+    <font color=white>Quake Style - Quake 3 Tutorials</font><br>
+    <font color=#bbcc77>Weapon Mods </font><font color=#ff8000>- Cluster Grenades!</font><br>
+    Converts the grenade launcher so it fires cluster grenades.
+
+   </td>
+  </tr>
+ </table>
+
+</div>
+<br>
+
+<!-- START TUTORIAL -->
+Cluster grenades!<br><br>This tutorial will modify the existing grenade launcher so that when the grenade it fires explodes 4 more grenades will scatter in a circle around it.<br><br>Open up g_missile.c and go to about line 7 and add:<br>
+<pre><font size=1><font color=#00FFFF>  
+void G_ExplodeCluster( gentity_t *ent );
+gentity_t *fire_clustergrenade (gentity_t *self, vec3_t start, vec3_t dir);
+</font> 
+</font></pre> <br>this will declare the functions we are going to add.<br><br><br>At about line 169 add the following just before G_ExplodeMissile.<br>
+<pre><font size=1><font color=#00FFFF>  
+void G_ExplodeCluster( gentity_t *ent ) {
+	vec3_t		dir;
+	vec3_t		origin;
+
+	//Gerbil!
+	vec3_t		grenade1;
+	vec3_t		grenade2;
+	vec3_t		grenade3;
+	vec3_t		grenade4;
+
+	BG_EvaluateTrajectory( &ent->s.pos, level.time, origin );
+	SnapVector( origin );
+	G_SetOrigin( ent, origin );
+
+	// we don't have a valid direction, so just point straight up
+	dir[0] &#061; dir[1] &#061; 0;
+	dir[2] &#061; 10;
+
+	ent->s.eType &#061; ET_GENERAL;
+	G_AddEvent( ent, EV_MISSILE_MISS, DirToByte( dir ) );
+
+	ent->freeAfterEvent &#061; qtrue;
+
+	// splash damage
+	if ( ent->splashDamage ) {
+		if( G_RadiusDamage( ent->r.currentOrigin, ent->parent, ent->splashDamage, ent->splashRadius, NULL
+			, ent->splashMethodOfDeath ) ) {
+			g_entities[ent->r.ownerNum].client->ps.persistant[PERS_ACCURACY_HITS]++;
+		}
+	}
+
+	//Gerbil!
+	VectorSet(grenade1, 25, 25, 30);
+	VectorSet(grenade2, -25, 25, 30);
+	VectorSet(grenade3, 25, -25, 30);
+	VectorSet(grenade4, -25, -25, 30);
+		
+	fire_clustergrenade (ent, origin, grenade1);
+	fire_clustergrenade (ent, origin, grenade2);
+	fire_clustergrenade (ent, origin, grenade3);
+	fire_clustergrenade (ent, origin, grenade4);
+
+	trap_LinkEntity( ent );
+}
+</font> 
+</font></pre> <br>This is just a copy of G_ExplodeMissile except we added the function to fire the cluster grenades.  We use VectorSet to set the direction each grenade travels at the first is the x coord, the next the y, and the last one is the z direction.<br><br><br>At around line 348 in the fire_grenade function change bolt->think &#061; G_ExplodeMissile; to bolt->think &#061; G_ExplodeCluster; so it will look somthing like this:<br><br>...<br>
+<pre><font size=1> <font color=#00FFFF> 
+	bolt &#061; G_Spawn();
+	bolt->classname &#061; "grenade";
+	bolt->nextthink &#061; level.time + 2500;
+	// Gerbil!
+	bolt->think &#061; G_ExplodeCluster;
+
+	bolt->s.eType &#061; ET_MISSILE;
+	bolt->r.svFlags &#061; SVF_USE_CURRENT_ORIGIN;
+</font> 
+</font></pre> <br>...<br><br>This changes the explode function to the one we added that throws out the extra grenades.<br><br><br>After that at around line 375 add the fire_clustergrenade function which is basically a copy of fire_grenade, except with a few tweaks.<br>
+<pre><font size=1> <font color=#00FFFF>
+gentity_t *fire_clustergrenade (gentity_t *self, vec3_t start, vec3_t dir) {
+	gentity_t	*bolt;
+
+	VectorNormalize (dir);
+
+	bolt &#061; G_Spawn();
+	bolt->classname &#061; "grenade";
+	bolt->nextthink &#061; level.time + 2000;
+	bolt->think &#061; G_ExplodeMissile;
+	bolt->s.eType &#061; ET_MISSILE;
+	bolt->r.svFlags &#061; SVF_USE_CURRENT_ORIGIN;
+	bolt->s.weapon &#061; WP_GRENADE_LAUNCHER;
+	bolt->s.eFlags &#061; EF_BOUNCE_HALF;
+	bolt->r.ownerNum &#061; self->s.number;
+	bolt->parent &#061; self;
+	bolt->damage &#061; 100;
+	bolt->splashDamage &#061; 100;
+	bolt->splashRadius &#061; 150;
+	bolt->methodOfDeath &#061; MOD_GRENADE;
+	bolt->splashMethodOfDeath &#061; MOD_GRENADE_SPLASH;
+	bolt->clipmask &#061; MASK_SHOT;
+
+	bolt->s.pos.trType &#061; TR_GRAVITY;
+	bolt->s.pos.trTime &#061; level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
+	VectorCopy( start, bolt->s.pos.trBase );
+
+	//Gerbil!  lower the velocity from 700 to 400
+	VectorScale( dir, 400, bolt->s.pos.trDelta );
+
+	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
+
+	VectorCopy (start, bolt->r.currentOrigin);
+
+	return bolt;
+}
+</font>
+</font></pre> <br>This uses the origonal G_ExplodeMissile function so the cluster grenades shot out from the origonal one dont throw out more.  The velocity at which they are thrown is also lowered so they wont travel as far.<br><br><br>So, we modified the fire_grenade function so that when the grenade launcher is fired and the grenade explodes it spawns four more around it instead of just blowing up.  We copied the fire_grenade function to fire_grenadecluster so that the four grenades shot will just explode and not spawn four more grenades.<br>Just compile, run and fire a grenade and watch them go.<br>
+
+<!--- END TUTORIAL --->
+<br>
+<br><font color=#ff8000><b>-- Credits:</b></font>
+<br>&nbsp;&nbsp; Tutorial by <a href="mailto:Gerbil@telefragged.com"><b>Gerbil!</b></a>
+<br>&nbsp;&nbsp; Return to <a href="../tuts.shtml"><b>QS Tutorials</b></a>
+<br>
+<br><font color=#ff8000><b>-- Important:</b></font>
+<br>&nbsp;&nbsp; If you do use something from QuakeStyle in your mod, please give us credit.
+<br>&nbsp;&nbsp; Our code is copyrighted, but we give permission to everyone to use it in any way they see fit, as long as we are recognized.
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0061)http://www.planetquake.com/code3arena/articles/article2.shtml -->
+<HTML><HEAD><TITLE>Code3Arena</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY background=Code3Arena_files/bg.gif link=#c05f00 text=white vLink=#d16545><!-- BEGIN BANNER AD TABLE -->
+<TABLE align=center background=Code3Arena_files/bg.gif border=0 cellPadding=5 
+cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle vAlign=top width="100%">
+      <CENTER><A 
+      href="http://adclick.gamespy.com/cgi-bin/adclick.exe/CID=00001a71346ae9d200000000/site=PQ/AAMSZ=IAB_FULL_BANNER/AREA=ARTICLES" 
+      target=_top><IMG alt="Click for more information!" border=0 
+      src="Code3Arena_files/SpeakeasyJan00_Heart.gif"></A></CENTER></TD></TR></TBODY></TABLE><!-- END BANNER AD TABLE --><BR><!-- BEGIN LOGO IMAGE TABLE -->
+<TABLE align=center bgColor=#000000 border=1 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle><IMG alt=Code3Arena border=0 height=150 
+      src="Code3Arena_files/logo.gif" width=550> </TD></TR></TBODY></TABLE><!-- END LOGO IMAGE TABLE -->
+<P><!-- BEGIN MAIN TABLE HERE-->
+<TABLE align=center bgColor=#4b0202 border=0 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR><!-- BEGIN LEFT NAVBAR MENU *** REMOVED *** --><!-- BEGIN DIVIDER *** REMOVED *** --><!-- MAIN TEXT AREA -->
+    <TD bgColor=#000000 vAlign=top>
+      <TABLE bgColor=#000000 border=0 cellPadding=15 cellSpacing=10 width="100%" 
+      valign="top">
+        <TBODY>
+        <TR>
+          <TD vAlign=top><FONT color=#eeeeee face="Verdana, Arial" size=2>
+            <CENTER><B><FONT color=#c05f00 size=5>ARTICLE2 - VECTORS 
+            </FONT></B><BR>by <B><A 
+            href="mailto:sumfuka@planetquake.com">SumFuka</A></B></CENTER>
+            <P>Maths - Urgh, Eccch, YUCK ! But, like it or not, vectors are 
+            crucial to quake coding. Every time you fire a rocket, you need 
+            vectors. In fact, you could say that "if you don't wanna go down, 
+            you betta get up with da vecta". <FONT color=#e07f44>
+            <H4>WHAT IS A VECTOR </H4></FONT>In a 3-dimensional world such as 
+            quake, a vector is simply three numbers - an x component, a y 
+            component and a z component. In <B>q_shared.h</B> at line 258 we can 
+            see the C code definition of <B>vec3_t</B> : <FONT color=#ffffcc 
+            face="Verdana, Arial" size=3><PRE>	typedef float vec_t;
+	typedef vec_t vec2_t[2];
+	typedef vec_t vec3_t[3];
+	typedef vec_t vec4_t[4];
+	typedef vec_t vec5_t[5];
+</PRE></FONT>If you're new to C, a <B>typedef</B> associates a 
+            complicated datatype with another name. Above, the first typedef 
+            states that a single dimensional vector type, <B>vec_t</B>, is a 
+            <B>float</B>ing point number (e.g. 23.4567, as opposed to integers 
+            like 23). The next <B>typedef</B>'s define 2,3,4 and 5 dimensional 
+            vector types. The most common vector type is the 3-dimenstional one, 
+            <B>vec3_t</B> - it is simply an array of three <B>vec_t</B>'s (in 
+            other words, an array of three <B>float</B>'s). These three floats 
+            represent what we call the <B>x</B>, <B>y</B> and <B>z</B> 
+            components.
+            <P><FONT color=#e07f44>
+            <H4>THE ORIGIN </H4></FONT>Ok, the most basic vector is the 
+            <B>origin</B> vector. Let's write it down like this : <B>(0.0, 0.0, 
+            0.0)</B>. The x, y and z components are all zero. Let's create an 
+            origin vector in C code. <FONT color=#ffffcc face="Verdana, Arial" 
+            size=3><PRE>	vec3_t origin;
+	origin[0] = 0.0;
+	origin[1] = 0.0;
+	origin[2] = 0.0;
+</PRE></FONT>Now let's create a vector to represent the position of 
+            player0, at (55.0, -23.0, 12.5). <FONT color=#ffffcc 
+            face="Verdana, Arial" size=3><PRE>	vec3_t player0pos;
+	player0pos[0] = 55.0;
+	player0pos[1] = -23.0;
+	player0pos[2] = 12.5;
+</PRE></FONT>Now, where is player0 standing ? Well, that depends on 
+            something called...
+            <P><FONT color=#e07f44>
+            <H4>THE CO-ORDINATE SYSTEM </H4></FONT>Let's assume that our quake 
+            map is three dimensional (and multi-levelled). A space map, for 
+            example. Let's also assume that the location (0.0, 0.0, 0.0) is 
+            right on top of a platform somewhere in the middle of the map, with 
+            bits of the map extending in directions both left and right, 
+            forwards and back, and up and down. But, what defines 'left-right', 
+            'forwards-backwards' or 'up-down' ?
+            <P>Quake uses what we call a 'left handed 3d co-ordinate system'. 
+            This means, take your left hand and point your arm forwards. Point 
+            your thumb upwards, your index finger forwards and your middle 
+            finger directly to the right. Let's assume that we are standing at 
+            the origin in our space map, facing northwards.
+            <P>Now, your middle finger is pointing in the direction of positive 
+            x co-ordinates, your index finger is pointing to positive y 
+            co-ordinates, and your thumb is pointing to positive z co-ordinates.
+            <P>So, by holding out our 2 fingers and thumb (remember, LEFT hand!) 
+            imagine that we are sitting at the origin looking north. We can see 
+            that <B>player0pos</B> is a position to the right of us (x=55.0 is 
+            positive), behind us (y=-23.0 is negative) and above us (z=12.5 is 
+            positive).
+            <P>If we wanted to suddenly teleport player0 64 units eastwards and 
+            64 units up into the air, how would we do it ? Maybe : <FONT 
+            color=#ffffcc face="Verdana, Arial" size=3><PRE>	player0pos[0] += 64.0;
+	player0pos[2] += 64.0;
+</PRE></FONT>There is a better way to do this, however...
+            <P><FONT color=#e07f44>
+            <H4>VELOCITY VECTORS </H4></FONT>Ok, all the vectors we've been 
+            working with so far have been <B>positional</B> vectors - an (x,y,z) 
+            position in the game world. There is also another use for vectors - 
+            to represent <B>velocity</B> (Note: <B>velocity</B> is different to 
+            <B>speed</B>, more later). How do we represent the velocity of 
+            rocket that is moving eastwards, and 45 degrees upwards, at 900 
+            units/second ? A vector.
+            <P>This may be a little confusing, since the rocket will have a 
+            <B>position</B> and a <B>velocity</B>, and both are represented by 
+            <B>vec3_t</B>. <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	vec3_t rocketpos;
+	vec3_t rocketvel;
+
+	rocketpos[0] = 0.0;
+	rocketpos[1] = 0.0;
+	rocketpos[2] = 0.0;
+
+	rocketvel[0] = 636.39;
+	rocketvel[1] = 0.0;
+	rocketvel[2] = 636.39;
+
+	// now let's 'move' the rocket, assume one second has gone by.
+
+	rocketpos[0] += rocketvel[0];
+	rocketpos[1] += rocketvel[1];
+	rocketpos[2] += rocketvel[2];
+
+	// another second goes by... etc
+
+	rocketpos[0] += rocketvel[0];
+	rocketpos[1] += rocketvel[1];
+	rocketpos[2] += rocketvel[2];
+</PRE></FONT>The result: after 1 second our rocket is located at 
+            (636.39, 0, 636.39). But why did we use 636.39, not 900 ? Well the 
+            answer to that lies in the fact that if you move in two dimensions 
+            (in our case, eastwards and up) the total distance travelled is 
+            measured along the long side of a right-angled triangle, where the 
+            short sides of the triangle measure the distances moved in those two 
+            dimensions. And we know that the long side of a right-angled 
+            triangle is calculated from the good ol' <B>c squared = sqrt (a 
+            squared + b squared)</B>. So if a and b are 636.39, c works out to 
+            be... 900. In three dimensions the maths gets even stickier.
+            <P><FONT color=#e07f44>
+            <H4>DIRECTIONS </H4></FONT>Rather than worry about getting 636.39 
+            from 900, there's a better way to work with a velocity of 900 
+            units/second eastwards and upwards at 45 degrees. We simply break it 
+            into two components - a <B>direction</B> and a <B>speed</B>.
+            <P>Now for some definitions, a <B>direction vector</B> is a vector 
+            in any direction where the length is precisely 1.0. For example, 
+            (1.0, 0.0, 0.0) or (0.707, 0.0, -0.707) etc. We call any vector with 
+            a length of precisely 1.0 a <B>normalized vector</B>.
+            <P>A <B>speed</B> is a linear quantity (NOT a vector!!). For 
+            example, 900.0, 0.0 or -450.0. A speed of 0.0 represents standing 
+            still whilst negative speeds represent moving backwards.
+            <P>Why is this easier ? Well, there is a simple equation that allows 
+            us to 'move' an entity through space - <B>endpos = startpos + speed 
+            * direction</B>. For example, let's model our rocket : <FONT 
+            color=#ffffcc face="Verdana, Arial" size=3><PRE>	vec3_t rocketpos;
+	vec3_t rocketdir;
+	float rocketspeed;
+
+	rocketpos[0] = 0.0;
+	rocketpos[1] = 0.0;
+	rocketpos[2] = 0.0;
+
+	rocketdir[0] = 0.707;
+	rocketdir[1] = 0.0;
+	rocketdir[2] = 0.707;
+
+	rocketspeed = 900.0;
+
+	// now let's 'move' the rocket, assume one second has gone by.
+
+	rocketpos[0] += rocketspeed * rocketdir[0];
+	rocketpos[1] += rocketspeed * rocketdir[1];
+	rocketpos[2] += rocketspeed * rocketdir[2];
+</PRE></FONT>But again, why is this easier ? Well, firstly - quake 
+            provides us with several <B>direction</B> vectors at many points in 
+            the code. For example, we quite often see the <B>forward</B> vector. 
+            This vector is always pointing in the direction we are aiming. To 
+            fire a rocket ? Give it a veclocity of <B>forward</B> multipied by 
+            900. To fire a railgun, trace along the <B>forward</B> vector 
+            for8192 units. Etc. As luck would have it, Carmack has given us a 
+            mini-library of...
+            <P><FONT color=#e07f44>
+            <H4>VECTOR FUNCTIONS </H4></FONT>Since vectors are used so much in 
+            quake, it makes sense to define functions that take care of all the 
+            common vector manipulation tasks (copying, adding, multiplying, 
+            etc). Not only is it good practice to make use of these functions 
+            (since they're already written, DUH!), it's important to realize 
+            that the operators <B>+</B>, <B>*</B> etc CANNOT be used - this is 
+            because <B>vec3_t</B> is an array, and the common mathematical 
+            operators cannot be used on arrays in C (in the way we expect them 
+            too, anyway). For example, <FONT color=#ffffcc face="Verdana, Arial" 
+            size=3><PRE>	// the stuff below is WRONG.
+	vector_a *= 100.0;			// WRONG!
+	vector_c  = vector_a + vector_b;	// WRONG!
+
+	// we use functions to do addition, multiplication, etc.
+	VectorScale (vector_a, 100.0, vector_a);	// CORRECT!
+	VectorAdd (vector_a, vector_b, vector_c);	// CORRECT!
+</PRE></FONT>Here's a complete list (from <B>q_shared.h</B> line 
+            357) : 
+            <UL>
+              <LI><B>VectorSubtract(a,b,c)</B> - subtract b from a, result is c 
+              <LI><B>VectorAdd(a,b,c)</B> - add a to b, result is c 
+              <LI><B>VectorCopy(a,b)</B> - copy a to b 
+              <LI><B>VectorScale(v,s,o)</B> - make v s units long, result in o 
+              <LI><B>VectorMA(v,s,b,o)</B> - make v s units long, add to b, 
+              result in o 
+              <LI><B>VectorClear(a)</B> - too easy 
+              <LI><B>VectorNegate(a,b)</B> - flip a, result in b 
+              <LI><B>VectorSet(v,x,y,z)</B> - another easy one 
+              <LI><B>Vector4Copy(a,b)</B> - used for 4 dimensional vectors 
+              <LI><B>SnapVector(v)</B> - round a vector to integer values 
+            </LI></UL>Got it all ? Notice how most of these functions take one, 
+            two or three parameters and save the output in a second, third or 
+            forth output parameter (the exceptions are <B>VectorClear()</B> and 
+            <B>VectorSet()</B> ). For example, calling 
+            <B>VectorSubtract(a,b,c)</B> will not modify <B>a</B> or <B>b</B> - 
+            the result will be places in vector <B>c</B>. (Unless of course, we 
+            say <B>VectorSubtract(a,b,a)</B>, which is quite ok to do).
+            <P><FONT color=#e07f44>
+            <H4>VectorMA(v,s,b,o) </H4></FONT>You might be wondering what this 
+            function does. It's a useful function that combines a vector 
+            multiply and a vector addition. It's used all over the place so it's 
+            important to understand what it does. Let's go back to our "rocket 
+            moving eastwards and upwards at 900 units/second" example, using the 
+            vector functions... <FONT color=#ffffcc face="Verdana, Arial" 
+size=3><PRE>	vec3_t rocketpos;
+	vec3_t rocketdir;
+	float rocketspeed;
+
+	VectorClear(rocketpos);
+	VectorSet(rocketdir, 0.707, 0.0, 0.707);
+
+	rocketspeed = 900.0;
+
+	// now let's 'move' the rocket, assume one second has gone by.
+
+	VectorMA(rocketpos, rocketspeed, rocketdir, rocketpos);
+</PRE></FONT>Notice that we did *exactly* the same thing as before, 
+            but in half the amount of code. And it's much neater because we've 
+            used the vector functions. VectorMA is particularly useful - get to 
+            know it like an old girlfriend. Innit. <FONT color=#e07f44>
+            <H4>PUTTING IT ALL TOGETHER </H4></FONT>Ok, let's throw all this 
+            into action. Open up <B>g_missile.c</B> and look at lines 390-393 : 
+            <FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	VectorCopy( start, bolt-&gt;s.pos.trBase );
+	VectorScale( dir, 900, bolt-&gt;s.pos.trDelta );
+	SnapVector( bolt-&gt;s.pos.trDelta );			// save net bandwidth
+	VectorCopy (start, bolt-&gt;r.currentOrigin);
+</PRE></FONT>First, we assume that <B>start</B> is where the rocket 
+            is firing from (just in front of the player, at waist height). And 
+            <B>dir</B> is the direction that the player is facing (a normalized 
+            vector, right ?). And a rocket moves at 900 units/second.
+            <P>So the code simply does this : 
+            <UL>
+              <LI>Copy the <B>start</B> vector to the bolt's <B>trBase</B> 
+              <LI>Multiply the <B>dir</B> vecotr by 900 and leave the result in 
+              <B>trDelta</B> 
+              <LI>Snap trDelta (convert from floats to integers) 
+              <LI>Copy the <B>start</B> vector to the bolt's 
+              <B>currentOrigin</B> </LI></UL>That's all there is to it. Have a 
+            look through some other functions like <B>fire_plasma</B> and 
+            <B>weapon_railgun_fire</B> - see if you can work out (for example) 
+            how fast does plasma move ? What is the range of the railgun ? Or 
+            the lightning gun ?
+            <P>If you can answer all those questions - congratulations, you're a 
+            vector geek ! 
+            <P></P></FONT></TD></TR></TBODY></TABLE><!-- END MAIN TABLE --></TD></TR></TBODY></TABLE>
+<P>
+<TABLE bgColor=#000000 border=0 cellPadding=10 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle bgColor=#000000>[ <A 
+      href="http://www.planetquake.com/code3arena/articles/article1.shtml"><B>&lt;&lt; 
+      Prev</B></A> ] [ <A 
+      href="http://www.planetquake.com/code3arena/index.shtml"><B>Home</B></A> ] 
+      [ <A 
+      href="http://www.planetquake.com/code3arena/articles/article3.shtml"><B>Next 
+      &gt;&gt;</B></A> ] <BR><BR></TD></TR></TBODY></TABLE>
+<P></P></BODY></HTML>

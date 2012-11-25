@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0064)http://www.planetquake.com/code3arena/tutorials/tutorial11.shtml -->
+<HTML><HEAD><TITLE>Code3Arena</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY background="vortex grenades_files/bg.gif" bgColor=black link=#c05f00 
+text=white vLink=#d16545><!-- BEGIN BANNER AD TABLE -->
+<TABLE border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle bgColor=#000000 height=60 vAlign=top width=468>
+      <CENTER>
+      <SCRIPT language=JavaScript> 
+now = new Date(); 
+random = now.getTime(); 
+
+  document.write('<a href="http://ads.gamespy.com/cgi-bin/adclick.exe/CID=00001b2b346ae9d200000000/site=PQ/AAMSZ=IAB_FULL_BANNER/AREA=ARTICLESMISC=' + random + '">'); 
+  document.write('<img src="http://ads19.focalink.com/SmartBanner/nph-graphic?17898.11-' + random + '" height=60 width=468 BORDER=0></a>'); 
+
+</SCRIPT>
+      </CENTER></TD>
+    <TD></TD></TR></TBODY></TABLE><!-- END BANNER AD TABLE --><BR><!-- BEGIN LOGO IMAGE TABLE -->
+<TABLE bgColor=black border=1 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle><IMG alt=Code3Arena border=0 height=137 
+      src="vortex grenades_files/logo.gif" width=500> </TD>
+    <TD></TD></TR></TBODY></TABLE><!-- END LOGO IMAGE TABLE -->
+<P><!-- BEGIN TOP HEIRARCHY -->
+<TABLE bgColor=black border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD><IMG src="vortex grenades_files/ouricon.gif"></TD>
+    <TD bgColor=black width="100%"><A href="http://www.planetquake.com/"><FONT 
+      color=#eeeeee face=Verdana,Arial size=2><B>PlanetQuake</B></FONT></A><FONT 
+      color=#eeeeee face=Verdana,Arial size=2><B> | <A 
+      href="http://www.planetquake.com/code3arena">Code3Arena</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials">Tutorials</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial10.shtml">&lt;&lt; 
+      Prev</A> | Tutorial 11 | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial12.shtml">Next 
+      &gt;&gt;</A> </B></FONT></TD></TR></TBODY></TABLE></P>
+<P><!-- END TOP HEIRARCHY --><!-- BEGIN MAIN TABLE HERE-->
+<TABLE align=center bgColor=#4b0202 border=0 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR><!-- BEGIN LEFT NAVBAR MENU *** REMOVED *** --><!-- BEGIN DIVIDER *** REMOVED *** --><!-- MAIN TEXT AREA -->
+    <TD bgColor=black vAlign=top>
+      <TABLE bgColor=black border=0 cellPadding=15 cellSpacing=10 width="100%" 
+      valign="top">
+        <TBODY>
+        <TR>
+          <TD vAlign=top>
+            <CENTER><FONT color=#c05f00 face=Verdana,Arial size=5><B>TUTORIAL 11 
+            - Vortex Grenades</B></FONT><FONT color=#eeeeee face=Verdana,Arial 
+            size=2><BR>by <A 
+            href="mailto:solidground@planetquake.com"><B>AssKicka</B></A></FONT></CENTER>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>This tutorial will 
+            show you how to convert the grenade launcher's grenades into Vortex 
+            Grenades. Vortex Grenades ? They are simply grenades that suck 
+            players closer and when the player hits the grenade it 
+            explodes.</FONT></P>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>First we need to 
+            add a new utility function that can search the world to find a 
+            target that will be sucked into our vortex grenade. Open g_utils.c 
+            and add the bellow function to the end of the file :</FONT></P><PRE><FONT color=#ff6060 face=Verdana,Arial>/*</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>================</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>findradius</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>================</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>*/</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>gentity_t *findradius (gentity_t *ent, vec3_t org, float rad) {</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>vec3_t eorg;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>int j;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>if (!ent)</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>ent = g_entities;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>else</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>ent++;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>for (; ent &lt; &amp;g_entities[level.num_entities]; ent++)</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>{</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (!ent-&gt;inuse)</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>continue;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>for (j=0; j&lt;3; j++)</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>eorg[j] = org[j] - (ent-&gt;r.currentOrigin[j] + (ent-&gt;r.mins[j] + ent-&gt;r.maxs[j])*0.5);</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (VectorLength(eorg) &gt; rad)</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>continue;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>return ent;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>}</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>return NULL;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>} </FONT></PRE>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>I did not code the 
+            findradius function but it has been re-done many times from the q2 
+            days. Lets see if we can disect this function.<BR>This function runs 
+            through all the entities in a level and checks if any entities are 
+            in the radius (rad) of the entity 'ent'. The 'ent' entity and 'rad' 
+            float are passed to this function from the calling function, you 
+            will see how this works in a second. </FONT></P>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>Now that our 
+            findradius is complete we need to add the function prototype in 
+            g_local.h. goto line 438 and add the code bellow :</FONT></P><PRE><FONT color=#ff6060 face=Verdana,Arial>gentity_t *findradius (gentity_t *ent, vec3_t org, float rad); </FONT></PRE>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>Now we will add our 
+            grenade think function, goto line 326 and add the following function 
+            :</FONT></P><PRE><FONT color=#ff6060 face=Verdana,Arial>/*</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>=================</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>G_Suck</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>=================</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>*/</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>static void G_Suck( gentity_t *self ) {</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>gentity_t *target;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>vec3_t start,dir,end;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>target = NULL;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>	</FONT><FONT color=#ff6060 face=Verdana,Arial>while ((target = findradius(target, self-&gt;r.currentOrigin, 500)) != NULL) //check if there are any entity's within a radius of 500 units.</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>{</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (target == self) // target must not be vortex grenade</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>continue;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (!target-&gt;client) // target must be a client</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>continue;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (target == self-&gt;parent) // target must not be the player who fired the vortex grenade </FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>continue;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (!target-&gt;takedamage) // target must be able to take damage</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>continue;</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>VectorCopy(target-&gt;r.currentOrigin, start); // put target position in start</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>VectorCopy(self-&gt;r.currentOrigin, end); // put grenade position in end</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>VectorSubtract(end, start, dir); // subtract start from end to get directional vector</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>VectorNormalize(dir); </FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>VectorScale(dir,200, target-&gt;client-&gt;ps.velocity); //  scale directional vector by 200 and add to the targets velocity</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>VectorCopy(dir, target-&gt;movedir); // make targets move direction = to directional vector.</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>       </FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>}</FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>self-&gt;nextthink = level.time + 20; </FONT>
+
+<FONT color=#ff6060 face=Verdana,Arial size=3>		</FONT><FONT color=#ff6060 face=Verdana,Arial>if (level.time &gt; self-&gt;wait) // check if vortext grenade is older than 20 seconds.</FONT>
+<FONT color=#ff6060 face=Verdana,Arial size=3>			</FONT><FONT color=#ff6060 face=Verdana,Arial>G_ExplodeMissile( self);</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>}</FONT></PRE>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>Now for the 
+            explanation :<BR>The first thing we did is to create new three 
+            dimensional vectors, nl. start,dir and end, we will use these 
+            vectors when modifying the velocity of the affected entity. We also 
+            created a new entity type called 'target', we will use this to 
+            identify with the entity that will be sucked into the vortex 
+            grenade.<BR>On line 12 you will see a while statement that checks if 
+            target is NOT NULL after target is returned from the findradius 
+            function (Rmember the findradius function we added earlier ?).<BR>If 
+            target is NOT&nbsp;NULL (target has been found by the findradius 
+            function) we then do some checks on what entity the target is.<BR>If 
+            the target is itself we continue the while statement (search for new 
+            target).<BR>If the target is NOT&nbsp;a client then search for new 
+            target.<BR>If the target is the entity (player) that fired the 
+            grenade then search for a new target.<BR>If the target can't be 
+            damaged then search for a new target.<BR>If NONE&nbsp;of the above 
+            conditions apply then we modify the velocity of the target to nudge 
+            it towards the grenade. Let's look at how we did this :<BR>1) On 
+            line 26 we copied the target's current position into the 'start' 
+            vector.<BR>2) On line 27 we copied the grenade's current position 
+            into the 'end' vector.<BR>3) On line 28 we subtracted the 'start' 
+            vector from the 'end' vector to get the directional (dir) 
+            vector.<BR>4) On line 30 we scaled the directional vector by 200 and 
+            put the result into the target velocity, this is what makes the 
+            target nudge closer to the grenade.<BR>5) On line 31 we change the 
+            players direction to match the directional vector.<BR>On line 35 we 
+            make sure our G_Suck function is executed in .02 seconds from 
+            now.<BR>On line 37 we check if the grenade has been in the world for 
+            more than 20 seconds, if it has been we explode the vortext grenade, 
+            we have achived this my making the grenades self-&gt;wait = to 
+            20000.</FONT></P>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>We will now change 
+            the fire_grenade function to use our G_Suck function as the grenades 
+            think function. Find the 'fire_grenade' function and modify the 
+            bellow code :</FONT></P><PRE><FONT color=#ffffcc face=Verdana,Arial>bolt = G_Spawn();</FONT>
+<FONT color=#ffffcc face=Verdana,Arial>bolt-&gt;classname = "grenade";</FONT>
+<FONT color=#ffffcc face=Verdana,Arial>bolt-&gt;nextthink = level.time + 2500;</FONT>
+<FONT color=#ffffcc face=Verdana,Arial>bolt-&gt;think = G_ExplodeMissile;</FONT></PRE>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>to look like 
+            this</FONT></P><PRE><FONT color=#ffffcc face=Verdana,Arial>bolt = G_Spawn();</FONT>
+<FONT color=#ffffcc face=Verdana,Arial>bolt-&gt;classname = "grenade";</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>bolt-&gt;nextthink = level.time + 1000; // call G_Suck in 1 second</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>bolt-&gt;think = G_Suck;</FONT>
+<FONT color=#ff6060 face=Verdana,Arial>bolt-&gt;wait = level.time + 20000; // vortext grenade lifetime.</FONT></PRE>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>All we have done 
+            here is changed the think function of the grenade to G_Suck and set 
+            it to be called 1 second after the grenade is fired. We also set the 
+            bolt-&gt;wait to the current time + 20 seconds. This is the amount 
+            of time that will be allowed to pass before the grenade explodes, 
+            that's if a player has not been sucked into the grenade yet 
+            !</FONT></P>
+            <P><FONT color=#eeeeee face=Verdana,Arial size=2>That's it, compile 
+            and enjoy ! 
+  </FONT></P></TD></TR></TBODY></TABLE><!-- END MAIN TABLE --></TD></TR></TBODY></TABLE></P>
+<P><!-- BEGIN BOTTOM HEIRARCHY -->
+<TABLE bgColor=black border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD><IMG src="vortex grenades_files/ouricon.gif"></TD>
+    <TD bgColor=black width="100%"><A href="http://www.planetquake.com/"><FONT 
+      color=#eeeeee face=Verdana,Arial size=2><B>PlanetQuake</B></FONT></A><FONT 
+      color=#eeeeee face=Verdana,Arial size=2><B> | <A 
+      href="http://www.planetquake.com/code3arena">Code3Arena</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials">Tutorials</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial10.shtml">&lt;&lt; 
+      Prev</A> | Tutorial 11 | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial12.shtml">Next 
+      &gt;&gt;</A> </B></FONT></TD></TR></TBODY></TABLE></P>
+<P><!-- END BOTOTM HEIRARCHY --></P></BODY></HTML>

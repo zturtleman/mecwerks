@@ -1,0 +1,182 @@
+<SCRIPT SRC="http://ads.gamespy.com/jserver/SITE=PQ/AREA=HOSTED/GENRE=ACTION/TIER=3/AAMSZ=PRESTITIAL?304465093"></SCRIPT><html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>Reading from External Files -</title>
+</head>
+
+<body bgcolor="#0000FF">
+
+<table border="0" cellpadding="0" cellspacing="0" width="0%">
+</TBODY></table>
+
+<p><font color="#FFFFFF"><br>
+<span class="title">Reading from External Files - By </font><a
+href="mailto:ado@quake3mods.net"><font color="#FFFFFF">Ad0</font></a><a
+href="mailto:ado@quake3mods.net"><font color="#FFFFFF"></span></font></a></p>
+
+<p align="left"><span class="text"><span class="newstext">Well, I had a goal today! I wanted to read a
+file, and then, Print the content of the file to the console. I
+made it, with a bit help from AnthonyJ. He made me look closer
+and correct my stupidious little bug that I should have corrected
+myself, so a BIG thanks to him!<br>
+</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text">I am still sticking me to the server-side, also
+Game. And I will still work in g_cmds.c. So open that file, and
+find an open space for coding.</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text">The Function we are going to create is a function
+that reads the file from an argument of our function, and puts
+the content on the console.<br>
+Create a function, named &quot;Cmd_ReadFile_f&quot;. The function
+would look like this. Do not just paste this and pretend like you
+understand all this - Read, Understand, Learn, and then write it
+off, and even better: in your own, personal way:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">void Cmd_ReadFile_f(
+gentity_t *ent) {</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">}</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">When we write our function, we want to have some
+declarations first, and the first declaration would be the dec.
+of the filename:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">char filename[MAX_STRING_TOKENS];
+//max chars for strings</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">Now we have fixed the filename declaration. You
+could change &quot;filename&quot; to if you want, but just
+remember to follow it down the function.<br>
+When I looked a the read code, I saw that you had to include the
+handle of the file. It's a definition. And now, let's define it
+to, let's say: &quot;t&quot;. The &quot;alias would look like
+this:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">fileHandle_t f;</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">And now, we have to add a declaration for our
+text buffer (the content of the text stored in temp memory):</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">char buffer[MAX_ARENAS_TEXT];
+//max text</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">And now, our last definition: The length if the
+text (in letters) the buffer is. This is for checkingif the file
+contains anything, and so on:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">int length; //The int for
+length of buffer</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">The first thing to do now, is to catch the
+argument from the console. This is also shown in my Command
+Argument tutorial. Look here, and learn:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">trap_Argv( 1, filename,
+sizeof( filename ) ); //Catches the command argument</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">Look at this. Now it catches the file name.<br>
+Now, let's add a check if you have typed any argument plus an
+error message in red colour. I also have a tutorial containing
+use of colours:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">if ( !Q_stricmp( filename,
+&quot;&quot; ) ) //Triggers the function under if no arguent
+entered<br>
+trap_SendServerCommand( ent-g_entities, va(&quot;print \&quot;&quot;S_COLOR_RED&quot;No
+file name entered!\n\&quot;&quot;)); </span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">Done! Now, let's check the length of the file:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">length = trap_FS_FOpenFile(
+filename, &amp;f, FS_READ ); //Checks the file length</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">Logic, isn't it?<br>
+And for not mixing file lengths, I added a statement that cleared
+the buffer count:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">buffer[length] = 0;</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">And now we could add two ways of checking if it's
+the right file, or if the file is empty in two ways. I just show
+you the code. The rest is up to you. I am trying to learn as best
+as I can:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">if ( !length) { //If NOT
+any length<br>
+trap_SendServerCommand( ent-g_entities, va(&quot;print \&quot;I
+could not open your file: %s\n\&quot;&quot;,filename));<br>
+return;<br>
+} <br>
+</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC"> if (length <0) { //If Length less than zero<br>
+trap_SendServerCommand( ent-g_entities, va(&quot;print \&quot;I
+could not open your file: %s\n\&quot;&quot;,filename)); <br>
+return; <br>
+}</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">Now we got the check done. As a limiter for
+larger files, we can add a code for controlling the buffer.
+Thanks, AnthonyJ!:<font color="#CCCCCC"><br>
+</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">if (length &gt;=
+MAX_ARENAS_TEXT) //Checks if length of file s bigger than limit
+length = MAX_ARENAS_TEXT-1; //Cuts all text after 1 letter minus</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">I explored how the file reading function worked
+by looking in the Quake 3: Arena source, and I found out that I
+had to add this code for making it Read and close the current
+file:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC">trap_FS_Read(buffer,length,f);
+//Reads the file into the buffer trap_SendServerCommand( ent-g_entities,
+va(&quot;print \&quot;Here Goes:\n %s \n\&quot;&quot;, buffer));
+//Prints the buffer to client <br>
+<br>
+trap_FS_FCloseFile( f ); //Closes the buffer</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">%s Prints the buffer. %s get's the prameter at
+the end: buffer. See?</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text">The only thing that remains, is to add this as a
+command in the command list. Scroll down till you find that list
+of commands they all look like my code I am foing to show.I show
+this for reference:</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC"> else if (Q_stricmp (cmd,
+&quot;read&quot;) == 0)</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text"><font color="#CCFFCC"> Cmd_ReadFile_f( ent );</span></span></font></p>
+
+<p align="left"><span class="newstext"><span class="text">And this adds the command (for those who didn't
+know that).</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text">I will add a tutorial of controlling File Input,
+like read parts of the text in chunks and print them out (so the
+buffer donesn't need to be big).</span></span></p>
+
+<p align="left"><span class="newstext"><span class="text">And remember: Quake doesn't allow to read files
+that exists in other places than in, and under your mod directory
+you are putting the compiled result in. q3key won't get read,
+beacause Mr. Carmack didn't want it to. So don't try anything
+smart.</span></span></p>
+
+<p><span class="newstext"><span class="text">I hope you understood this, I really, really do! Just send
+questions to my mail address above.</span></span></p>
+
+<p><span class="newstext"><span class="text">For my music, go <a href="http://www.mp3.com">here</a>!</span></span></p>
+
+<p><span class="newstext"><span class="text">Cheers!</span></span></p>
+
+<p><font color="#FFFFFF"><span class="title"></font><a
+href="mailto:ado@quake3mods.net"><font color="#FFFFFF"><br>
+</font></a><a href="mailto:ado@quake3mods.net"><font
+color="#FFFFFF"></span></font></a><a href="mailto:ado@quake3mods.net"><font
+color="#FFFFFF"> </font></a></p>
+</body>
+</html>

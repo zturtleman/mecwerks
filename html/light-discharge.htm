@@ -1,0 +1,459 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0064)http://www.planetquake.com/code3arena/tutorials/tutorial13.shtml -->
+<HTML><HEAD><TITLE>Code3Arena</TITLE>
+<META content="text/html; charset=iso-8859-1" http-equiv=Content-Type>
+<META content="MSHTML 5.00.2314.1000" name=GENERATOR></HEAD>
+<BODY background=light-discharge_files/bg.gif link=#c05f00 text=white 
+vLink=#d16545><!-- BEGIN BANNER AD TABLE -->
+<TABLE align=center background=light-discharge_files/bg.gif border=0 
+cellPadding=5 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle bgColor=#000000 height=60 vAlign=top width=468>
+      <CENTER><A 
+      href="http://adclick.gamespy.com/cgi-bin/adclick.exe/CID=00001782346ae9d200000000/site=PQ/AAMSZ=IAB_FULL_BANNER/AREA=ARTICLES" 
+      target=_top><IMG alt="Click for more information!" border=0 
+      src="light-discharge_files/gspy_portal_banner4.gif"></A></CENTER></TD></TR></TBODY></TABLE><!-- END BANNER AD TABLE --><BR><!-- BEGIN LOGO IMAGE TABLE -->
+<TABLE align=center bgColor=#000000 border=1 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR>
+    <TD align=middle><IMG alt=Code3Arena border=0 height=137 
+      src="light-discharge_files/logo.gif" width=500> </TD></TR></TBODY></TABLE><!-- END LOGO IMAGE TABLE -->
+<P><!-- BEGIN TOP HEIRARCHY -->
+<TABLE bgColor=#000000 border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD><IMG src="light-discharge_files/ouricon.gif"></TD>
+    <TD bgColor=#000000 width="100%"><FONT color=#eeeeee face="Verdana, Arial" 
+      size=2><B><A href="http://www.planetquake.com/">PlanetQuake</A> | <A 
+      href="http://www.planetquake.com/code3arena">Code3Arena</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials">Tutorials</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial12.shtml">&lt;&lt; 
+      Prev</A> | Tutorial13 | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial14.shtml">Next 
+      &gt;&gt;</A> </B></FONT></TD></TR></TBODY></TABLE>
+<P><!-- END TOP HEIRARCHY --><!-- BEGIN MAIN TABLE HERE-->
+<TABLE align=center bgColor=#4b0202 border=0 cellPadding=0 cellSpacing=0 
+width="100%">
+  <TBODY>
+  <TR><!-- BEGIN LEFT NAVBAR MENU *** REMOVED *** --><!-- BEGIN DIVIDER *** REMOVED *** --><!-- MAIN TEXT AREA -->
+    <TD bgColor=#000000 vAlign=top>
+      <TABLE bgColor=#000000 border=0 cellPadding=15 cellSpacing=10 width="100%" 
+      valign="top">
+        <TBODY>
+        <TR>
+          <TD vAlign=top><FONT color=#eeeeee face="Verdana, Arial" size=2>
+            <CENTER><B><FONT color=#c05f00 size=5>TUTORIAL 13 - Lightning 
+            Discharge </FONT></B><BR>by <B><A 
+            href="mailto:thesaracen@ozemail.com.au">The SARACEN</A></B></CENTER>
+            <P>Hello people, this is actually SumFuka taking you through this 
+            tutorial but all the code is The SARACEN's. There's some real 
+            interesting stuff here... we're essentially adding a new 'event' to 
+            the game. This requires modifications to both the <B>game</B> 
+            dll/qvm (so that the effect gets triggered) and the <B>cgame</B> 
+            dll/qvm (so that the client can see the effect). This is gonna be 
+            fun, "unless you is a complete monga".
+            <P><FONT color=#e07f44>
+            <H4>1. Define Lightning Discharge 'Event' and 'MOD' 
+            </H4></FONT>Firstly, go into the <B>game</B> project and pull up 
+            bg_public.h. At line 345 we're going to add another 'event type', 
+            just below the other weapon events (rail trails, shotty sprays, 
+            bullet marks etc).
+            <P>If the C syntax is baffling you, we are defining unique constants 
+            for the <B>entity_event_t</B> datatype. Have a browse through some 
+            of the other event types... not all of them are 'visible things' 
+            (e.g. EV_NOAMMO) but they all do have something in common - when 
+            these events happen the clients need to be 'told' about it.
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	EV_MISSILE_HIT,
+	EV_MISSILE_MISS,
+	EV_RAILTRAIL,
+	EV_SHOTGUN,
+	EV_BULLET,				// otherEntity is the shooter
+<FONT color=#ff6060>	EV_LIGHTNING_DISCHARGE,		// The SARACEN's Lightning Discharge</FONT>
+
+	EV_PAIN,
+	EV_DEATH1,
+	EV_DEATH2,
+	EV_DEATH3,
+	EV_OBITUARY,
+</PRE></FONT>Similarly, we're going to add another 
+            <B>meansOfDeath_t</B>. The meansOfDeath or <B>MOD</B> is used when 
+            someone dies to pick the appropriate death message (remember 
+            ClientObituary from quake and quake2 ? Kinda similar...).
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>// means of death
+typedef enum {
+	MOD_UNKNOWN,
+	MOD_SHOTGUN,
+	MOD_GAUNTLET,
+	MOD_MACHINEGUN,
+	MOD_GRENADE,
+	MOD_GRENADE_SPLASH,
+	MOD_ROCKET,
+	MOD_ROCKET_SPLASH,
+	MOD_PLASMA,
+	MOD_PLASMA_SPLASH,
+	MOD_RAILGUN,
+	MOD_LIGHTNING,
+<FONT color=#ff6060>	MOD_LIGHTNING_DISCHARGE,	// The SARACEN's Lightning Discharge</FONT>
+	MOD_BFG,
+	MOD_BFG_SPLASH,
+	MOD_WATER,
+	MOD_SLIME,
+	MOD_LAVA,
+	MOD_CRUSH,
+	MOD_TELEFRAG,
+	MOD_FALLING,
+	MOD_SUICIDE,
+	MOD_TARGET_LASER,
+	MOD_TRIGGER_HURT,
+	MOD_GRAPPLE
+} meansOfDeath_t;
+</PRE></FONT>Now open up combat.c and at line 159 insert a string 
+            for our new MOD as below. (Why do we need this as well as the 
+            modification above ? Simply, the EV_MOD's are constant values and 
+            since they aren't strings they can't be used in game messages. We 
+            define some useful error strings here for that purpose).
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	"MOD_RAILGUN",
+	"MOD_LIGHTNING",
+<FONT color=#ff6060>	"MOD_LIGHTNING_DISCHARGE",		// The SARACEN's Lightning Discharge</FONT>
+	"MOD_BFG",
+	"MOD_BFG_SPLASH",
+</PRE></FONT><FONT color=#e07f44>
+            <H4>2. Implement a Water Radius Damage Function </H4></FONT>Still in 
+            <B>game</B> and g_combat.c, go to line 733 and add the following new 
+            function directly after <B>G_RadiusDamage</B> :
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE><FONT color=#ff6060>/*
+============
+G_WaterRadiusDamage for The SARACEN's Lightning Discharge
+============
+*/
+qboolean G_WaterRadiusDamage (vec3_t origin, gentity_t *attacker, float damage, float radius,
+					 gentity_t *ignore, int mod)
+{
+	float		points, dist;
+	gentity_t	*ent;
+	int		entityList[MAX_GENTITIES];
+	int		numListedEntities;
+	vec3_t		mins, maxs;
+	vec3_t		v;
+	vec3_t		dir;
+	int		i, e;
+	qboolean	hitClient = qfalse;
+
+	if (!(trap_PointContents (origin, -1) &amp; MASK_WATER)) return qfalse;
+		// if we're not underwater, forget it!
+
+	if (radius &lt; 1) radius = 1;
+
+	for (i = 0 ; i &lt; 3 ; i++)
+	{
+		mins[i] = origin[i] - radius;
+		maxs[i] = origin[i] + radius;
+	}
+
+	numListedEntities = trap_EntitiesInBox (mins, maxs, entityList, MAX_GENTITIES);
+
+	for (e = 0 ; e &lt; numListedEntities ; e++)
+	{
+		ent = &amp;g_entities[entityList[e]];
+
+		if (ent == ignore)			continue;
+		if (!ent-&gt;takedamage)		continue;
+
+		// find the distance from the edge of the bounding box
+		for (i = 0 ; i &lt; 3 ; i++)
+		{
+			     if (origin[i] &lt; ent-&gt;r.absmin[i]) v[i] = ent-&gt;r.absmin[i] - origin[i];
+			else if (origin[i] &gt; ent-&gt;r.absmax[i]) v[i] = origin[i] - ent-&gt;r.absmax[i];
+			else v[i] = 0;
+		}
+
+		dist = VectorLength(v);
+		if (dist &gt;= radius)			continue;
+
+		points = damage * (1.0 - dist / radius);
+
+		if (CanDamage (ent, origin) &amp;&amp; ent-&gt;waterlevel) 	// must be in the water, somehow!
+		{
+			if (LogAccuracyHit (ent, attacker)) hitClient = qtrue;
+			VectorSubtract (ent-&gt;r.currentOrigin, origin, dir);
+			// push the center of mass higher than the origin so players
+			// get knocked into the air more
+			dir[2] += 24;
+			G_Damage (ent, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
+		}
+	}
+
+	return hitClient;
+}</FONT>
+</PRE></FONT><FONT color=#e07f44>
+            <H4>3. Modify the Lightning Gun Fire Function </H4></FONT>Open up 
+            g_weapon.c and find <B>Weapon_LightningFire</B> at line 475. We need 
+            to modify the weapon so that it does a G_WaterRadiusDamage if fired 
+            underwater.
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>/*
+======================================================================
+
+LIGHTNING GUN
+
+======================================================================
+*/
+
+void Weapon_LightningFire( gentity_t *ent ) {
+	trace_t		tr;
+	vec3_t		end;
+	gentity_t	*traceEnt, *tent;
+	int			damage;
+
+	damage = 8 * s_quadFactor;
+
+	VectorMA( muzzle, LIGHTNING_RANGE, forward, end );
+
+<FONT color=#ff6060>// The SARACEN's Lightning Discharge - START
+	if (trap_PointContents (muzzle, -1) &amp; MASK_WATER)
+	{
+		int zaps;
+		gentity_t *tent;
+
+		zaps = ent-&gt;client-&gt;ps.ammo[WP_LIGHTNING];	// determines size/power of discharge
+		if (!zaps) return;	// prevents any subsequent frames causing second discharge + error
+		zaps++;		// pmove does an ammo[gun]--, so we must compensate
+		SnapVectorTowards (muzzle, ent-&gt;s.origin);	// save bandwidth
+
+		tent = G_TempEntity (muzzle, EV_LIGHTNING_DISCHARGE);
+		tent-&gt;s.eventParm = zaps;				// duration / size of explosion graphic
+
+		ent-&gt;client-&gt;ps.ammo[WP_LIGHTNING] = 0;		// drain ent's lightning count
+		if (G_WaterRadiusDamage (muzzle, ent, damage * zaps,
+					(damage * zaps) + 16, NULL, MOD_LIGHTNING_DISCHARGE))
+			g_entities[ent-&gt;r.ownerNum].client-&gt;ps.persistant[PERS_ACCURACY_HITS]++;
+		
+		return;
+	}
+// The SARACEN's Lightning Discharge - END</FONT>
+
+	trap_Trace( &amp;tr, muzzle, NULL, NULL, end, ent-&gt;s.number, MASK_SHOT );
+
+	if ( tr.entityNum == ENTITYNUM_NONE ) {
+		return;
+	}
+
+	traceEnt = &amp;g_entities[ tr.entityNum ];
+
+	if ( traceEnt-&gt;takedamage &amp;&amp; traceEnt-&gt;client ) {
+		tent = G_TempEntity( tr.endpos, EV_MISSILE_HIT );
+		tent-&gt;s.otherEntityNum = traceEnt-&gt;s.number;
+		tent-&gt;s.eventParm = DirToByte( tr.plane.normal );
+		tent-&gt;s.weapon = ent-&gt;s.weapon;
+		if( LogAccuracyHit( traceEnt, ent ) ) {
+			ent-&gt;client-&gt;ps.persistant[PERS_ACCURACY_HITS]++;
+		}
+	} else if ( !( tr.surfaceFlags &amp; SURF_NOIMPACT ) ) {
+		tent = G_TempEntity( tr.endpos, EV_MISSILE_MISS );
+		tent-&gt;s.eventParm = DirToByte( tr.plane.normal );
+	}
+
+	if ( traceEnt-&gt;takedamage) {
+		G_Damage( traceEnt, ent, ent, forward, tr.endpos,
+			damage, 0, MOD_LIGHTNING);
+	}
+}
+</PRE></FONT>The bit The SARACEN added is quite straightforward - 
+            first use the <B>trap_PointContents</B> function to test if the 
+            weapon is being fired in the water. A temp entity 
+            <B>EV_LIGHTNING_DISCHARGE</B> is then created and automatically 
+            broadcast to the clients (so that they see it). Then, we do a 
+            <B>G_WaterRadiusDamage</B> proportional to the amount of ammo the 
+            player has remaining (<B>zaps</B>). Anyone within range should be 
+            fried.
+            <P><FONT color=#e07f44>
+            <H4>3. Implement the Death Messages </H4></FONT>Ok, go into the 
+            <B>cgame</B> project and open up cg_local.h. First, add the 
+            following function prototype at line 1023 :
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir,
+								qhandle_t hModel, qhandle_t shader, int msec,
+								qboolean isSprite );
+
+<FONT color=#ff6060>void CG_Lightning_Discharge (vec3_t origin, int msec); 	// The SARACEN's Lightning Discharge</FONT>
+</PRE></FONT>Now open cg_event.c and go to line 155. We need to add 
+            some death messages for our new meansOfDeath :
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>		case MOD_PLASMA_SPLASH:
+			if ( gender == GENDER_FEMALE )
+				message = "melted herself";
+			else if ( gender == GENDER_NEUTER )
+				message = "melted itself";
+			else
+				message = "melted himself";
+			break;
+
+<FONT color=#ff6060>// The SARACEN's Lightning Discharge - START
+		case MOD_LIGHTNING_DISCHARGE:
+			if (gender == GENDER_FEMALE)
+				message = "discharged herself";
+			else if (gender == GENDER_NEUTER)
+				message = "discharged itself";
+			else
+				message = "discharged himself";
+			break;
+// The SARACEN's Lightning Discharge - END</FONT>
+
+		case MOD_BFG_SPLASH:
+			message = "should have used a smaller gun";
+			break;
+		default:
+			if ( gender == GENDER_FEMALE )
+				message = "killed herself";
+			else if ( gender == GENDER_NEUTER )
+				message = "killed itself";
+			else
+				message = "killed himself";
+			break;
+</PRE></FONT>Now at line 255 The SARACEN has had some more fun with 
+            the death messages, nice one :
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>		case MOD_RAILGUN:
+			message = "was railed by";
+			break;
+<FONT color=#ff6060>// The SARACEN's Lightning Discharge - START
+/*	// original obituary
+		case MOD_LIGHTNING:
+			message = "was electrocuted by";
+			break;
+*/	// Classic Quake style obituary - the original and the best!!!
+		case MOD_LIGHTNING:
+			message = "was shafted by";
+			break;
+		case MOD_LIGHTNING_DISCHARGE:
+			message = "was discharged by";
+			break;
+// The SARACEN's Lightning Discharge - END</FONT>
+		case MOD_BFG:
+		case MOD_BFG_SPLASH:
+			message = "was blasted by";
+			message2 = "'s BFG";
+			break;
+</PRE></FONT><FONT color=#e07f44>
+            <H4>4. Add an Event Hook </H4></FONT>Now at line 780 we need to 
+            define which function is called when a certain event is triggered 
+            (our lightning discharge!).
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>	case EV_SHOTGUN:
+		DEBUGNAME("EV_SHOTGUN");
+		CG_ShotgunFire( es );
+		break;
+
+<FONT color=#ff6060>// The SARACEN's Lightning Discharge - START
+	case EV_LIGHTNING_DISCHARGE:
+		DEBUGNAME("EV_LIGHTNING_DISCHARGE");
+		CG_Lightning_Discharge (position, es-&gt;eventParm);	// eventParm is duration/size
+		break;
+// The SARACEN's Lightning Discharge - END</FONT>
+
+	case EV_GENERAL_SOUND:
+		DEBUGNAME("EV_GENERAL_SOUND");
+		if ( cgs.gameSounds[ es-&gt;eventParm ] ) {
+			trap_S_StartSound (NULL, es-&gt;number, CHAN_VOICE, cgs.gameSounds[ es-&gt;eventParm ] );
+		} else {
+			s = CG_ConfigString( CS_SOUNDS + es-&gt;eventParm );
+			trap_S_StartSound (NULL, es-&gt;number, CHAN_VOICE, CG_CustomSound( es-&gt;number, s ) );
+		}
+		break;
+</PRE></FONT><FONT color=#e07f44>
+            <H4>5. Prevent Client from Drawing a Shaft </H4></FONT>Ok now we 
+            need to stop the client from drawing a shaft on the screen if the 
+            gun is fired underwater (remember we previously modified the firing 
+            behaviour in the <B>game</B> project, and all the visuals are done 
+            in the <B>cgame</B> project which we are now working with).
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE>/*
+===============
+CG_LightningBolt
+
+Origin will be the exact tag point, which is slightly
+different than the muzzle point used for determining hits.
+The cent should be the non-predicted cent if it is from the player,
+so the endpoint will reflect the simulated strike (lagging the predicted
+angle)
+===============
+*/
+static void CG_LightningBolt( centity_t *cent, vec3_t origin ) {
+	trace_t		trace;
+	refEntity_t		beam;
+	vec3_t			forward;
+	vec3_t			muzzlePoint, endPoint;
+
+	if ( cent-&gt;currentState.weapon != WP_LIGHTNING ) {
+		return;
+	}
+
+	memset( &amp;beam, 0, sizeof( beam ) );
+
+	// find muzzle point for this frame
+	VectorCopy( cent-&gt;lerpOrigin, muzzlePoint );
+	AngleVectors( cent-&gt;lerpAngles, forward, NULL, NULL );
+
+	// FIXME: crouch
+	muzzlePoint[2] += DEFAULT_VIEWHEIGHT;
+
+	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
+
+<FONT color=#ff6060>// The SARACEN's Lightning Discharge
+	if (trap_CM_PointContents (muzzlePoint, 0) &amp; MASK_WATER) return;</FONT>
+
+	// project forward by the lightning range
+	VectorMA( muzzlePoint, LIGHTNING_RANGE, forward, endPoint );
+
+	// see if it hit a wall
+	CG_Trace( &amp;trace, muzzlePoint, vec3_origin, vec3_origin, endPoint, 
+		cent-&gt;currentState.number, MASK_SHOT );
+
+	// this is the endpoint
+	VectorCopy( trace.endpos, beam.oldorigin );
+</PRE></FONT><FONT color=#e07f44>
+            <H4>6. Draw the Effect </H4></FONT>Open up cg_effect.c and go to 
+            line 166 and let's add some code directly after the 
+            <B>CG_SpawnEffect</B> function.
+            <P><FONT color=#ffffcc face="Verdana, Arial" size=3><PRE><FONT color=#ff6060>/*
+====================
+CG_Lightning_Discharge by The SARACEN
+====================
+*/
+void CG_Lightning_Discharge (vec3_t origin, int msec)
+{
+	localEntity_t		*le;
+
+	if (msec &lt;= 0) CG_Error ("CG_Lightning_Discharge: msec = %i", msec);
+
+	le = CG_SmokePuff (	origin,			// where
+				vec3_origin,			// where to
+				((48 + (msec * 10)) / 16),	// radius
+				1, 1, 1, 1,			// RGBA color shift
+				300 + msec,			// duration
+				cg.time,			// start when?
+				0,				// flags (?)
+				trap_R_RegisterShader ("models/weaphits/electric.tga"));
+
+	le-&gt;leType = LE_SCALE_FADE;
+}</FONT>
+</PRE></FONT>What does this do ? The SARACEN has created a big smoke 
+            puff that lasts a defined number of milliseconds (proportional the 
+            the strength of the discharge - in other words, the amount of ammo 
+            that was discharged).
+            <P>That's it ! Once again, thanks to The SARACEN for this great code 
+            and I hope that my (me==SumFuka) explanations did it proper justice. 
+            Now go play who's-gonna-get-the-red-armor on the level with the red 
+            armor in the bottom of the water pool.
+            <P>
+            <P></P></FONT></TD></TR></TBODY></TABLE><!-- END MAIN TABLE --></TD></TR></TBODY></TABLE>
+<P><!-- BEGIN BOTTOM HEIRARCHY -->
+<TABLE bgColor=#000000 border=0 cellPadding=0 cellSpacing=0 width="100%">
+  <TBODY>
+  <TR>
+    <TD><IMG src="light-discharge_files/ouricon.gif"></TD>
+    <TD bgColor=#000000 width="100%"><FONT color=#eeeeee face="Verdana, Arial" 
+      size=2><B><A href="http://www.planetquake.com/">PlanetQuake</A> | <A 
+      href="http://www.planetquake.com/code3arena">Code3Arena</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials">Tutorials</A> | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial12.shtml">&lt;&lt; 
+      Prev</A> | Tutorial13 | <A 
+      href="http://www.planetquake.com/code3arena/tutorials/tutorial14.shtml">Next 
+      &gt;&gt;</A> </B></FONT></TD></TR></TBODY></TABLE>
+<P><!-- END BOTOTM HEIRARCHY --></P></BODY></HTML>
