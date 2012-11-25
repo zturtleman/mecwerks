@@ -2041,7 +2041,7 @@ BotBattleUseItems
 ==================
 */
 void BotBattleUseItems(bot_state_t *bs) {
-	if (bs->inventory[INVENTORY_HEALTH] < 40) {
+	if (bs->inventory[INVENTORY_HEALTH] < 400) {
 		if (bs->inventory[INVENTORY_TELEPORTER] > 0) {
 			if (!BotCTFCarryingFlag(bs)
 #ifdef MISSIONPACK
@@ -2053,7 +2053,7 @@ void BotBattleUseItems(bot_state_t *bs) {
 			}
 		}
 	}
-	if (bs->inventory[INVENTORY_HEALTH] < 60) {
+	if (bs->inventory[INVENTORY_HEALTH] < 600) {
 		if (bs->inventory[INVENTORY_MEDKIT] > 0) {
 			trap_EA_Use(bs->client);
 		}
@@ -2218,9 +2218,9 @@ float BotAggression(bot_state_t *bs) {
 	//if the enemy is located way higher than the bot
 	if (bs->inventory[ENEMY_HEIGHT] > 200) return 0;
 	//if the bot is very low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 60) return 0;
+	if (bs->inventory[INVENTORY_HEALTH] < 600) return 0;
 	//if the bot is low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 80) {
+	if (bs->inventory[INVENTORY_HEALTH] < 800) {
 		//if the bot has insufficient armor
 		if (bs->inventory[INVENTORY_ARMOR] < 40) return 0;
 	}
@@ -2258,13 +2258,13 @@ float BotFeelingBad(bot_state_t *bs) {
 	if (bs->weaponnum == WP_GAUNTLET) {
 		return 100;
 	}
-	if (bs->inventory[INVENTORY_HEALTH] < 40) {
+	if (bs->inventory[INVENTORY_HEALTH] < 400) {
 		return 100;
 	}
 	if (bs->weaponnum == WP_MACHINEGUN) {
 		return 90;
 	}
-	if (bs->inventory[INVENTORY_HEALTH] < 60) {
+	if (bs->inventory[INVENTORY_HEALTH] < 600) {
 		return 80;
 	}
 	return 0;
@@ -2406,9 +2406,9 @@ int BotCanAndWantsToRocketJump(bot_state_t *bs) {
 	//never rocket jump with the Quad
 	if (bs->inventory[INVENTORY_QUAD]) return qfalse;
 	//if low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 60) return qfalse;
+	if (bs->inventory[INVENTORY_HEALTH] < 600) return qfalse;
 	//if not full health
-	if (bs->inventory[INVENTORY_HEALTH] < 90) {
+	if (bs->inventory[INVENTORY_HEALTH] < 900) {
 		//if the bot has insufficient armor
 		if (bs->inventory[INVENTORY_ARMOR] < 40) return qfalse;
 	}
@@ -2433,9 +2433,9 @@ int BotHasPersistantPowerupAndWeapon(bot_state_t *bs) {
 	}
 #endif
 	//if the bot is very low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 60) return qfalse;
+	if (bs->inventory[INVENTORY_HEALTH] < 600) return qfalse;
 	//if the bot is low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 80) {
+	if (bs->inventory[INVENTORY_HEALTH] < 800) {
 		//if the bot has insufficient armor
 		if (bs->inventory[INVENTORY_ARMOR] < 40) return qfalse;
 	}

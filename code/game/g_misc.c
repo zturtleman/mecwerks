@@ -374,7 +374,7 @@ void DropPortalDestination( gentity_t *player ) {
 
 	ent->s.contents = CONTENTS_CORPSE;
 	ent->takedamage = qtrue;
-	ent->health = 200;
+	ent->health = 2000;
 	ent->die = PortalDie;
 
 	VectorCopy( player->s.apos.trBase, ent->s.angles );
@@ -396,7 +396,7 @@ static void PortalTouch( gentity_t *self, gentity_t *other, trace_t *trace) {
 	gentity_t	*destination;
 
 	// see if we will even let other try to use it
-	if( other->health <= 0 ) {
+	if( other->health < 10 ) {
 		return;
 	}
 	if( !other->client ) {
@@ -432,7 +432,7 @@ static void PortalTouch( gentity_t *self, gentity_t *other, trace_t *trace) {
 		if( self->pos1[0] || self->pos1[1] || self->pos1[2] ) {
 			TeleportPlayer( other, self->pos1, self->s.angles );
 		}
-		G_Damage( other, other, other, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
+		G_Damage( other, other, other, NULL, NULL, 1000000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
 		return;
 	}
 
@@ -467,7 +467,7 @@ void DropPortalSource( gentity_t *player ) {
 
 	ent->s.contents = CONTENTS_CORPSE | CONTENTS_TRIGGER;
 	ent->takedamage = qtrue;
-	ent->health = 200;
+	ent->health = 2000;
 	ent->die = PortalDie;
 
 	trap_LinkEntity( ent );

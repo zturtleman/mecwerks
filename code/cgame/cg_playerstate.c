@@ -109,7 +109,7 @@ void CG_DamageFeedback( int yawByte, int pitchByte, int damage ) {
 
 	// the lower on health you are, the greater the view kick will be
 	health = cg.cur_ps->stats[STAT_HEALTH];
-	if ( health < 40 ) {
+	if ( health < 400 ) {
 		scale = 1;
 	} else {
 		scale = 40.0 / health;
@@ -329,7 +329,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		health = ps->persistant[PERS_ATTACKEE_ARMOR] >> 8;
 		if (armor > 50 ) {
 			trap_S_StartLocalSound( cgs.media.hitSoundHighArmor, CHAN_LOCAL_SOUND );
-		} else if (armor || health > 100) {
+		} else if (armor > 100 || health > 1000) {
 			trap_S_StartLocalSound( cgs.media.hitSoundLowArmor, CHAN_LOCAL_SOUND );
 		} else {
 			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
@@ -343,7 +343,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 
 	// health changes of more than -1 should make pain sounds
 	if ( ps->stats[STAT_HEALTH] < ops->stats[STAT_HEALTH] - 1 ) {
-		if ( ps->stats[STAT_HEALTH] > 0 ) {
+		if ( ps->stats[STAT_HEALTH] > 9 ) {
 			CG_PainEvent( &cg.cur_lc->predictedPlayerEntity, ps->stats[STAT_HEALTH] );
 		}
 	}

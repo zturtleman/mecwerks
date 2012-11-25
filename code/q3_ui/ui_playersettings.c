@@ -277,7 +277,7 @@ static void PlayerSettings_SaveChanges( void ) {
 
 	// handicap
 	trap_Cvar_SetValue( Com_LocalClientCvarName(s_playersettings.localClient, "handicap"),
-			100 - s_playersettings.handicap.curvalue * 5 );
+			(1000 - s_playersettings.handicap.curvalue * 50) );
 
 	// effects color
 	trap_Cvar_SetValue( Com_LocalClientCvarName(s_playersettings.localClient, "color1"),
@@ -331,8 +331,8 @@ static void PlayerSettings_SetMenuItems( void ) {
 	UI_PlayerInfo_SetInfo( &s_playersettings.playerinfo, LEGS_IDLE, TORSO_STAND, viewangles, vec3_origin, WP_MACHINEGUN, qfalse );
 
 	// handicap
-	h = Com_Clamp( 5, 100, trap_Cvar_VariableValue(Com_LocalClientCvarName(s_playersettings.localClient, "handicap")) );
-	s_playersettings.handicap.curvalue = 20 - h / 5;
+	h = Com_Clamp( 50, 1000, trap_Cvar_VariableValue(Com_LocalClientCvarName(s_playersettings.localClient, "handicap")) );
+	s_playersettings.handicap.curvalue = 20 - h / 5 ;
 }
 
 

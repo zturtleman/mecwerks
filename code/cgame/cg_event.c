@@ -506,11 +506,11 @@ void CG_PainEvent( centity_t *cent, int health ) {
 		return;
 	}
 
-	if ( health < 25 ) {
+	if ( health < 250 ) {
 		snd = "*pain25_1.wav";
-	} else if ( health < 50 ) {
+	} else if ( health < 500 ) {
 		snd = "*pain50_1.wav";
-	} else if ( health < 75 ) {
+	} else if ( health < 750 ) {
 		snd = "*pain75_1.wav";
 	} else {
 		snd = "*pain100_1.wav";

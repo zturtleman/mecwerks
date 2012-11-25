@@ -894,8 +894,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 
 	knockback = damage;
-	if ( knockback > 200 ) {
-		knockback = 200;
+	if ( knockback > 2000 ) {
+		knockback = 2000;
 	}
 	if ( targ->flags & FL_NO_KNOCKBACK ) {
 		knockback = 0;
@@ -920,11 +920,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			int		t;
 
 			t = knockback * 2;
-			if ( t < 50 ) {
-				t = 50;
+			if ( t < 500 ) {
+				t = 500;
 			}
-			if ( t > 200 ) {
-				t = 200;
+			if ( t > 2000 ) {
+				t = 2000;
 			}
 			targ->client->ps.pm_time = t;
 			targ->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
@@ -974,7 +974,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
 	if ( attacker->client && client
-			&& targ != attacker && targ->health > 0
+			&& targ != attacker && targ->health > 9
 			&& targ->s.eType != ET_MISSILE
 			&& targ->s.eType != ET_GENERAL) {
 		if ( OnSameTeam( targ, attacker ) ) {
@@ -991,8 +991,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		damage *= 0.5;
 	}
 
-	if ( damage < 1 ) {
-		damage = 1;
+	if ( damage < 10 ) {
+		damage = 10;
 	}
 	take = damage;
 
@@ -1044,7 +1044,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// do the damage
 	if (take) {
         
-		if ( targ != attacker && targ->health > 0 ) {
+		if ( targ != attacker && targ->health > 9 ) {
             if ( g_gametype.integer == GT_FRENZY ) {
                 AddScore( attacker, targ->r.currentOrigin, take * 10 );
             }
@@ -1056,12 +1056,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			targ->client->ps.stats[STAT_HEALTH] = targ->health;
 		}
         
-		if ( targ->health <= 0 ) {
+		if ( targ->health < 10 ) {
 			if ( client )
 				targ->flags |= FL_NO_KNOCKBACK;
 
-			if (targ->health < -999)
-				targ->health = -999;
+			if (targ->health < -9999)
+				targ->health = -9999;
 
 			targ->enemy = attacker;
 			targ->die (targ, inflictor, attacker, take, mod);

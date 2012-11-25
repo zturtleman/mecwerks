@@ -706,14 +706,14 @@ float ClientHandicap( gclient_t *client ) {
 	float	handicap;
 
 	if (!client) {
-		return 100;
+		return 1000;
 	}
 
 	trap_GetUserinfo( client - level.clients, userinfo, sizeof(userinfo) );
 
 	handicap = atof( Info_ValueForKey( userinfo, "handicap" ) );
-	if ( handicap < 1 || handicap > 100) {
-		handicap = 100;
+	if ( handicap < 10 || handicap > 1000) {
+		handicap = 1000;
 	}
 
 	return handicap;
@@ -790,7 +790,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	// set max health
 #ifdef MISSIONPACK
 	if (client->ps.powerups[PW_GUARD]) {
-		client->pers.maxHealth = 200;
+		client->pers.maxHealth = 2000;
 	} else {
 		client->pers.maxHealth = ClientHandicap( client );
 	}
@@ -1224,7 +1224,7 @@ void ClientSpawn(gentity_t *ent) {
 	client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
 
 	// health will count down towards max_health
-	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 25;
+	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 250;
 
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );

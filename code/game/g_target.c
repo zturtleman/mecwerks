@@ -331,7 +331,7 @@ void target_laser_start (gentity_t *self)
 	self->think = target_laser_think;
 
 	if ( !self->damage ) {
-		self->damage = 1;
+		self->damage = 10;
 	}
 
 	if (self->spawnflags & 1)
@@ -414,7 +414,7 @@ void SP_target_relay (gentity_t *self) {
 Kills the activator.
 */
 void target_kill_use( gentity_t *self, gentity_t *other, gentity_t *activator ) {
-	G_Damage ( activator, NULL, NULL, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+	G_Damage ( activator, NULL, NULL, NULL, NULL, 1000000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 }
 
 void SP_target_kill( gentity_t *self ) {

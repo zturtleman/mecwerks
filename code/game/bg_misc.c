@@ -132,7 +132,7 @@ gitem_t	bg_itemlist[] =
 		NULL, NULL },
 /* icon */		"icons/iconh_green",
 /* pickup */	"5 Health",
-		5,
+		50,
 		IT_HEALTH,
 		0,
 /* precache */ "",
@@ -149,7 +149,7 @@ gitem_t	bg_itemlist[] =
 		NULL, NULL },
 /* icon */		"icons/iconh_yellow",
 /* pickup */	"25 Health",
-		25,
+		250,
 		IT_HEALTH,
 		0,
 /* precache */ "",
@@ -166,7 +166,7 @@ gitem_t	bg_itemlist[] =
 		NULL, NULL },
 /* icon */		"icons/iconh_red",
 /* pickup */	"50 Health",
-		50,
+		500,
 		IT_HEALTH,
 		0,
 /* precache */ "",
@@ -183,7 +183,7 @@ gitem_t	bg_itemlist[] =
 		NULL, NULL },
 /* icon */		"icons/iconh_mega",
 /* pickup */	"Mega Health",
-		100,
+		1000,
 		IT_HEALTH,
 		0,
 /* precache */ "",
@@ -1099,7 +1099,7 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		}
 		else
 #endif
-		if ( item->quantity == 5 || item->quantity == 100 ) {
+		if ( item->quantity == 50 || item->quantity == 1000 ) {
 			if ( ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH] * 2 ) {
 				return qfalse;
 			}
@@ -1502,7 +1502,7 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	s->clientNum = ps->clientNum;		// ET_PLAYER looks here instead of at number
 										// so corpses can also reference the proper config
 	s->eFlags = ps->eFlags;
-	if ( ps->stats[STAT_HEALTH] <= 0 ) {
+	if ( ps->stats[STAT_HEALTH] <= 10 ) {
 		s->eFlags |= EF_DEAD;
 	} else {
 		s->eFlags &= ~EF_DEAD;
@@ -1593,7 +1593,7 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	s->clientNum = ps->clientNum;		// ET_PLAYER looks here instead of at number
 										// so corpses can also reference the proper config
 	s->eFlags = ps->eFlags;
-	if ( ps->stats[STAT_HEALTH] <= 0 ) {
+	if ( ps->stats[STAT_HEALTH] <= 10 ) {
 		s->eFlags |= EF_DEAD;
 	} else {
 		s->eFlags &= ~EF_DEAD;
@@ -1678,7 +1678,7 @@ void BG_RegisterClientCvars(int maxSplitview) {
 		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "color1"), va("%d", DEFAULT_CLIENT_COLOR1), userInfo[i] | CVAR_ARCHIVE );
 		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "color2"), va("%d", DEFAULT_CLIENT_COLOR2), userInfo[i] | CVAR_ARCHIVE );
 
-		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "handicap"), "100", userInfo[i] | CVAR_ARCHIVE );
+		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "handicap"), "1000", userInfo[i] | CVAR_ARCHIVE );
 
 		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "teamtask"), "0", userInfo[i] );
 

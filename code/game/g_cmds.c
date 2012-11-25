@@ -121,7 +121,7 @@ qboolean	CheatsOk( gentity_t *ent ) {
 		trap_SendServerCommand( ent-g_entities, "print \"Cheats are not enabled on this server.\n\"");
 		return qfalse;
 	}
-	if ( ent->health <= 0 ) {
+	if ( ent->health < 10 ) {
 		trap_SendServerCommand( ent-g_entities, "print \"You must be alive to use this command.\n\"");
 		return qfalse;
 	}
@@ -479,12 +479,12 @@ void Cmd_Kill_f( gentity_t *ent ) {
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 		return;
 	}
-	if (ent->health <= 0) {
+	if (ent->health < 10) {
 		return;
 	}
 	ent->flags &= ~FL_GODMODE;
-	ent->client->ps.stats[STAT_HEALTH] = ent->health = -999;
-	player_die (ent, ent, ent, 100000, MOD_SUICIDE);
+	ent->client->ps.stats[STAT_HEALTH] = ent->health = -9999;
+	player_die (ent, ent, ent, 1000000, MOD_SUICIDE);
 }
 
 /*
@@ -609,7 +609,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 	//
 
 	// if the player was dead leave the body
-	if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
+	if ( client->ps.stats[STAT_HEALTH] < 10 ) {
 		CopyToBodyQue(ent);
 	}
 
@@ -619,7 +619,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 		// Kill him (makes sure he loses flags, etc)
 		ent->flags &= ~FL_GODMODE;
 		ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
-		player_die (ent, ent, ent, 100000, MOD_SUICIDE);
+		player_die (ent, ent, ent, 1000000, MOD_SUICIDE);
 
 	}
 

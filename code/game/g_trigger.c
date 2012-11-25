@@ -395,7 +395,7 @@ void SP_trigger_hurt( gentity_t *self ) {
 	self->touch = hurt_touch;
 
 	if ( !self->damage ) {
-		self->damage = 5;
+		self->damage = 50;
 	}
 
 	self->use = hurt_use;

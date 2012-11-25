@@ -1311,7 +1311,7 @@ static void ObeliskTouch( gentity_t *self, gentity_t *other, trace_t *trace ) {
 static void ObeliskPain( gentity_t *self, gentity_t *attacker, int damage ) {
 	int actualDamage = damage / 10;
 	if (actualDamage <= 0) {
-		actualDamage = 1;
+		actualDamage = 10;
 	}
 	self->activator->s.modelindex2 = self->health * 0xff / g_obeliskHealth.integer;
 	if (!self->activator->s.frame) {

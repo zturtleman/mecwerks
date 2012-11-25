@@ -2289,7 +2289,7 @@ static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
     } else if (h < 5) {
 			h = 100;
 		}
-  	trap_Cvar_Set( "handicap", va( "%i", h) );
+  	trap_Cvar_Set( "handicap", va( "%i", h * 10) );
     return qtrue;
   }
   return qfalse;

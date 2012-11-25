@@ -123,7 +123,7 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 	}
 #endif
 
-	damage = 50 * s_quadFactor;
+	damage = 500 * s_quadFactor;
 	G_Damage( traceEnt, ent, ent, forward, tr.endpos,
 		damage, 0, MOD_GAUNTLET );
 
@@ -163,11 +163,11 @@ void SnapVectorTowards( vec3_t v, vec3_t to ) {
 
 #ifdef MISSIONPACK
 #define CHAINGUN_SPREAD		600
-#define CHAINGUN_DAMAGE		7
+#define CHAINGUN_DAMAGE		70
 #endif
 #define MACHINEGUN_SPREAD	200
-#define	MACHINEGUN_DAMAGE	7
-#define	MACHINEGUN_TEAM_DAMAGE	5		// wimpier MG in teamplay
+#define	MACHINEGUN_DAMAGE	70
+#define	MACHINEGUN_TEAM_DAMAGE	50		// wimpier MG in teamplay
 
 void Bullet_Fire (gentity_t *ent, float spread, int damage, int mod ) {
 	trace_t		tr;
@@ -289,7 +289,7 @@ SHOTGUN
 
 // DEFAULT_SHOTGUN_SPREAD and DEFAULT_SHOTGUN_COUNT	are in bg_public.h, because
 // client predicts same spreads
-#define	DEFAULT_SHOTGUN_DAMAGE	10
+#define	DEFAULT_SHOTGUN_DAMAGE	100
 
 qboolean ShotgunPellet( vec3_t start, vec3_t end, gentity_t *ent ) {
 	trace_t		tr;
@@ -499,7 +499,7 @@ void weapon_railgun_fire (gentity_t *ent) {
         G_TimeShiftAllClients( ent->client->pers.cmd.serverTime, ent );
     }
 
-	damage = 100 * s_quadFactor;
+	damage = 1000 * s_quadFactor;
 
 	VectorMA (muzzle, 8192, forward, end);
 
@@ -681,7 +681,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
         G_TimeShiftAllClients( ent->client->pers.cmd.serverTime, ent );
     }
     
-	damage = 8 * s_quadFactor;
+	damage = 80 * s_quadFactor;
 
 	passent = ent->s.number;
 	for (i = 0; i < 10; i++) {
@@ -832,7 +832,7 @@ qboolean LogAccuracyHit( gentity_t *target, gentity_t *attacker ) {
 		return qfalse;
 	}
 
-	if( target->client->ps.stats[STAT_HEALTH] <= 0 ) {
+	if( target->client->ps.stats[STAT_HEALTH] < 10 ) {
 		return qfalse;
 	}
 
@@ -1198,7 +1198,7 @@ void G_StartKamikaze( gentity_t *ent ) {
 		//
 		ent->s.eFlags &= ~EF_KAMIKAZE;
 		// nuke the guy that used it
-		G_Damage( ent, ent, ent, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_KAMIKAZE );
+		G_Damage( ent, ent, ent, NULL, NULL, 1000000, DAMAGE_NO_PROTECTION, MOD_KAMIKAZE );
 	}
 	else {
 		if ( !strcmp(ent->activator->classname, "bodyque") ) {

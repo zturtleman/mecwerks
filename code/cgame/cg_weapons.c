@@ -1474,7 +1474,7 @@ void CG_DrawWeaponSelect( void ) {
 	CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
 
 	// don't display if dead
-	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] < 10 ) {
 		return;
 	}
 

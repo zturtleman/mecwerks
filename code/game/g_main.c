@@ -1078,7 +1078,7 @@ void BeginIntermission( void ) {
 		if (!client->inuse)
 			continue;
 		// respawn if dead
-		if (client->health <= 0) {
+		if (client->health < 10) {
 			ClientRespawn(client);
 		}
 		MoveClientToIntermission( client );

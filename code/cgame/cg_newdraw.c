@@ -898,7 +898,7 @@ static void CG_DrawAreaPowerUp(rectDef_t *rect, int align, float special, float 
 
 	ps = cg.cur_ps;
 
-	if ( ps->stats[STAT_HEALTH] <= 0 ) {
+	if ( ps->stats[STAT_HEALTH] < 10 ) {
 		return;
 	}
 
@@ -1124,13 +1124,13 @@ qboolean CG_OwnerDrawVisible(int flags) {
 	}
 
 	if (flags & CG_SHOW_HEALTHCRITICAL) {
-		if (cg.cur_ps->stats[STAT_HEALTH] < 25) {
+		if (cg.cur_ps->stats[STAT_HEALTH] < 250) {
 			return qtrue;
 		}
 	}
 
 	if (flags & CG_SHOW_HEALTHOK) {
-		if (cg.cur_ps->stats[STAT_HEALTH] >= 25) {
+		if (cg.cur_ps->stats[STAT_HEALTH] >= 250) {
 			return qtrue;
 		}
 	}

@@ -88,7 +88,7 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 		if ( client->pers.connected == CON_DISCONNECTED ) {
 			continue;
 		}
-		if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
+		if ( client->ps.stats[STAT_HEALTH] < 10 ) {
 			continue;
 		}
 

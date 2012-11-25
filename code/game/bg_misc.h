@@ -36,7 +36,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define	GAME_VERSION		BASEGAME "-1"
 
 #define	DEFAULT_GRAVITY		800
-#define	GIB_HEALTH			-40
+#define	GIB_HEALTH			-400
 #define	ARMOR_PROTECTION	0.66
 
 #define	MAX_ITEMS			256

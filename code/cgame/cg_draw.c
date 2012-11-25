@@ -626,7 +626,7 @@ static void CG_DrawStatusBar( void ) {
 	//
 	// health
 	//
-	value = ps->stats[STAT_HEALTH];
+	value = ps->stats[STAT_HEALTH] / 10;
 	if ( value > 100 ) {
 		trap_R_SetColor( colors[3] );		// white
 	} else if (value > 25) {
@@ -683,7 +683,7 @@ static float CG_DrawAttacker( float y ) {
 	const char	*name;
 	int			clientNum;
 
-	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] < 10 ) {
 		return y;
 	}
 
@@ -1252,7 +1252,7 @@ static float CG_DrawPowerups( float y ) {
 
 	ps = cg.cur_ps;
 
-	if ( ps->stats[STAT_HEALTH] <= 0 ) {
+	if ( ps->stats[STAT_HEALTH] < 10 ) {
 		return y;
 	}
 
@@ -1372,7 +1372,7 @@ static int CG_DrawPickupItem( int y ) {
 	int		value;
 	float	*fadeColor;
 
-	if ( cg.cur_ps->stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.cur_ps->stats[STAT_HEALTH] < 10 ) {
 		return y;
 	}
 
@@ -2798,7 +2798,7 @@ static void CG_Draw2D(stereoFrame_t stereoFrame)
 		CG_DrawCrosshairNames();
 	} else {
 		// don't draw any status if dead or the scoreboard is being explicitly shown
-		if ( !cg.cur_lc->showScores && cg.cur_ps->stats[STAT_HEALTH] > 0 ) {
+		if ( !cg.cur_lc->showScores && cg.cur_ps->stats[STAT_HEALTH] > 9 ) {
 
 #ifdef MISSIONPACK_HUD
 			if ( cg_drawStatus.integer ) {

@@ -132,11 +132,11 @@ void P_WorldEffects( gentity_t *ent ) {
 		if ( ent->client->airOutTime < level.time) {
 			// drown!
 			ent->client->airOutTime += 1000;
-			if ( ent->health > 0 ) {
+			if ( ent->health > 100 ) {
 				// take more damage the longer underwater
-				ent->damage += 2;
-				if (ent->damage > 15)
-					ent->damage = 15;
+				ent->damage += 20;
+				if (ent->damage > 150)
+					ent->damage = 150;
 
 				// don't play a normal pain sound
 				ent->pain_debounce_time = level.time + 200;
@@ -147,7 +147,7 @@ void P_WorldEffects( gentity_t *ent ) {
 		}
 	} else {
 		ent->client->airOutTime = level.time + 12000;
-		ent->damage = 2;
+		ent->damage = 20;
 	}
 
 	//
@@ -155,7 +155,7 @@ void P_WorldEffects( gentity_t *ent ) {
 	//
 	if (waterlevel && 
 		(ent->watertype&(CONTENTS_LAVA|CONTENTS_SLIME)) ) {
-		if (ent->health > 0
+		if (ent->health > 9
 			&& ent->pain_debounce_time <= level.time	) {
 
 			if ( envirosuit ) {
@@ -256,7 +256,7 @@ void	G_TouchTriggers( gentity_t *ent ) {
 	}
 
 	// dead clients don't activate triggers!
-	if ( ent->client->ps.stats[STAT_HEALTH] <= 0 ) {
+	if ( ent->client->ps.stats[STAT_HEALTH] < 10 ) {
 		return;
 	}
 
@@ -430,13 +430,13 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		}
 		if( maxHealth ) {
 			if ( ent->health < maxHealth ) {
-				ent->health += 15;
+				ent->health += 150;
 				if ( ent->health > maxHealth * 1.1 ) {
 					ent->health = maxHealth * 1.1;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < maxHealth * 2) {
-				ent->health += 5;
+				ent->health += 50;
 				if ( ent->health > maxHealth * 2 ) {
 					ent->health = maxHealth * 2;
 				}
@@ -445,13 +445,13 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 #else
 		if ( client->ps.powerups[PW_REGEN] ) {
 			if ( ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
-				ent->health += 15;
+				ent->health += 150;
 				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1 ) {
 					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 1.1;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < client->ps.stats[STAT_MAX_HEALTH] * 2) {
-				ent->health += 5;
+				ent->health += 50;
 				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
 					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 2;
 				}
@@ -461,7 +461,7 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		} else {
 			// count down health when over max
 			if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
-				ent->health--;
+				ent->health -= 10;
 			}
 		}
 
@@ -567,9 +567,9 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 				break;
 			}
 			if ( event == EV_FALL_FAR ) {
-				damage = 10;
+				damage = 100;
 			} else {
-				damage = 5;
+				damage = 50;
 			}
 			ent->pain_debounce_time = level.time + 200;	// no normal pain sound
 			G_Damage (ent, NULL, NULL, NULL, NULL, damage, 0, MOD_FALLING);
@@ -633,7 +633,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			break;
 
 		case EV_USE_ITEM2:		// medkit
-			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH] + 25;
+			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH] + 250;
 
 			break;
 
@@ -686,7 +686,7 @@ static int StuckInOtherClient(gentity_t *ent) {
 		if ( !ent2->client ) {
 			continue;
 		}
-		if ( ent2->health <= 0 ) {
+		if ( ent2->health < 10 ) {
 			continue;
 		}
 		//
@@ -835,7 +835,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 	if ( client->noclip ) {
 		client->ps.pm_type = PM_NOCLIP;
-	} else if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
+	} else if ( client->ps.stats[STAT_HEALTH] < 10 ) {
 		client->ps.pm_type = PM_DEAD;
 	} else {
 		client->ps.pm_type = PM_NORMAL;
@@ -1010,7 +1010,7 @@ void ClientThink_real( gentity_t *ent ) {
 	client->latched_buttons |= client->buttons & ~client->oldbuttons;
 
 	// check for respawning
-	if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
+	if ( client->ps.stats[STAT_HEALTH] < 10 ) {
 		// wait for the attack button to be pressed
 		if ( level.time > client->respawnTime ) {
 			// forcerespawn is to prevent users from waiting out powerups

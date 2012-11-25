@@ -1046,7 +1046,7 @@ Don't allow decent if a living player is on it
 ===============
 */
 void Touch_Plat( gentity_t *ent, gentity_t *other, trace_t *trace ) {
-	if ( !other->client || other->client->ps.stats[STAT_HEALTH] <= 0 ) {
+	if ( !other->client || other->client->ps.stats[STAT_HEALTH] < 10 ) {
 		return;
 	}
 
@@ -1446,7 +1446,7 @@ void SP_func_train (gentity_t *self) {
 		self->damage = 0;
 	} else {
 		if (!self->damage) {
-			self->damage = 2;
+			self->damage = 20;
 		}
 	}
 
@@ -1530,7 +1530,7 @@ void SP_func_rotating (gentity_t *ent) {
 	}
 
 	if (!ent->damage) {
-		ent->damage = 2;
+		ent->damage = 20;
 	}
 
 	trap_SetBrushModel( ent, ent->model );

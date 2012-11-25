@@ -325,7 +325,7 @@ static void CG_OffsetThirdPersonView( void ) {
 	VectorCopy( cg.refdefViewAngles, focusAngles );
 
 	// if dead, look at killer
-	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] < 10 ) {
 		focusAngles[YAW] = cg.cur_lc->predictedPlayerState.stats[STAT_DEAD_YAW];
 		cg.refdefViewAngles[YAW] = cg.cur_lc->predictedPlayerState.stats[STAT_DEAD_YAW];
 	}
@@ -418,7 +418,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	angles = cg.refdefViewAngles;
 
 	// if dead, fix the angle and don't add any kick
-	if ( cg.cur_ps->stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.cur_ps->stats[STAT_HEALTH] < 10 ) {
 		angles[ROLL] = 40;
 		angles[PITCH] = -15;
 		angles[YAW] = cg.cur_ps->stats[STAT_DEAD_YAW];
@@ -1064,7 +1064,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		cg.cur_ps = &cg.snap->pss[cg.snap->lcIndex[i]];
 
 		// decide on third person view
-		cg.cur_lc->renderingThirdPerson = cg_thirdPerson[cg.cur_localClientNum].integer || (cg.cur_ps->stats[STAT_HEALTH] <= 0);
+		cg.cur_lc->renderingThirdPerson = cg_thirdPerson[cg.cur_localClientNum].integer || (cg.cur_ps->stats[STAT_HEALTH] < 10);
 
 		CG_PB_ClearPolyBuffers();
 
