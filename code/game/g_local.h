@@ -258,6 +258,13 @@ typedef struct {
 	qboolean	teamInfo;			// send team overlay updates?
 } clientPersistant_t;
 
+//NT - client origin trails
+#define NUM_CLIENT_TRAILS 10
+typedef struct {
+    vec3_t    mins, maxs;
+    vec3_t    currentOrigin;
+    int       time, leveltime;
+} clientTrail_t;
 
 // this structure is cleared on each ClientSpawn(),
 // except for 'client->pers' and 'client->sess'
@@ -327,6 +334,11 @@ struct gclient_s {
 #endif
 
 	char		*areabits;
+    
+    //NT - client origin trails
+    int              trailHead;
+    clientTrail_t    trail[NUM_CLIENT_TRAILS];
+    clientTrail_t    saved;    // used to restore after time shift
 };
 
 
@@ -353,6 +365,7 @@ typedef struct {
 	int			framenum;
 	int			time;					// in msec
 	int			previousTime;			// so movers can back up when blocked
+    int         frameStartTime;         //NT - actual time frame started
 
 	int			startTime;				// level.time the map was started
 
@@ -584,6 +597,12 @@ void player_die (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 void AddScore( gentity_t *ent, vec3_t origin, int score );
 void CalculateRanks( void );
 qboolean SpotWouldTelefrag( gentity_t *spot );
+void G_StoreTrail( gentity_t *ent );
+void G_ResetTrail( gentity_t *ent );
+void G_TimeShiftClient( gentity_t *ent, int time );
+void G_TimeShiftAllClients( int time, gentity_t *skip );
+void G_UnTimeShiftClient( gentity_t *ent );
+void G_UnTimeShiftAllClients( gentity_t *skip );
 
 //
 // g_svcmds.c
@@ -761,6 +780,7 @@ extern	vmCvar_t	g_enableDust;
 extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;
 extern	vmCvar_t	g_proxMineTimeout;
+extern  vmCvar_t    g_delagHitscan; //NT - new vars
 
 // Additional shared traps in bg_misc.h
 

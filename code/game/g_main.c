@@ -91,6 +91,7 @@ vmCvar_t	pmove_msec;
 vmCvar_t	g_rankings;
 vmCvar_t	g_listEntity;
 vmCvar_t	g_singlePlayer;
+vmCvar_t    g_delagHitscan; //NT - new vars
 #ifdef MISSIONPACK
 vmCvar_t	g_obeliskHealth;
 vmCvar_t	g_obeliskRegenPeriod;
@@ -169,6 +170,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_listEntity, "g_listEntity", "0", 0, 0, qfalse },
 
 	{ &g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM, 0, qfalse, qfalse  },
+    { &g_delagHitscan, "g_delagHitscan", "1", 0, 0, qtrue  }, //NT - new vars
 
 #ifdef MISSIONPACK
 	{ &g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse },
@@ -1861,6 +1863,9 @@ Advances the non-player objects in the world
 void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
+    
+    //NT - store the time the frame started
+    level.frameStartTime = trap_Milliseconds();
 
 	// if we are waiting for the level to restart, do nothing
 	if ( level.restarted ) {

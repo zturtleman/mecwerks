@@ -129,6 +129,9 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 		trap_LinkEntity (player);
 	}
+    
+    //NT - reset the origin trail for this player to avoid lerping in a time shift
+    G_ResetTrail( player );
 }
 
 

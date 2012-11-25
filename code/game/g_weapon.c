@@ -180,6 +180,13 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage, int mod ) {
 	gentity_t	*tent;
 	gentity_t	*traceEnt;
 	int			i, passent;
+    
+    //NT - shift other clients back to the client's idea of the server
+    // time to compensate for lag
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_TimeShiftAllClients( ent->client->pers.cmd.serverTime, ent );
+    }
 
 	damage *= s_quadFactor;
 
@@ -195,8 +202,9 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage, int mod ) {
 
 		trap_Trace (&tr, muzzle, NULL, NULL, end, passent, MASK_SHOT);
 		if ( tr.surfaceFlags & SURF_NOIMPACT ) {
-			return;
-		}
+            //NT - make sure we un-time-shift the clients
+            goto untimeshift;
+        }
 
 		traceEnt = &g_entities[ tr.entityNum ];
 
@@ -241,6 +249,14 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage, int mod ) {
 		}
 		break;
 	}
+    
+    //NT - move the clients back to their proper positions
+    untimeshift:
+    
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_UnTimeShiftAllClients( ent );
+    }
 }
 
 
@@ -339,6 +355,13 @@ void ShotgunPattern( vec3_t origin, vec3_t origin2, int seed, gentity_t *ent ) {
 	vec3_t		forward, right, up;
 	qboolean	hitClient = qfalse;
 
+    //NT - shift other clients back to the client's idea of the server
+    // time to compensate for lag
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_TimeShiftAllClients( ent->client->pers.cmd.serverTime, ent );
+    }
+    
 	// derive the right and up vectors from the forward vector, because
 	// the client won't have any other information
 	VectorNormalize2( origin2, forward );
@@ -357,6 +380,12 @@ void ShotgunPattern( vec3_t origin, vec3_t origin2, int seed, gentity_t *ent ) {
 			ent->client->accuracy_hits++;
 		}
 	}
+    
+    //NT - move the clients back to their proper positions
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_UnTimeShiftAllClients( ent );
+    }
 }
 
 
@@ -462,6 +491,13 @@ void weapon_railgun_fire (gentity_t *ent) {
 	int			unlinked;
 	int			passent;
 	gentity_t	*unlinkedEntities[MAX_RAIL_HITS];
+    
+    //NT - shift other clients back to the client's idea of the server
+    // time to compensate for lag
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_TimeShiftAllClients( ent->client->pers.cmd.serverTime, ent );
+    }
 
 	damage = 100 * s_quadFactor;
 
@@ -521,6 +557,12 @@ void weapon_railgun_fire (gentity_t *ent) {
 		unlinked++;
 	} while ( unlinked < MAX_RAIL_HITS );
 
+    //NT - move the clients back to their proper positions
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_UnTimeShiftAllClients( ent );
+    }
+    
 	// link back in any entities we unlinked
 	for ( i = 0 ; i < unlinked ; i++ ) {
 		trap_LinkEntity( unlinkedEntities[i] );
@@ -628,6 +670,13 @@ void Weapon_LightningFire( gentity_t *ent ) {
 	gentity_t	*traceEnt, *tent;
 	int			damage, i, passent;
 
+    //NT - shift other clients back to the client's idea of the server
+    // time to compensate for lag
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_TimeShiftAllClients( ent->client->pers.cmd.serverTime, ent );
+    }
+    
 	damage = 8 * s_quadFactor;
 
 	passent = ent->s.number;
@@ -649,7 +698,8 @@ void Weapon_LightningFire( gentity_t *ent ) {
 		}
 #endif
 		if ( tr.entityNum == ENTITYNUM_NONE ) {
-			return;
+            //NT - make sure we un-time-shift the clients
+            goto untimeshift;
 		}
 
 		traceEnt = &g_entities[ tr.entityNum ];
@@ -696,6 +746,14 @@ void Weapon_LightningFire( gentity_t *ent ) {
 
 		break;
 	}
+    
+    //NT - move the clients back to their proper positions
+    untimeshift:
+    
+    if ( g_delagHitscan.integer && ent->client &&
+        !(ent->r.svFlags & SVF_BOT) ) {
+        G_UnTimeShiftAllClients( ent );
+    }
 }
 
 #ifdef MISSIONPACK
