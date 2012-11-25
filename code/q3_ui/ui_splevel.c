@@ -76,6 +76,10 @@ SINGLE PLAYER LEVEL SELECT MENU
 #define ID_CUSTOM			25
 #define ID_NEXT				26
 
+//mecwerks
+#define ID_FFA              27
+#define ID_FRENZY           28
+
 #define PLAYER_Y			314
 #define AWARDS_Y			(PLAYER_Y + 26)
 
@@ -114,6 +118,10 @@ typedef struct {
 	int				numBots;
 	qhandle_t		botPics[7];
 	char			botNames[7][10];
+    
+    //mecwerks
+    menutext_s      ffagame;
+    menutext_s      scoregame;
 } levelMenuInfo_t;
 
 static levelMenuInfo_t	levelMenuInfo;
@@ -285,7 +293,7 @@ static void UI_SPLevelMenu_SetMenuItems( void ) {
 		UI_SPLevelMenu_SetMenuArena( 0, level, arenaInfo );
 		levelMenuInfo.selectedArenaInfo = arenaInfo;
 
-		levelMenuInfo.item_maps[0].generic.x = 256;
+//		levelMenuInfo.item_maps[0].generic.x = 256;
 		Bitmap_Init( &levelMenuInfo.item_maps[0] );
 		levelMenuInfo.item_maps[0].generic.bottom += 32;
 		levelMenuInfo.numMaps = 1;
@@ -306,7 +314,7 @@ static void UI_SPLevelMenu_SetMenuItems( void ) {
 		UI_SPLevelMenu_SetMenuArena( 0, level, arenaInfo );
 		levelMenuInfo.selectedArenaInfo = arenaInfo;
 
-		levelMenuInfo.item_maps[0].generic.x = 256;
+//		levelMenuInfo.item_maps[0].generic.x = 256;
 		Bitmap_Init( &levelMenuInfo.item_maps[0] );
 		levelMenuInfo.item_maps[0].generic.bottom += 32;
 		levelMenuInfo.numMaps = 1;
@@ -322,7 +330,7 @@ static void UI_SPLevelMenu_SetMenuItems( void ) {
 		levelMenuInfo.item_maps[3].shader = 0;
 	}
 	else {
-		levelMenuInfo.item_maps[0].generic.x = 46;
+//		levelMenuInfo.item_maps[0].generic.x = 46;
 		Bitmap_Init( &levelMenuInfo.item_maps[0] );
 		levelMenuInfo.item_maps[0].generic.bottom += 18;
 		levelMenuInfo.numMaps = 4;
@@ -541,6 +549,27 @@ static void UI_SPLevelMenu_CustomEvent( void* ptr, int notification ) {
 	UI_StartServerMenu( qfalse );
 }
 
+/*
+ =================
+ UI_GameEvent
+ =================
+ */
+static void UI_GameEvent( void* ptr, int notification ) {
+    if (notification != QM_ACTIVATED) {
+        return;
+    }
+    
+    switch ( ((menucommon_s*)ptr)->id ) {
+        case ID_FFA:
+            UI_PopMenu();
+            //UI_SPLevelMenu( GT_FFA );
+            break;
+        case ID_FRENZY:
+            UI_PopMenu();
+            //UI_SPLevelMenu( GT_FRENZY );
+            break;
+    }
+}
 
 /*
 =================
@@ -767,8 +796,8 @@ static void UI_SPLevelMenu_Init( void ) {
 	levelMenuInfo.item_maps[0].generic.type			= MTYPE_BITMAP;
 	levelMenuInfo.item_maps[0].generic.name			= levelMenuInfo.levelPicNames[0];
 	levelMenuInfo.item_maps[0].generic.flags		= QMF_LEFT_JUSTIFY;
-	levelMenuInfo.item_maps[0].generic.x			= 46;
-	levelMenuInfo.item_maps[0].generic.y			= 64;
+	levelMenuInfo.item_maps[0].generic.x			= 305;
+	levelMenuInfo.item_maps[0].generic.y			= 22;
 	levelMenuInfo.item_maps[0].generic.id			= ID_PICTURE0;
 	levelMenuInfo.item_maps[0].generic.callback		= UI_SPLevelMenu_LevelEvent;
 	levelMenuInfo.item_maps[0].width				= 128;
@@ -777,8 +806,8 @@ static void UI_SPLevelMenu_Init( void ) {
 	levelMenuInfo.item_maps[1].generic.type			= MTYPE_BITMAP;
 	levelMenuInfo.item_maps[1].generic.name			= levelMenuInfo.levelPicNames[1];
 	levelMenuInfo.item_maps[1].generic.flags		= QMF_LEFT_JUSTIFY;
-	levelMenuInfo.item_maps[1].generic.x			= 186;
-	levelMenuInfo.item_maps[1].generic.y			= 64;
+	levelMenuInfo.item_maps[1].generic.x			= 453;
+	levelMenuInfo.item_maps[1].generic.y			= 22;
 	levelMenuInfo.item_maps[1].generic.id			= ID_PICTURE1;
 	levelMenuInfo.item_maps[1].generic.callback		= UI_SPLevelMenu_LevelEvent;
 	levelMenuInfo.item_maps[1].width				= 128;
@@ -787,8 +816,8 @@ static void UI_SPLevelMenu_Init( void ) {
 	levelMenuInfo.item_maps[2].generic.type			= MTYPE_BITMAP;
 	levelMenuInfo.item_maps[2].generic.name			= levelMenuInfo.levelPicNames[2];
 	levelMenuInfo.item_maps[2].generic.flags		= QMF_LEFT_JUSTIFY;
-	levelMenuInfo.item_maps[2].generic.x			= 326;
-	levelMenuInfo.item_maps[2].generic.y			= 64;
+	levelMenuInfo.item_maps[2].generic.x			= 256;
+	levelMenuInfo.item_maps[2].generic.y			= 1950;
 	levelMenuInfo.item_maps[2].generic.id			= ID_PICTURE2;
 	levelMenuInfo.item_maps[2].generic.callback		= UI_SPLevelMenu_LevelEvent;
 	levelMenuInfo.item_maps[2].width				= 128;
@@ -797,8 +826,8 @@ static void UI_SPLevelMenu_Init( void ) {
 	levelMenuInfo.item_maps[3].generic.type			= MTYPE_BITMAP;
 	levelMenuInfo.item_maps[3].generic.name			= levelMenuInfo.levelPicNames[3];
 	levelMenuInfo.item_maps[3].generic.flags		= QMF_LEFT_JUSTIFY;
-	levelMenuInfo.item_maps[3].generic.x			= 466;
-	levelMenuInfo.item_maps[3].generic.y			= 64;
+	levelMenuInfo.item_maps[3].generic.x			= 256;
+	levelMenuInfo.item_maps[3].generic.y			= 2650;
 	levelMenuInfo.item_maps[3].generic.id			= ID_PICTURE3;
 	levelMenuInfo.item_maps[3].generic.callback		= UI_SPLevelMenu_LevelEvent;
 	levelMenuInfo.item_maps[3].width				= 128;
@@ -836,12 +865,12 @@ static void UI_SPLevelMenu_Init( void ) {
 	count = 0;
 	for( n = 0; n < 6; n++ ) {
 		if( levelMenuInfo.awardLevels[n] ) {
-			if( count & 1 ) {
-				x = 224 - (count - 1 ) / 2 * (48 + 16);
-			}
-			else {
+			//if( count & 1 ) {
+			//	x = 224 - (count - 1 ) / 2 * (48 + 16);
+			//}
+			//else {
 				x = 368 + count / 2 * (48 + 16);
-			}
+			//}
 
 			levelMenuInfo.item_awards[count].generic.type		= MTYPE_BITMAP;
 			levelMenuInfo.item_awards[count].generic.name		= ui_medalPicNames[n];
@@ -899,6 +928,26 @@ static void UI_SPLevelMenu_Init( void ) {
 	levelMenuInfo.item_next.width					= 128;
 	levelMenuInfo.item_next.height					= 64;
 	levelMenuInfo.item_next.focuspic				= ART_FIGHT1;
+    
+    levelMenuInfo.ffagame.generic.type     = MTYPE_PTEXT;
+    levelMenuInfo.ffagame.generic.flags    = QMF_PULSEIFFOCUS;
+    levelMenuInfo.ffagame.generic.x		= 0;
+    levelMenuInfo.ffagame.generic.y		= 134;
+    levelMenuInfo.ffagame.generic.id       = ID_FFA;
+    levelMenuInfo.ffagame.generic.callback = UI_GameEvent;
+    levelMenuInfo.ffagame.string			= "Free-For-All";
+    levelMenuInfo.ffagame.color			= color_white;
+    levelMenuInfo.ffagame.style			= UI_DROPSHADOW | UI_SMALLFONT;
+
+    levelMenuInfo.scoregame.generic.type     = MTYPE_PTEXT;
+    levelMenuInfo.scoregame.generic.flags    = QMF_PULSEIFFOCUS;
+    levelMenuInfo.scoregame.generic.x		= 0;
+    levelMenuInfo.scoregame.generic.y		= 100;
+    levelMenuInfo.scoregame.generic.id       = ID_FFA;
+    levelMenuInfo.scoregame.generic.callback = UI_GameEvent;
+    levelMenuInfo.scoregame.string			= "Scoring Frenzy";
+    levelMenuInfo.scoregame.color			= color_white;
+    levelMenuInfo.scoregame.style			= UI_DROPSHADOW | UI_SMALLFONT;
 
 	levelMenuInfo.item_null.generic.type			= MTYPE_BITMAP;
 	levelMenuInfo.item_null.generic.flags			= QMF_LEFT_JUSTIFY|QMF_MOUSEONLY|QMF_SILENT;
@@ -929,6 +978,8 @@ static void UI_SPLevelMenu_Init( void ) {
 	Menu_AddItem( &levelMenuInfo.menu, &levelMenuInfo.item_reset );
 	Menu_AddItem( &levelMenuInfo.menu, &levelMenuInfo.item_custom );
 	Menu_AddItem( &levelMenuInfo.menu, &levelMenuInfo.item_next );
+	Menu_AddItem( &levelMenuInfo.menu, &levelMenuInfo.ffagame );
+	Menu_AddItem( &levelMenuInfo.menu, &levelMenuInfo.scoregame );
 	Menu_AddItem( &levelMenuInfo.menu, &levelMenuInfo.item_null );
 
 	trap_Cvar_VariableStringBuffer( "ui_spSelection", buf, sizeof(buf) );

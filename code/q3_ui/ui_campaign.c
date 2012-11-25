@@ -44,12 +44,15 @@
 
 #define ID_BACK				10
 #define ID_FFA              11
+#define ID_FRENZY           12
+#define ID_GAMEMODE         13
 
 typedef struct {
 	menuframework_s	menu;
     
 	menutext_s		banner;
     menutext_s      ffagame;
+    menutext_s      gamemode;
 	menubitmap_s	back;
     
 } campaign_t;
@@ -69,10 +72,19 @@ static void Campaign_MenuEvent( void *ptr, int event ) {
     
 	switch ( ((menucommon_s*)ptr)->id ) {
         case ID_FFA:
-            //UI_FFAMenu();
+            UI_PopMenu();
+            UI_CampaignMenu( GT_FFA );
+            break;
+
+        case ID_FRENZY:
+            UI_PopMenu();
+            UI_CampaignMenu( GT_FRENZY );
+            break;
+
+        case ID_GAMEMODE:
             UI_PopMenu();
             break;
-            
+
         case ID_BACK:
             UI_PopMenu();
             break;
@@ -85,29 +97,58 @@ static void Campaign_MenuEvent( void *ptr, int event ) {
  Campaign_MenuInit
  ===============
  */
-static void Campaign_MenuInit( void ) {
+static void Campaign_MenuInit( int gamemode ) {
 	UI_Campaign_Cache();
     
 	memset( &s_campaign, 0 ,sizeof(campaign_t) );
 	s_campaign.menu.wrapAround = qtrue;
 	s_campaign.menu.fullscreen = qtrue;
     
-	s_campaign.banner.generic.type	= MTYPE_BTEXT;
-	s_campaign.banner.generic.x		= 320;
-	s_campaign.banner.generic.y		= 16;
-	s_campaign.banner.string			= "CAMPAIGN";
-	s_campaign.banner.color			= color_white;
-	s_campaign.banner.style			= UI_CENTER;
-    
-	s_campaign.ffagame.generic.type     = MTYPE_PTEXT;
+    s_campaign.ffagame.generic.type     = MTYPE_PTEXT;
     s_campaign.ffagame.generic.flags    = QMF_PULSEIFFOCUS;
-	s_campaign.ffagame.generic.x		= 200;
-	s_campaign.ffagame.generic.y		= 200;
+    s_campaign.ffagame.generic.x		= 0;
+    s_campaign.ffagame.generic.y		= 134;
     s_campaign.ffagame.generic.id       = ID_FFA;
     s_campaign.ffagame.generic.callback = Campaign_MenuEvent;
-	s_campaign.ffagame.string			= "Free For All";
-	s_campaign.ffagame.color			= color_blue;
-	s_campaign.ffagame.style			= UI_DROPSHADOW;
+    s_campaign.ffagame.string			= "Free-For-All";
+    s_campaign.ffagame.color			= color_white;
+    s_campaign.ffagame.style			= UI_DROPSHADOW | UI_SMALLFONT;
+
+    if ( gamemode == GT_FRENZY ) {
+        s_campaign.banner.generic.type	= MTYPE_BTEXT;
+        s_campaign.banner.generic.x		= 320;
+        s_campaign.banner.generic.y		= 16;
+        s_campaign.banner.string			= "SCORING FRENZY";
+        s_campaign.banner.color			= color_white;
+        s_campaign.banner.style			= UI_CENTER;
+        
+        s_campaign.gamemode.generic.type     = MTYPE_PTEXT;
+        s_campaign.gamemode.generic.flags    = QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+        s_campaign.gamemode.generic.x		= 320;
+        s_campaign.gamemode.generic.y		= 134;
+        s_campaign.gamemode.generic.id       = ID_GAMEMODE;
+        s_campaign.gamemode.generic.callback = Campaign_MenuEvent;
+        s_campaign.gamemode.string			= "Scoring Frenzy";
+        s_campaign.gamemode.color			= color_red;
+        s_campaign.gamemode.style			= UI_CENTER | UI_DROPSHADOW;
+    } else if ( gamemode == GT_FFA ) {
+        s_campaign.banner.generic.type	= MTYPE_BTEXT;
+        s_campaign.banner.generic.x		= 320;
+        s_campaign.banner.generic.y		= 16;
+        s_campaign.banner.string			= "FREE FOR ALL";
+        s_campaign.banner.color			= color_white;
+        s_campaign.banner.style			= UI_CENTER;
+        
+        s_campaign.gamemode.generic.type     = MTYPE_PTEXT;
+        s_campaign.gamemode.generic.flags    = QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+        s_campaign.gamemode.generic.x		= 320;
+        s_campaign.gamemode.generic.y		= 134;
+        s_campaign.gamemode.generic.id       = ID_GAMEMODE;
+        s_campaign.gamemode.generic.callback = Campaign_MenuEvent;
+        s_campaign.gamemode.string			= "Free For All";
+        s_campaign.gamemode.color			= color_red;
+        s_campaign.gamemode.style			= UI_CENTER | UI_DROPSHADOW;
+    }
         
     s_campaign.back.generic.type		= MTYPE_BITMAP;
 	s_campaign.back.generic.name		= ART_BACK0;
@@ -122,6 +163,7 @@ static void Campaign_MenuInit( void ) {
     
 	Menu_AddItem( &s_campaign.menu, &s_campaign.banner );
 	Menu_AddItem( &s_campaign.menu, &s_campaign.ffagame );
+	Menu_AddItem( &s_campaign.menu, &s_campaign.gamemode );
 	Menu_AddItem( &s_campaign.menu, &s_campaign.back );
 }
 
@@ -141,8 +183,8 @@ void UI_Campaign_Cache( void ) {
  UI_CampaignMenu
  ===============
  */
-void UI_CampaignMenu( void ) {
-	Campaign_MenuInit();
+void UI_CampaignMenu( int gamemode ) {
+	Campaign_MenuInit( gamemode );
 	UI_PushMenu( &s_campaign.menu );
 }
 

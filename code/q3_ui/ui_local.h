@@ -777,7 +777,7 @@ void UI_LoadConfigMenu( void );
 // ui_campaign.c
 //
 void UI_Campaign_Cache( void );
-void UI_CampaignMenu( void );
+void UI_CampaignMenu( int gamemode );
 
 //
 // ui_saveconfig.c
