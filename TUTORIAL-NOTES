@@ -1,0 +1,1 @@
+Unlagged: needed to use r.absmin/r.absmax instead of r.mins/r.maxs

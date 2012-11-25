@@ -339,6 +339,9 @@ struct gclient_s {
     int              trailHead;
     clientTrail_t    trail[NUM_CLIENT_TRAILS];
     clientTrail_t    saved;    // used to restore after time shift
+    
+    // Willi - Offhand Grappling Hook
+	qboolean hookhasbeenfired;
 };
 
 

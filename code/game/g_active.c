@@ -31,6 +31,8 @@ Suite 120, Rockville, Maryland 20850 USA.
 
 #include "g_local.h"
 
+// Willi - Offhand Grappling Hook
+void Weapon_GrapplingHook_Fire (gentity_t *ent);
 
 /*
 ===============
@@ -854,12 +856,6 @@ void ClientThink_real( gentity_t *ent ) {
 		client->ps.speed *= 1.3;
 	}
 
-	// Let go of the hook if we aren't firing
-	if ( client->ps.weapon == WP_GRAPPLING_HOOK &&
-		client->hook && !( ucmd->buttons & BUTTON_ATTACK ) ) {
-		Weapon_HookFree(client->hook);
-	}
-
 	// set up for pmove
 	oldEventSequence = client->ps.eventSequence;
 
@@ -959,9 +955,22 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 	SendPendingPredictableEvents( &ent->client->ps );
 
-	if ( !( ent->client->ps.eFlags & EF_FIRING ) ) {
-		client->fireHeld = qfalse;		// for grapple
+    // Willi - Offhand Grappling Hook
+	if ( (pm.cmd.buttons & 32)  &&
+		ent->client->ps.pm_type != PM_DEAD &&
+		!ent->client->hookhasbeenfired)	{
+		Weapon_GrapplingHook_Fire( ent );
+		ent->client->hookhasbeenfired = qtrue;
 	}
+	if ( !(pm.cmd.buttons & 32)  &&
+		ent->client->ps.pm_type != PM_DEAD &&
+		ent->client->hookhasbeenfired &&
+		ent->client->fireHeld)	{
+		ent->client->fireHeld = qfalse;
+		ent->client->hookhasbeenfired = qfalse;
+	}
+	if ( client->hook && client->fireHeld == qfalse )
+		Weapon_HookFree(client->hook);
 
 	// use the snapped origin for linking so it matches client predicted versions
 	VectorCopy( ent->s.pos.trBase, ent->r.currentOrigin );
