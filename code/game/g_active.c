@@ -430,13 +430,13 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		}
 		if( maxHealth ) {
 			if ( ent->health < maxHealth ) {
-				ent->health += 150;
+				ent->health += 1500;
 				if ( ent->health > maxHealth * 1.1 ) {
 					ent->health = maxHealth * 1.1;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < maxHealth * 2) {
-				ent->health += 50;
+				ent->health += 500;
 				if ( ent->health > maxHealth * 2 ) {
 					ent->health = maxHealth * 2;
 				}
@@ -445,13 +445,13 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 #else
 		if ( client->ps.powerups[PW_REGEN] ) {
 			if ( ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
-				ent->health += 150;
+				ent->health += 1500;
 				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1 ) {
 					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 1.1;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			} else if ( ent->health < client->ps.stats[STAT_MAX_HEALTH] * 2) {
-				ent->health += 50;
+				ent->health += 500;
 				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
 					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 2;
 				}
@@ -460,9 +460,9 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 #endif
 		} else {
 			// count down health when over max
-			if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
-				ent->health -= 10;
-			}
+			//if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
+			//	ent->health -= 10;
+			//}
 		}
 
 		// count down armor when over max

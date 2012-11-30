@@ -705,18 +705,19 @@ float ClientHandicap( gclient_t *client ) {
 	char	userinfo[MAX_INFO_STRING];
 	float	handicap;
 
-	if (!client) {
-		return 1000;
-	}
-
+	//if (!client) {
+	//	return 1000;
+	//}
+	
+	/*
 	trap_GetUserinfo( client - level.clients, userinfo, sizeof(userinfo) );
 
 	handicap = atof( Info_ValueForKey( userinfo, "handicap" ) );
 	if ( handicap < 10 || handicap > 1000) {
 		handicap = 1000;
-	}
+	}*/
 
-	return handicap;
+	return 1000;
 }
 
 

@@ -876,7 +876,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			max /= 2;
 		}
 #endif
-		damage = damage * max / 100;
+		damage = damage * max / 1000;
 	}
 
 	client = targ->client;
@@ -893,9 +893,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		VectorNormalize(dir);
 	}
 
-	knockback = damage;
-	if ( knockback > 2000 ) {
-		knockback = 2000;
+	knockback = damage / 10;
+	if ( knockback > 200 ) {
+		knockback = 200;
 	}
 	if ( targ->flags & FL_NO_KNOCKBACK ) {
 		knockback = 0;
@@ -920,11 +920,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			int		t;
 
 			t = knockback * 2;
-			if ( t < 500 ) {
-				t = 500;
+			if ( t < 50 ) {
+				t = 50;
 			}
-			if ( t > 2000 ) {
-				t = 2000;
+			if ( t > 200 ) {
+				t = 200;
 			}
 			targ->client->ps.pm_time = t;
 			targ->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
