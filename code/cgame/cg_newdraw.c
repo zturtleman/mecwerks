@@ -1253,8 +1253,12 @@ const char *CG_GameTypeString(void) {
 	if ( cgs.gametype == GT_FFA ) {
 		return "Free For All";
 	} else if ( cgs.gametype == GT_FRENZY ) {
-        return "Scoring Frenzy";
-    }else if ( cgs.gametype == GT_TEAM ) {
+        	return "Scoring Frenzy";
+	} else if ( cgs.gametype == GT_TEAM_FRENZY ) {
+		return "Team Scoring Frenzy";
+	} else if ( cgs.gametype == GT_WPRANK ) {
+		return "Weapon Rank";
+    	} else if ( cgs.gametype == GT_TEAM ) {
 		return "Team Deathmatch";
 	} else if ( cgs.gametype == GT_CTF ) {
 		return "Capture the Flag";

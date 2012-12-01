@@ -1437,8 +1437,8 @@ void CheckExitRules( void ) {
 		}
 	}
 
-    if ( g_gametype.integer == GT_FRENZY && g_scorelimit.integer ) {
-		/*
+    if ( (g_gametype.integer == GT_FRENZY || g_gametype.integer == GT_TEAM_FRENZY) && g_scorelimit.integer ) {
+	
         if ( level.teamScores[TEAM_RED] >= g_scorelimit.integer ) {
 			trap_SendServerCommand( -1, "print \"Red hit the scorelimit.\n\"" );
 			LogExit( "Scorelimit hit." );
@@ -1447,11 +1447,11 @@ void CheckExitRules( void ) {
         
 		if ( level.teamScores[TEAM_BLUE] >= g_scorelimit.integer ) {
 			trap_SendServerCommand( -1, "print \"Blue hit the scorelimit.\n\"" );
-			LogExit( "Fraglimit hit." );
+			LogExit( "Scorelimit hit." );
 			return;
 		}
         // team frenzy not yet implemented
-        */
+ 
 		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
 			cl = level.clients + i;
 			if ( cl->pers.connected != CON_CONNECTED ) {
@@ -1470,7 +1470,7 @@ void CheckExitRules( void ) {
 		}
 	}
     
-	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer && g_gametype.integer != GT_FRENZY ) {
+	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer && g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY && g_gametype.integer != GT_WPRANK ) {
 		if ( level.teamScores[TEAM_RED] >= g_fraglimit.integer ) {
 			trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
 			LogExit( "Fraglimit hit." );

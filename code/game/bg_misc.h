@@ -106,14 +106,16 @@ Suite 120, Rockville, Maryland 20850 USA.
 #endif
 
 typedef enum {
-	GT_FFA,				// free for all
-    GT_FRENZY,          // scoring frenzy
+	GT_FFA,			// free for all
+    	GT_FRENZY,   	      	// scoring frenzy
 	GT_TOURNAMENT,		// one on one tournament
+	GT_WPRANK,		// weapon rank game mode
 	GT_SINGLE_PLAYER,	// single player ffa
 
 	//-- team games go after this --
 
 	GT_TEAM,			// team deathmatch
+	GT_TEAM_FRENZY,			// team scoring frenzy
 	GT_CTF,				// capture the flag
 #ifdef MISSIONPACK
 	GT_1FCTF,
@@ -139,7 +141,7 @@ movement on the server game.
 typedef enum {
 	PM_NORMAL,		// can accelerate and turn
 	PM_NOCLIP,		// noclip movement
-	PM_SPECTATOR,	// still run into walls
+	PM_SPECTATOR,		// still run into walls
 	PM_DEAD,		// no acceleration or turning, but free falling
 	PM_FREEZE,		// stuck in place with no control
 	/* bg_public.h

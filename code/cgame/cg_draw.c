@@ -1139,8 +1139,8 @@ static float CG_DrawScores( float y ) {
 
 		if ( cgs.gametype >= GT_CTF ) {
 			v = cgs.capturelimit;
-		} else if ( cgs.gametype == GT_FRENZY ) {
-            v = cgs.scorelimit;
+		} else if ( cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY ) {
+	            v = cgs.scorelimit;
         } else {
 			v = cgs.fraglimit;
 		}
@@ -1205,7 +1205,7 @@ static float CG_DrawScores( float y ) {
 			CG_DrawBigString( x + 4, y, s, 1.0F);
 		}
 
-        if ( cgs.gametype == GT_FRENZY ) {
+        if ( cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY ) {
             if ( cgs.scorelimit ) {
                 s = va( "%2i", cgs.scorelimit );
                 w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
@@ -2641,8 +2641,12 @@ static void CG_DrawWarmup( void ) {
 	} else {
 		if ( cgs.gametype == GT_FFA ) {
 			s = "Free For All";
-        } else if ( cgs.gametype == GT_FRENZY ) {
-            s = "Scoring Frenzy";
+	        } else if ( cgs.gametype == GT_FRENZY ) {
+        	    	s = "Scoring Frenzy";
+		} else if ( cgs.gametype == GT_TEAM_FRENZY ) {
+		    	s = "Team Scoring Frenzy";
+		} else if ( cgs.gametype == GT_WPRANK ) {
+		    	s = "Weapon Ranks";
 		} else if ( cgs.gametype == GT_TEAM ) {
 			s = "Team Deathmatch";
 		} else if ( cgs.gametype == GT_CTF ) {

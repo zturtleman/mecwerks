@@ -518,13 +518,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		attacker->client->lastkilled_client = self->s.number;
 
 		if ( attacker == self || OnSameTeam (self, attacker ) ) {
-            if ( g_gametype.integer != GT_FRENZY ) {
-                AddScore( attacker, self->r.currentOrigin, -1 );
-            }
+            	if ( g_gametype.integer != GT_FRENZY ) {
+                	AddScore( attacker, self->r.currentOrigin, -1 );
+            	}
 		} else {
 			if ( g_gametype.integer != GT_FRENZY ) {
-                AddScore( attacker, self->r.currentOrigin, 1 );
-            }
+                		AddScore( attacker, self->r.currentOrigin, 1 );
+            		}
             
 			if( meansOfDeath == MOD_GAUNTLET ) {
 				

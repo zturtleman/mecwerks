@@ -242,10 +242,16 @@ void CG_DrawInformation( void ) {
 	case GT_FFA:
 		s = "Free For All";
 		break;
-    case GT_FRENZY:
-        s = "Scoring Frenzy";
-        break;
-    case GT_SINGLE_PLAYER:
+	case GT_FRENZY:
+	        s = "Scoring Frenzy";
+	        break;
+	case GT_TEAM_FRENZY:
+		s = "Team Scoring Frenzy";
+		break;
+	case GT_WPRANK:
+		s = "Weapon Rank";
+		break;
+	case GT_SINGLE_PLAYER:
 		s = "Single Player";
 		break;
 	case GT_TOURNAMENT:
@@ -283,7 +289,7 @@ void CG_DrawInformation( void ) {
 		y += PROP_HEIGHT;
 	}
 
-	if (cgs.gametype == GT_FRENZY ) {
+	if (cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY) {
 		value = atoi( Info_ValueForKey( info, "scorelimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "scorelimit %i", value ),

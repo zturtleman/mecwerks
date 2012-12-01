@@ -101,7 +101,9 @@ static const char *gametype_items[] = {
 	"Team Deathmatch",
 	"Tournament",
 	"Capture the Flag",
-    "Scoring Frenzy",
+    	"Scoring Frenzy",
+	"Team Scoring Frenzy",
+	"Weapon Rank",
 #ifdef MISSIONPACK
 	"1 Flag CTF",
 	"Overload",
@@ -110,7 +112,7 @@ static const char *gametype_items[] = {
 	NULL
 };
 
-static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF, GT_FRENZY
+static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF, GT_FRENZY, GT_TEAM_FRENZY, GT_WPRANK
 #ifdef MISSIONPACK
 ,GT_1FCTF, GT_OBELISK, GT_HARVESTER
 #endif
@@ -147,9 +149,20 @@ static int GametypeBits( char *string ) {
 			continue;
 		}
         
-        if ( Q_stricmp( token, "frenzy" ) == 0 ) {
-            bits |= 1 << GT_FRENZY;
-        }
+        	if ( Q_stricmp( token, "frenzy" ) == 0 ) {
+           		bits |= 1 << GT_FRENZY;
+			continue;
+        	}
+
+		if ( Q_stricmp( token, "teamfrenzy" ) == 0 ) {
+        	    	bits |= 1 << GT_TEAM_FRENZY;
+			continue;
+ 	        }	
+
+                if ( Q_stricmp( token, "wprank" ) == 0 ) {
+                        bits |= 1 << GT_WPRANK;
+                        continue;
+                }
 
 		if( Q_stricmp( token, "tourney" ) == 0 ) {
 			bits |= 1 << GT_TOURNAMENT;
@@ -299,7 +312,7 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 	count = UI_GetNumArenas();
 	s_startserver.nummaps = 0;
 	matchbits = 1 << gametype_remap[s_startserver.gametype.curvalue];
-	if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA || gametype_remap[s_startserver.gametype.curvalue] == GT_FRENZY) {
+	if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA || gametype_remap[s_startserver.gametype.curvalue] == GT_FRENZY || gametype_remap[s_startserver.gametype.curvalue] == GT_WPRANK) {
 		matchbits |= ( 1 << GT_SINGLE_PLAYER );
 	}
     
@@ -825,7 +838,17 @@ static void ServerOptions_Start( void ) {
         trap_Cvar_SetValue( "ui_ffa_scorelimit", scorelimit );
         trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
         break;
-    
+   
+    case GT_TEAM_FRENZY:
+        trap_Cvar_SetValue( "ui_ffa_scorelimit", scorelimit );
+        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        break;
+
+    case GT_WPRANK:
+        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        break;
+
+ 
     case GT_TOURNAMENT:
 		trap_Cvar_SetValue( "ui_tourney_fraglimit", fraglimit );
 		trap_Cvar_SetValue( "ui_tourney_timelimit", timelimit );
@@ -1263,11 +1286,15 @@ static void ServerOptions_SetMenuItems( void ) {
 		Com_sprintf( s_serveroptions.fraglimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_fraglimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
 		break;
-
+    case GT_TEAM_FRENZY:
     case GT_FRENZY:
-        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
+        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
         Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
         break;
+
+	case GT_WPRANK:
+		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
+	break;
             
 	case GT_TOURNAMENT:
 		Com_sprintf( s_serveroptions.fraglimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_tourney_fraglimit" ) ) );
@@ -1625,7 +1652,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	if( s_serveroptions.gametype <= GT_TEAM ) {
 		Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.fraglimit );
 	}
-	else {
+	else if ( s_serveroptions.gametype != GT_WPRANK) {
 		Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.flaglimit );
 	}
 	Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.timelimit );
