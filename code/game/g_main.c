@@ -92,6 +92,7 @@ vmCvar_t	g_rankings;
 vmCvar_t	g_listEntity;
 vmCvar_t	g_singlePlayer;
 vmCvar_t    g_delagHitscan; //NT - new vars
+vmCvar_t	g_wpranks; // Weapon Ranks Order
 #ifdef MISSIONPACK
 vmCvar_t	g_obeliskHealth;
 vmCvar_t	g_obeliskRegenPeriod;
@@ -171,8 +172,9 @@ static cvarTable_t		gameCvarTable[] = {
 
 	{ &g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM, 0, qfalse, qfalse  },
     { &g_delagHitscan, "g_delagHitscan", "1", 0, 0, qtrue  }, //NT - new vars
+    { &g_wpranks, "g_wpranks", "2345678", CVAR_SERVERINFO | CVAR_ARCHIVE| CVAR_LATCH, 0, qfalse }, // wprank
 
-#ifdef MISSIONPACK
+    #ifdef MISSIONPACK
 	{ &g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse },
 	{ &g_obeliskRegenPeriod, "g_obeliskRegenPeriod", "1", 0, 0, qfalse },
 	{ &g_obeliskRegenAmount, "g_obeliskRegenAmount", "15", 0, 0, qfalse },

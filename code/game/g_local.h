@@ -256,6 +256,7 @@ typedef struct {
 	int			voteCount;			// to prevent people from constantly calling votes
 	int			teamVoteCount;		// to prevent people from constantly calling votes
 	qboolean	teamInfo;			// send team overlay updates?
+	int			iCurrentWeapon; 	//current weapon for this client
 } clientPersistant_t;
 
 //NT - client origin trails
@@ -784,6 +785,7 @@ extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;
 extern	vmCvar_t	g_proxMineTimeout;
 extern  vmCvar_t    g_delagHitscan; //NT - new vars
+extern	vmCvar_t	g_wpranks;
 
 // Additional shared traps in bg_misc.h
 
@@ -970,3 +972,7 @@ void	trap_BotFreeWeaponState(int weaponstate);
 void	trap_BotResetWeaponState(int weaponstate);
 
 int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);
+
+void LogExit( const char *string );
+void Ranked_NextWeapon(gentity_t *ent, int next);
+

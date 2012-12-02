@@ -518,13 +518,21 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		attacker->client->lastkilled_client = self->s.number;
 
 		if ( attacker == self || OnSameTeam (self, attacker ) ) {
-            	if ( g_gametype.integer != GT_FRENZY ) {
+            	if ( g_gametype.integer != GT_FRENZY || g_gametype.integer != GT_TEAM_FRENZY ) {
                 	AddScore( attacker, self->r.currentOrigin, -1 );
             	}
+
+            	if ( g_gametype.integer == GT_WPRANK ) {
+            		Ranked_NextWeapon(attacker, 2);
+            	}
 		} else {
-			if ( g_gametype.integer != GT_FRENZY ) {
-                		AddScore( attacker, self->r.currentOrigin, 1 );
-            		}
+			if ( g_gametype.integer != GT_FRENZY || g_gametype.integer != GT_TEAM_FRENZY ) {
+            	AddScore( attacker, self->r.currentOrigin, 1 );
+            }
+
+			if ( g_gametype.integer == GT_WPRANK ) {
+        		Ranked_NextWeapon(attacker, 1);
+        	}
             
 			if( meansOfDeath == MOD_GAUNTLET ) {
 				
@@ -555,9 +563,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 		}
 	} else {
-        if ( g_gametype.integer != GT_FRENZY ) {
+        if ( g_gametype.integer != GT_FRENZY || g_gametype.integer != GT_TEAM_FRENZY ) {
             AddScore( self, self->r.currentOrigin, -1 );
         }
+
+    	if ( g_gametype.integer == GT_WPRANK ) {
+    		Ranked_NextWeapon(attacker, 2);
+    	}
 	}
 
 	// Add team bonuses
@@ -1045,7 +1057,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if (take) {
         
 		if ( targ != attacker && targ->health > 9 ) {
-            if ( g_gametype.integer == GT_FRENZY ) {
+            if ( g_gametype.integer == GT_FRENZY || g_gametype.integer == GT_TEAM_FRENZY ) {
                 AddScore( attacker, targ->r.currentOrigin, take * 10 );
             }
         }

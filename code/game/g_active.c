@@ -508,6 +508,8 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
     }
 	}
 #endif
+
+
 }
 
 /*

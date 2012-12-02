@@ -48,12 +48,12 @@ SAVE_LOG=1
 
 
 #
-# ioquake3 resync specfic
+# spearmint resync specfic
 #
-DEFAULT_MAINNAME="ioquake3"
+DEFAULT_MAINNAME="spearmint"
 
 # Default SVN path
-DEFAULT_SVN_PATH="svn://svn.icculus.org/quake3/trunk/"
+DEFAULT_SVN_PATH="svn://ioq3ztm.googlecode.com/svn/trunk/"
 
 # Magic tokens
 DEFAULT_MAINREVISION="IOQ3_REVISION"
