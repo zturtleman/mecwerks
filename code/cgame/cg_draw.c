@@ -2522,11 +2522,15 @@ static void CG_DrawAmmoWarning( void ) {
 	}
 
 	CG_SetScreenPlacement(PLACE_CENTER, PLACE_TOP);
-
-	if ( cg.cur_lc->lowAmmoWarning == 2 ) {
-		s = "OUT OF AMMO";
+	
+	if ( cgs.gametype != GT_WPRANK ) {
+		if ( cg.cur_lc->lowAmmoWarning == 2 ) {
+			s = "OUT OF AMMO";
+		} else {
+			s = "LOW AMMO WARNING";
+		}
 	} else {
-		s = "LOW AMMO WARNING";
+		return;
 	}
 	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 	CG_DrawBigString(320 - w / 2, 64, s, 1.0F);

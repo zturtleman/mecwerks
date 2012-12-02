@@ -217,7 +217,7 @@ typedef struct
 	menutext_s			selectjoy;
 	menuslider_s		joythreshold;
 	int					section;
-	char				playerModel[64];
+	char				playerModel[MAX_QPATH];
 	vec3_t				playerViewangles;
 	vec3_t				playerMoveangles;
 	int					playerLegs;
@@ -716,6 +716,20 @@ static void Controls_UpdateModel( int anim ) {
 	case ANIM_WEAPON10:
 		s_controls.playerWeapon = WP_GRAPPLING_HOOK;
 		break;
+
+#ifdef MISSIONPACK
+	case ANIM_WEAPON11:
+		s_controls.playerWeapon = WP_NAILGUN;
+		break;
+
+	case ANIM_WEAPON12:
+		s_controls.playerWeapon = WP_PROX_LAUNCHER;
+		break;
+
+	case ANIM_WEAPON13:
+		s_controls.playerWeapon = WP_CHAINGUN;
+		break;
+#endif
 
 	case ANIM_ATTACK:
 		s_controls.playerTorso = TORSO_ATTACK;
@@ -1684,6 +1698,26 @@ static void Controls_MenuInit( int localClient )
 	s_controls.bfg.generic.callback  = Controls_ActionEvent;
 	s_controls.bfg.generic.ownerdraw = Controls_DrawKeyBinding;
 	s_controls.bfg.generic.id        = ID_WEAPON9;
+
+#ifdef MISSIONPACK
+	s_controls.nailgun.generic.type	     = MTYPE_ACTION;
+	s_controls.nailgun.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
+	s_controls.nailgun.generic.callback  = Controls_ActionEvent;
+	s_controls.nailgun.generic.ownerdraw = Controls_DrawKeyBinding;
+	s_controls.nailgun.generic.id        = ID_WEAPON11;
+
+	s_controls.proxylauncher.generic.type	   = MTYPE_ACTION;
+	s_controls.proxylauncher.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
+	s_controls.proxylauncher.generic.callback  = Controls_ActionEvent;
+	s_controls.proxylauncher.generic.ownerdraw = Controls_DrawKeyBinding;
+	s_controls.proxylauncher.generic.id        = ID_WEAPON12;
+
+	s_controls.chaingun.generic.type	  = MTYPE_ACTION;
+	s_controls.chaingun.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
+	s_controls.chaingun.generic.callback  = Controls_ActionEvent;
+	s_controls.chaingun.generic.ownerdraw = Controls_DrawKeyBinding;
+	s_controls.chaingun.generic.id        = ID_WEAPON13;
+#endif
 
 	s_controls.attack.generic.type	    = MTYPE_ACTION;
 	s_controls.attack.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;

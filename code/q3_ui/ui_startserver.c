@@ -315,6 +315,10 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 	if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA || gametype_remap[s_startserver.gametype.curvalue] == GT_FRENZY || gametype_remap[s_startserver.gametype.curvalue] == GT_WPRANK) {
 		matchbits |= ( 1 << GT_SINGLE_PLAYER );
 	}
+	
+	if ( gametype_remap[s_startserver.gametype.curvalue] == GT_TEAM_FRENZY ) {
+		matchbits |= ( 1 << GT_TEAM );
+	}
     
 	for( i = 0; i < count; i++ ) {
 		info = UI_GetArenaInfoByNumber( i );

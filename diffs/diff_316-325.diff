@@ -1,0 +1,804 @@
+Index: README
+===================================================================
+--- README	(revision 316)
++++ README	(revision 325)
+@@ -340,16 +340,16 @@
+ --------------------------------------------------------- README for Users -----
+ 
+ Using shared libraries instead of qvm
+-  To force Q3 to use shared libraries instead of qvms run it with the following
+-  parameters: +set sv_pure 0 +set vm_cgame 0 +set vm_game 0 +set vm_ui 0
++  To force Spearmint to use shared libraries instead of qvms run it with the
++  following parameters:
+ 
++    +set sv_pure 0 +set vm_cgame 0 +set vm_game 0 +set vm_ui 0
++
+ Using Quake III Arena Demo Data Files
+   Copy demoq3/pak0.pk3 from the demo installer to your baseq3 directory. The
+-  qvm files in this pak0.pk3 will not work, so you have to use the native
+-  shared libraries or qvms from this project. To use the new qvms, they must be
+-  put into a pk3 file. A pk3 file is just a zip file, so any compression tool
+-  that can create such files will work. The shared libraries should already be
+-  in the correct place. Use the instructions above to use them.
++  qvm files in this pak0.pk3 are not supported, so you have to use the native
++  shared libraries or qvms from this project. They should already be in the
++  correct place and automatically used.
+ 
+   Please bear in mind that you will not be able to play online using the demo
+   data, nor is it something that we like to spend much time maintaining or
+@@ -607,55 +607,22 @@
+ 
+ ------------------------------------------------------------- Contributing -----
+ 
+-Please send all patches to bugzilla (https://bugzilla.icculus.org), or join the
+-mailing list (http://lists.ioquake.org/listinfo.cgi/ioquake3-ioquake.org) and 
++Please submit all patches to the issue tracker (http://ioq3ztm.googlecode.com),
++or join the mailing list (edit: Spearmint doesn't have a mailing list yet) and 
+ submit your patch there.  The best case scenario is that you submit your patch 
+-to bugzilla, and then post the URL to the mailing list.
++to the issue tracker, and then post the URL to the mailing list.
+ 
+-The focus for ioq3 is to develop a stable base suitable for further development
+-and provide players with the same Quake 3 experience they've had for years. As
+-such ioq3 does not have any significant graphical enhancements and none are
+-planned at this time. However, improved graphics and sound patches will be
+-accepted as long as they are entirely optional, do not require new media and
+-are off by default.
++The focus for Spearmint is to develop a stable base suitable for further
++development and provide players with the same Quake 3 game play experience
++they've had for years.
+ 
+ 
+---------------------------------------------- Building Official Installers -----
+-
+-We need help getting automated installers on all the platforms that ioquake3
+-supports. We don't necessarily care about all the installers being identical,
+-but we have some general guidelines:
+-
+-  * Please include the id patch pk3s in your installer, which are available
+-    from http://ioquake3.org/patch-data/ subject to agreement to the id
+-    EULA. Your installer shall also ask the user to agree to this EULA (which
+-    is in the /web/include directory for your convenience) and subsequently
+-    refuse to continue the installation of the patch pk3s and pak0.pk3 if they
+-    do not.
+-
+-  * Please don't require pak0.pk3, since not everyone using the engine
+-    plans on playing Quake 3 Arena on it. It's fine to (optionally) assist the
+-    user in copying the file or tell them how.
+-
+-  * It is fine to just install the binaries without requiring id EULA agreement,
+-    providing pak0.pk3 and the patch pk3s are not referred to or included in the
+-    installer.
+-
+-  * Please include at least an SDL so/dylib/dll on every platform.
+-
+-  * Please include an OpenAL so/dylib/dll, since every platform should be using
+-    it by now.
+-
+-  * Please contact the mailing list when you've made your installer.
+-
+-  * Please be prepared to alter your installer on the whim of the maintainers.
+-
+-  * Your installer will be mirrored to an "official" directory, thus making it
+-    a done deal.
+-
+ ------------------------------------------------------------------ Credits -----
+ 
+-Maintainers
++Spearmint Maintainers
++  Zack Middleton <zturtleman@gmail.com>
++
++ioquake3 Maintainers
+   James Canete <use.less01@gmail.com>
+   Ludwig Nussel <ludwig.nussel@suse.de>
+   Thilo Schulz <arny@ats.s.bawue.de>
+@@ -664,7 +631,7 @@
+   Zachary J. Slater <zachary@ioquake.org>
+   Zack Middleton <zturtleman@gmail.com>
+ 
+-Significant contributions from
++Significant contributions to ioquake3 from
+   Ryan C. Gordon <icculus@icculus.org>
+   Andreas Kohn <andreas@syndrom23.de>
+   Joerg Dietrich <Dietrich_Joerg@t-online.de>
+Index: code/q3_ui/ui_controls2.c
+===================================================================
+--- code/q3_ui/ui_controls2.c	(revision 316)
++++ code/q3_ui/ui_controls2.c	(revision 325)
+@@ -83,78 +83,92 @@
+ #define ID_SAVEANDEXIT	106
+ #define ID_EXIT			107
+ 
+-// bindable actions
+-#define ID_SHOWSCORES	0
+-#define ID_USEITEM		1	
+-#define ID_SPEED		2	
+-#define ID_FORWARD		3	
+-#define ID_BACKPEDAL	4
+-#define ID_MOVELEFT		5
+-#define ID_MOVERIGHT	6
+-#define ID_MOVEUP		7	
+-#define ID_MOVEDOWN		8
+-#define ID_LEFT			9	
+-#define ID_RIGHT		10	
+-#define ID_STRAFE		11	
+-#define ID_LOOKUP		12	
+-#define ID_LOOKDOWN		13
+-#define ID_MOUSELOOK	14
+-#define ID_CENTERVIEW	15
+-#define ID_ZOOMVIEW		16
+-#define ID_WEAPON1		17	
+-#define ID_WEAPON2		18	
+-#define ID_WEAPON3		19	
+-#define ID_WEAPON4		20	
+-#define ID_WEAPON5		21	
+-#define ID_WEAPON6		22	
+-#define ID_WEAPON7		23	
+-#define ID_WEAPON8		24	
+-#define ID_WEAPON9		25	
+-#define ID_ATTACK		26
+-#define ID_WEAPPREV		27
+-#define ID_WEAPNEXT		28
+-#define ID_GESTURE		29
+-#define ID_CHAT			30
+-#define ID_CHAT2		31
+-#define ID_CHAT3		32
+-#define ID_CHAT4		33
++enum {
++	// bindable actions
++	ID_SHOWSCORES,
++	ID_USEITEM,
++	ID_SPEED,
++	ID_FORWARD,
++	ID_BACKPEDAL,
++	ID_MOVELEFT,
++	ID_MOVERIGHT,
++	ID_MOVEUP,
++	ID_MOVEDOWN,
++	ID_LEFT,
++	ID_RIGHT,
++	ID_STRAFE,
++	ID_LOOKUP,
++	ID_LOOKDOWN,
++	ID_MOUSELOOK,
++	ID_CENTERVIEW,
++	ID_ZOOMVIEW,
++	ID_WEAPON1,
++	ID_WEAPON2,
++	ID_WEAPON3,
++	ID_WEAPON4,
++	ID_WEAPON5,
++	ID_WEAPON6,
++	ID_WEAPON7,
++	ID_WEAPON8,
++	ID_WEAPON9,
++#ifdef MISSIONPACK
++	ID_WEAPON11,
++	ID_WEAPON12,
++	ID_WEAPON13,
++#endif
++	ID_ATTACK,
++	ID_WEAPPREV,
++	ID_WEAPNEXT,
++	ID_GESTURE,
++	ID_CHAT,
++	ID_CHAT2,
++	ID_CHAT3,
++	ID_CHAT4,
+ 
+-// all others
+-#define ID_FREELOOK		34
+-#define ID_INVERTMOUSE	35
+-#define ID_ALWAYSRUN	36
+-#define ID_AUTOSWITCH	37
+-#define ID_MOUSESPEED	38
+-#define ID_SELECTJOY	39
+-#define ID_JOYTHRESHOLD	40
+-#define ID_SMOOTHMOUSE	41
++	// all others
++	ID_FREELOOK,
++	ID_INVERTMOUSE,
++	ID_ALWAYSRUN,
++	ID_AUTOSWITCH,
++	ID_MOUSESPEED,
++	ID_SELECTJOY,
++	ID_JOYTHRESHOLD,
++	ID_SMOOTHMOUSE
++};
+ 
+-#define ANIM_IDLE		0
+-#define ANIM_RUN		1
+-#define ANIM_WALK		2
+-#define ANIM_BACK		3
+-#define ANIM_JUMP		4
+-#define ANIM_CROUCH		5
+-#define ANIM_STEPLEFT	6
+-#define ANIM_STEPRIGHT	7
+-#define ANIM_TURNLEFT	8
+-#define ANIM_TURNRIGHT	9
+-#define ANIM_LOOKUP		10
+-#define ANIM_LOOKDOWN	11
+-#define ANIM_WEAPON1	12
+-#define ANIM_WEAPON2	13
+-#define ANIM_WEAPON3	14
+-#define ANIM_WEAPON4	15
+-#define ANIM_WEAPON5	16
+-#define ANIM_WEAPON6	17
+-#define ANIM_WEAPON7	18
+-#define ANIM_WEAPON8	19
+-#define ANIM_WEAPON9	20
+-#define ANIM_WEAPON10	21
+-#define ANIM_ATTACK		22
+-#define ANIM_GESTURE	23
+-#define ANIM_DIE		24
+-#define ANIM_CHAT		25
++enum {
++	ANIM_IDLE,
++	ANIM_RUN,
++	ANIM_WALK,
++	ANIM_BACK,
++	ANIM_JUMP,
++	ANIM_CROUCH,
++	ANIM_STEPLEFT,
++	ANIM_STEPRIGHT,
++	ANIM_TURNLEFT,
++	ANIM_TURNRIGHT,
++	ANIM_LOOKUP,
++	ANIM_LOOKDOWN,
++	ANIM_WEAPON1,
++	ANIM_WEAPON2,
++	ANIM_WEAPON3,
++	ANIM_WEAPON4,
++	ANIM_WEAPON5,
++	ANIM_WEAPON6,
++	ANIM_WEAPON7,
++	ANIM_WEAPON8,
++	ANIM_WEAPON9,
++	ANIM_WEAPON10,
++#ifdef MISSIONPACK
++	ANIM_WEAPON11,
++	ANIM_WEAPON12,
++	ANIM_WEAPON13,
++#endif
++	ANIM_ATTACK,
++	ANIM_GESTURE,
++	ANIM_DIE,
++	ANIM_CHAT
++};
+ 
+ typedef struct
+ {
+@@ -189,6 +203,11 @@
+ 	menuaction_s		railgun;
+ 	menuaction_s		plasma;
+ 	menuaction_s		bfg;
++#ifdef MISSIONPACK
++	menuaction_s		nailgun;
++	menuaction_s		proxylauncher;
++	menuaction_s		chaingun;
++#endif
+ 	menuaction_s		attack;
+ 	menuaction_s		prevweapon;
+ 	menuaction_s		nextweapon;
+@@ -215,7 +234,7 @@
+ 	menutext_s			selectjoy;
+ 	menuslider_s		joythreshold;
+ 	int					section;
+-	char				playerModel[64];
++	char				playerModel[MAX_QPATH];
+ 	vec3_t				playerViewangles;
+ 	vec3_t				playerMoveangles;
+ 	int					playerLegs;
+@@ -265,6 +284,11 @@
+ 	{"weapon 7",		"railgun",			ID_WEAPON7,		ANIM_WEAPON7,	'7',			-1,		-1, -1},
+ 	{"weapon 8",		"plasma gun",		ID_WEAPON8,		ANIM_WEAPON8,	'8',			-1,		-1, -1},
+ 	{"weapon 9",		"BFG",				ID_WEAPON9,		ANIM_WEAPON9,	'9',			-1,		-1, -1},
++#ifdef MISSIONPACK
++	{"weapon 11",		"nail gun",			ID_WEAPON11,	ANIM_WEAPON11,	-1,				-1,		-1, -1},
++	{"weapon 12",		"proximity mine",	ID_WEAPON12,	ANIM_WEAPON12,	-1,				-1,		-1, -1},
++	{"weapon 13",		"chain gun",		ID_WEAPON13,	ANIM_WEAPON13,	-1,				-1,		-1, -1},
++#endif
+ 	{"+attack", 		"attack",			ID_ATTACK,		ANIM_ATTACK,	K_CTRL,			-1,		-1, -1},
+ 	{"weapprev",		"prev weapon",		ID_WEAPPREV,	ANIM_IDLE,		'[',			-1,		-1, -1},
+ 	{"weapnext", 		"next weapon",		ID_WEAPNEXT,	ANIM_IDLE,		']',			-1,		-1, -1},
+@@ -306,6 +330,11 @@
+ 	MINIBIND(ID_WEAPON7, -1, -1),
+ 	MINIBIND(ID_WEAPON8, -1, -1),
+ 	MINIBIND(ID_WEAPON9, -1, -1),
++#ifdef MISSIONPACK
++	MINIBIND(ID_WEAPON11, -1, -1),
++	MINIBIND(ID_WEAPON12, -1, -1),
++	MINIBIND(ID_WEAPON13, -1, -1),
++#endif
+ 	MINIBIND(ID_ATTACK, -1, -1),
+ 	MINIBIND(ID_WEAPPREV, -1, -1),
+ 	MINIBIND(ID_WEAPNEXT, -1, -1),
+@@ -345,6 +374,11 @@
+ 	MINIBIND(ID_WEAPON7, -1, -1),
+ 	MINIBIND(ID_WEAPON8, -1, -1),
+ 	MINIBIND(ID_WEAPON9, -1, -1),
++#ifdef MISSIONPACK
++	MINIBIND(ID_WEAPON11, -1, -1),
++	MINIBIND(ID_WEAPON12, -1, -1),
++	MINIBIND(ID_WEAPON13, -1, -1),
++#endif
+ 	MINIBIND(ID_ATTACK, -1, -1),
+ 	MINIBIND(ID_WEAPPREV, -1, -1),
+ 	MINIBIND(ID_WEAPNEXT, -1, -1),
+@@ -384,6 +418,11 @@
+ 	MINIBIND(ID_WEAPON7, -1, -1),
+ 	MINIBIND(ID_WEAPON8, -1, -1),
+ 	MINIBIND(ID_WEAPON9, -1, -1),
++#ifdef MISSIONPACK
++	MINIBIND(ID_WEAPON11, -1, -1),
++	MINIBIND(ID_WEAPON12, -1, -1),
++	MINIBIND(ID_WEAPON13, -1, -1),
++#endif
+ 	MINIBIND(ID_ATTACK, -1, -1),
+ 	MINIBIND(ID_WEAPPREV, -1, -1),
+ 	MINIBIND(ID_WEAPNEXT, -1, -1),
+@@ -454,6 +493,11 @@
+ 	(menucommon_s *)&s_controls.railgun,          
+ 	(menucommon_s *)&s_controls.plasma,           
+ 	(menucommon_s *)&s_controls.bfg,              
++#ifdef MISSIONPACK
++	(menucommon_s *)&s_controls.nailgun,
++	(menucommon_s *)&s_controls.proxylauncher,
++	(menucommon_s *)&s_controls.chaingun,
++#endif
+ 	NULL,
+ };
+ 
+@@ -710,6 +754,20 @@
+ 		s_controls.playerWeapon = WP_GRAPPLING_HOOK;
+ 		break;
+ 
++#ifdef MISSIONPACK
++	case ANIM_WEAPON11:
++		s_controls.playerWeapon = WP_NAILGUN;
++		break;
++
++	case ANIM_WEAPON12:
++		s_controls.playerWeapon = WP_PROX_LAUNCHER;
++		break;
++
++	case ANIM_WEAPON13:
++		s_controls.playerWeapon = WP_CHAINGUN;
++		break;
++#endif
++
+ 	case ANIM_ATTACK:
+ 		s_controls.playerTorso = TORSO_ATTACK;
+ 		break;
+@@ -1678,6 +1736,26 @@
+ 	s_controls.bfg.generic.ownerdraw = Controls_DrawKeyBinding;
+ 	s_controls.bfg.generic.id        = ID_WEAPON9;
+ 
++#ifdef MISSIONPACK
++	s_controls.nailgun.generic.type	     = MTYPE_ACTION;
++	s_controls.nailgun.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
++	s_controls.nailgun.generic.callback  = Controls_ActionEvent;
++	s_controls.nailgun.generic.ownerdraw = Controls_DrawKeyBinding;
++	s_controls.nailgun.generic.id        = ID_WEAPON11;
++
++	s_controls.proxylauncher.generic.type	   = MTYPE_ACTION;
++	s_controls.proxylauncher.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
++	s_controls.proxylauncher.generic.callback  = Controls_ActionEvent;
++	s_controls.proxylauncher.generic.ownerdraw = Controls_DrawKeyBinding;
++	s_controls.proxylauncher.generic.id        = ID_WEAPON12;
++
++	s_controls.chaingun.generic.type	  = MTYPE_ACTION;
++	s_controls.chaingun.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
++	s_controls.chaingun.generic.callback  = Controls_ActionEvent;
++	s_controls.chaingun.generic.ownerdraw = Controls_DrawKeyBinding;
++	s_controls.chaingun.generic.id        = ID_WEAPON13;
++#endif
++
+ 	s_controls.attack.generic.type	    = MTYPE_ACTION;
+ 	s_controls.attack.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
+ 	s_controls.attack.generic.callback  = Controls_ActionEvent;
+@@ -1894,6 +1972,11 @@
+ 	Menu_AddItem( &s_controls.menu, &s_controls.railgun );
+ 	Menu_AddItem( &s_controls.menu, &s_controls.plasma );
+ 	Menu_AddItem( &s_controls.menu, &s_controls.bfg );
++#ifdef MISSIONPACK
++	Menu_AddItem( &s_controls.menu, &s_controls.nailgun );
++	Menu_AddItem( &s_controls.menu, &s_controls.proxylauncher );
++	Menu_AddItem( &s_controls.menu, &s_controls.chaingun );
++#endif
+ 
+ 	Menu_AddItem( &s_controls.menu, &s_controls.showscores );
+ 	Menu_AddItem( &s_controls.menu, &s_controls.useitem );
+Index: code/q3_ui/ui_local.h
+===================================================================
+--- code/q3_ui/ui_local.h	(revision 316)
++++ code/q3_ui/ui_local.h	(revision 325)
+@@ -111,8 +111,6 @@
+ extern vmCvar_t	ui_server15;
+ extern vmCvar_t	ui_server16;
+ 
+-extern vmCvar_t	ui_cdkey;
+-extern vmCvar_t	ui_cdkeychecked;
+ extern vmCvar_t	ui_ioq3;
+ 
+ 
+Index: code/q3_ui/ui_players.c
+===================================================================
+--- code/q3_ui/ui_players.c	(revision 316)
++++ code/q3_ui/ui_players.c	(revision 325)
+@@ -95,7 +95,11 @@
+ 		goto tryagain;
+ 	}
+ 
+-	if ( weaponNum == WP_MACHINEGUN || weaponNum == WP_GAUNTLET || weaponNum == WP_BFG ) {
++	if ( weaponNum == WP_MACHINEGUN || weaponNum == WP_GAUNTLET || weaponNum == WP_BFG
++#ifdef MISSIONPACK
++		|| weaponNum == WP_CHAINGUN
++#endif
++		) {
+ 		strcpy( path, item->world_model[0] );
+ 		COM_StripExtension( path, path, sizeof(path) );
+ 		strcat( path, "_barrel.md3" );
+@@ -148,6 +152,20 @@
+ 		MAKERGB( pi->flashDlightColor, 0.6f, 0.6f, 1 );
+ 		break;
+ 
++#ifdef MISSIONPACK
++	case WP_NAILGUN:
++		MAKERGB( pi->flashDlightColor, 1, 0.75f, 0 );
++		break;
++
++	case WP_PROX_LAUNCHER:
++		MAKERGB( pi->flashDlightColor, 1, 0.70f, 0 );
++		break;
++
++	case WP_CHAINGUN:
++		MAKERGB( pi->flashDlightColor, 1, 1, 0 );
++		break;
++#endif
++
+ 	default:
+ 		MAKERGB( pi->flashDlightColor, 1, 1, 1 );
+ 		break;
+@@ -849,7 +867,11 @@
+ 	//
+ 	// add the spinning barrel
+ 	//
+-	if ( pi->realWeapon == WP_MACHINEGUN || pi->realWeapon == WP_GAUNTLET || pi->realWeapon == WP_BFG ) {
++	if ( pi->realWeapon == WP_MACHINEGUN || pi->realWeapon == WP_GAUNTLET || pi->realWeapon == WP_BFG
++#ifdef MISSIONPACK
++		|| pi->realWeapon == WP_CHAINGUN
++#endif
++		) {
+ 		vec3_t	angles;
+ 
+ 		memset( &barrel, 0, sizeof(barrel) );
+Index: code/tools/asm/q3asm.c
+===================================================================
+--- code/tools/asm/q3asm.c	(revision 316)
++++ code/tools/asm/q3asm.c	(revision 325)
+@@ -184,6 +184,7 @@
+ typedef struct options_s {
+ 	qboolean verbose;
+ 	qboolean writeMapFile;
++	qboolean ioquake3Compatibility;
+ 	qboolean vanillaQ3Compatibility;
+ } options_t;
+ 
+@@ -1378,7 +1379,10 @@
+ 		return;
+ 	}
+ 
+-	if( !options.vanillaQ3Compatibility ) {
++	if( !options.ioquake3Compatibility && !options.vanillaQ3Compatibility ) {
++		header.vmMagic = VM_MAGIC_VER2_NEO;
++		headerSize = sizeof( header );
++	} else if ( !options.vanillaQ3Compatibility ) {
+ 		header.vmMagic = VM_MAGIC_VER2;
+ 		headerSize = sizeof( header );
+ 	} else {
+@@ -1420,7 +1424,7 @@
+ 	SafeWrite( f, &segment[DATASEG].image, segment[DATASEG].imageUsed );
+ 	SafeWrite( f, &segment[LITSEG].image, segment[LITSEG].imageUsed );
+ 
+-	if( !options.vanillaQ3Compatibility ) {
++	if( header.vmMagic != VM_MAGIC ) {
+ 		SafeWrite( f, &segment[JTRGSEG].image, segment[JTRGSEG].imageUsed );
+ 	}
+ 
+@@ -1620,6 +1624,11 @@
+ 			continue;
+ 		}
+ 
++		if( !strcmp( argv[ i ], "-ioq3" ) ) {
++			options.ioquake3Compatibility = qtrue;
++			continue;
++		}
++
+ 		Error( "Unknown option: %s", argv[i] );
+ 	}
+ 
+Index: code/qcommon/files.c
+===================================================================
+--- code/qcommon/files.c	(revision 316)
++++ code/qcommon/files.c	(revision 325)
+@@ -1439,7 +1439,7 @@
+         
+ 	while(search)
+ 	{
+-		if(search->dir && !fs_numServerPaks)
++		if(search->dir)
+ 		{
+ 			dir = search->dir;
+ 
+@@ -1456,7 +1456,7 @@
+ 				}
+ 			}
+ 
+-			if(FS_FOpenFileReadDir(qvmName, search, NULL, qfalse, qfalse) > 0)
++			if(FS_FOpenFileReadDir(qvmName, search, NULL, qfalse, qtrue) > 0)
+ 			{
+ 				*startSearch = search;
+ 				return VMI_COMPILED;
+Index: code/qcommon/vm.c
+===================================================================
+--- code/qcommon/vm.c	(revision 316)
++++ code/qcommon/vm.c	(revision 325)
+@@ -78,9 +78,9 @@
+ ==============
+ */
+ void VM_Init( void ) {
+-	Cvar_Get( "vm_cgame", "2", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 2
+-	Cvar_Get( "vm_game", "2", CVAR_ARCHIVE );	// !@# SHIP WITH SET TO 2
+-	Cvar_Get( "vm_ui", "2", CVAR_ARCHIVE );		// !@# SHIP WITH SET TO 2
++	Cvar_Get( "vm_cgame", "0", CVAR_ARCHIVE );
++	Cvar_Get( "vm_game", "0", CVAR_ARCHIVE );
++	Cvar_Get( "vm_ui", "0", CVAR_ARCHIVE );
+ 
+ 	Cmd_AddCommand ("vmprofile", VM_VmProfile_f );
+ 	Cmd_AddCommand ("vminfo", VM_VmInfo_f );
+@@ -401,9 +401,7 @@
+ 		FS_Which(filename, vm->searchPath);
+ 	}
+ 
+-	if( LittleLong( header.h->vmMagic ) == VM_MAGIC_VER2 ) {
+-		Com_DPrintf( "...which has vmMagic VM_MAGIC_VER2\n" );
+-
++	if( LittleLong( header.h->vmMagic ) == VM_MAGIC_VER2_NEO ) {
+ 		// byte swap the header
+ 		for ( i = 0 ; i < sizeof( vmHeader_t ) / 4 ; i++ ) {
+ 			((int *)header.h)[i] = LittleLong( ((int *)header.h)[i] );
+@@ -422,25 +420,16 @@
+ 			Com_Printf(S_COLOR_YELLOW "Warning: %s has bad header\n", filename);
+ 			return NULL;
+ 		}
+-	} else if( LittleLong( header.h->vmMagic ) == VM_MAGIC ) {
+-		// byte swap the header
+-		// sizeof( vmHeader_t ) - sizeof( int ) is the 1.32b vm header size
+-		for ( i = 0 ; i < ( sizeof( vmHeader_t ) - sizeof( int ) ) / 4 ; i++ ) {
+-			((int *)header.h)[i] = LittleLong( ((int *)header.h)[i] );
+-		}
++	} else if( LittleLong( header.h->vmMagic ) == VM_MAGIC || LittleLong( header.h->vmMagic ) == VM_MAGIC_VER2 ) {
++		Com_Printf( S_COLOR_YELLOW "Warning: Ignoring unsupported legacy qvm: " );
+ 
+-		// validate
+-		if ( header.h->bssLength < 0
+-			|| header.h->dataLength < 0
+-			|| header.h->litLength < 0
+-			|| header.h->codeLength <= 0 )
+-		{
+-			VM_Free(vm);
+-			FS_FreeFile(header.v);
++		// show where the qvm was loaded from
++		FS_Which(filename, vm->searchPath);
+ 
+-			Com_Printf(S_COLOR_YELLOW "Warning: %s has bad header\n", filename);
+-			return NULL;
+-		}
++		VM_Free( vm );
++		FS_FreeFile( header.v );
++
++		return NULL;
+ 	} else {
+ 		VM_Free( vm );
+ 		FS_FreeFile(header.v);
+@@ -489,7 +478,7 @@
+ 		*(int *)(vm->dataBase + i) = LittleLong( *(int *)(vm->dataBase + i ) );
+ 	}
+ 
+-	if(header.h->vmMagic == VM_MAGIC_VER2)
++	if(header.h->vmMagic == VM_MAGIC_VER2_NEO)
+ 	{
+ 		int previousNumJumpTableTargets = vm->numJumpTableTargets;
+ 
+@@ -639,7 +628,7 @@
+ 		else if(retval == VMI_COMPILED)
+ 		{
+ 			vm->searchPath = startSearch;
+-			if((header = VM_LoadQVM(vm, qtrue, qfalse)))
++			if((header = VM_LoadQVM(vm, qtrue, qtrue)))
+ 				break;
+ 
+ 			// VM_Free overwrites the name on failed load
+Index: code/qcommon/qfiles.h
+===================================================================
+--- code/qcommon/qfiles.h	(revision 316)
++++ code/qcommon/qfiles.h	(revision 325)
+@@ -58,8 +58,13 @@
+ ========================================================================
+ */
+ 
++// QVM magics not supported by Spearmint
+ #define	VM_MAGIC			0x12721444
+-#define	VM_MAGIC_VER2	0x12721445
++#define	VM_MAGIC_VER2		0x12721445
++
++// Spearmint QVM magic, it's the same as VM_MAGIC_VER2 but with a different magic number.
++#define	VM_MAGIC_VER2_NEO	0x12721443
++
+ typedef struct {
+ 	int		vmMagic;
+ 
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 316)
++++ code/cgame/cg_main.c	(revision 325)
+@@ -85,7 +85,7 @@
+ 		CG_EventHandling(arg0);
+ 		return 0;
+ 	case CG_WANTSBINDKEYS:
+-#ifdef MISSIONPACK
++#ifdef MISSIONPACK_HUD
+ 		return Display_WantsBindKeys();
+ #else
+ 		return qfalse;
+Index: code/ui/ui_players.c
+===================================================================
+--- code/ui/ui_players.c	(revision 316)
++++ code/ui/ui_players.c	(revision 325)
+@@ -96,7 +96,11 @@
+ 		goto tryagain;
+ 	}
+ 
+-	if ( weaponNum == WP_MACHINEGUN || weaponNum == WP_GAUNTLET || weaponNum == WP_BFG ) {
++	if ( weaponNum == WP_MACHINEGUN || weaponNum == WP_GAUNTLET || weaponNum == WP_BFG
++#ifdef MISSIONPACK
++		|| weaponNum == WP_CHAINGUN
++#endif
++		) {
+ 		strcpy( path, item->world_model[0] );
+ 		COM_StripExtension(path, path, sizeof(path));
+ 		strcat( path, "_barrel.md3" );
+@@ -149,6 +153,20 @@
+ 		MAKERGB( pi->flashDlightColor, 0.6f, 0.6f, 1 );
+ 		break;
+ 
++#ifdef MISSIONPACK
++	case WP_NAILGUN:
++		MAKERGB( pi->flashDlightColor, 1, 0.75f, 0 );
++		break;
++
++	case WP_PROX_LAUNCHER:
++		MAKERGB( pi->flashDlightColor, 1, 0.70f, 0 );
++		break;
++
++	case WP_CHAINGUN:
++		MAKERGB( pi->flashDlightColor, 1, 1, 0 );
++		break;
++#endif
++
+ 	default:
+ 		MAKERGB( pi->flashDlightColor, 1, 1, 1 );
+ 		break;
+@@ -848,7 +866,11 @@
+ 	//
+ 	// add the spinning barrel
+ 	//
+-	if ( pi->realWeapon == WP_MACHINEGUN || pi->realWeapon == WP_GAUNTLET || pi->realWeapon == WP_BFG ) {
++	if ( pi->realWeapon == WP_MACHINEGUN || pi->realWeapon == WP_GAUNTLET || pi->realWeapon == WP_BFG
++#ifdef MISSIONPACK
++		|| pi->realWeapon == WP_CHAINGUN
++#endif
++		) {
+ 		vec3_t	angles;
+ 
+ 		memset( &barrel, 0, sizeof(barrel) );
+Index: code/client/client.h
+===================================================================
+--- code/client/client.h	(revision 316)
++++ code/client/client.h	(revision 325)
+@@ -528,7 +528,6 @@
+ //
+ // cl_parse.c
+ //
+-extern int cl_connectedToPureServer;
+ extern int cl_connectedToCheatServer;
+ 
+ #ifdef USE_VOIP
+Index: code/client/cl_parse.c
+===================================================================
+--- code/client/cl_parse.c	(revision 316)
++++ code/client/cl_parse.c	(revision 325)
+@@ -395,7 +395,6 @@
+ 
+ //=====================================================================
+ 
+-int cl_connectedToPureServer;
+ int cl_connectedToCheatServer;
+ 
+ /*
+@@ -497,7 +496,6 @@
+ 	if ( !gameSet && *Cvar_VariableString("fs_game") ) {
+ 		Cvar_Set( "fs_game", "" );
+ 	}
+-	cl_connectedToPureServer = Cvar_VariableValue( "sv_pure" );
+ }
+ 
+ /*
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 316)
++++ code/client/cl_main.c	(revision 325)
+@@ -1476,9 +1476,6 @@
+ 	// allow cheats locally
+ 	Cvar_Set( "sv_cheats", "1" );
+ 
+-	// not connected to a pure server anymore
+-	cl_connectedToPureServer = qfalse;
+-
+ #ifdef USE_VOIP
+ 	// not connected to voip server anymore.
+ 	clc.voipEnabled = qfalse;
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 316)
++++ code/client/cl_cgame.c	(revision 325)
+@@ -842,7 +842,6 @@
+ 	const char			*info;
+ 	const char			*mapname;
+ 	int					t1, t2;
+-	vmInterpret_t		interpret;
+ 	unsigned int		version, major, minor;
+ 
+ 	t1 = Sys_Milliseconds();
+@@ -856,15 +855,7 @@
+ 	Com_sprintf( cl.mapname, sizeof( cl.mapname ), "maps/%s.bsp", mapname );
+ 
+ 	// load the dll or bytecode
+-	interpret = Cvar_VariableValue("vm_cgame");
+-	if(cl_connectedToPureServer)
+-	{
+-		// if sv_pure is set we only allow qvms to be loaded
+-		if(interpret != VMI_COMPILED && interpret != VMI_BYTECODE)
+-			interpret = VMI_COMPILED;
+-	}
+-
+-	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret );
++	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, Cvar_VariableValue( "vm_cgame" ) );
+ 	if ( !cgvm ) {
+ 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
+ 	}
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 316)
++++ code/client/cl_ui.c	(revision 325)
+@@ -1099,18 +1099,9 @@
+ 	unsigned int		version;
+ 	unsigned int		major;
+ 	unsigned int		minor;
+-	vmInterpret_t		interpret;
+ 
+ 	// load the dll or bytecode
+-	interpret = Cvar_VariableValue("vm_ui");
+-	if(cl_connectedToPureServer)
+-	{
+-		// if sv_pure is set we only allow qvms to be loaded
+-		if(interpret != VMI_COMPILED && interpret != VMI_BYTECODE)
+-			interpret = VMI_COMPILED;
+-	}
+-
+-	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
++	uivm = VM_Create( "ui", CL_UISystemCalls, Cvar_VariableValue( "vm_ui" ) );
+ 	if ( !uivm ) {
+ 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
+ 	}

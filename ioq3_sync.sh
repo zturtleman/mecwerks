@@ -53,7 +53,7 @@ SAVE_LOG=1
 DEFAULT_MAINNAME="spearmint"
 
 # Default SVN path
-DEFAULT_SVN_PATH="svn://ioq3ztm.googlecode.com/svn/trunk/"
+DEFAULT_SVN_PATH="http://ioq3ztm.googlecode.com/svn/trunk/"
 
 # Magic tokens
 DEFAULT_MAINREVISION="IOQ3_REVISION"
