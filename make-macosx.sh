@@ -1,8 +1,8 @@
 #!/bin/sh
 CC=gcc-4.0
-APPBUNDLE=spearmint.app
-BINARY=spearmint.x86_64
-DEDBIN=spearmint-server.x86_64
+APPBUNDLE=mecwerks.app
+BINARY=mecwerks.x86_64
+DEDBIN=mecwerks-server.x86_64
 PKGINFO=APPLIOQ3
 ICNS=misc/quake3.icns
 DESTDIR=build/release-darwin-x86_64
@@ -11,10 +11,10 @@ MPACKDIR=missionpack
 RENDERDIR=build/release-darwin-x86_64
 
 BIN_OBJ="
-	build/release-darwin-x86_64/spearmint.x86_64
+	build/release-darwin-x86_64/mecwerks.x86_64
 "
 BIN_DEDOBJ="
-	build/release-darwin-x86_64/spearmint-server.x86_64
+	build/release-darwin-x86_64/mecwerks-server.x86_64
 "
 BASE_OBJ="
 	build/release-darwin-x86_64/$BASEDIR/cgamex86_64.dylib
@@ -34,7 +34,7 @@ RENDER_OBJ="
 
 cd `dirname $0`
 if [ ! -f Makefile ]; then
-	echo "This script must be run from the spearmint build directory"
+	echo "This script must be run from the mecwerks build directory"
 	exit 1
 fi
 
@@ -97,7 +97,7 @@ echo "
 		<key>CFBundleExecutable</key>
 		<string>$BINARY</string>
 		<key>CFBundleGetInfoString</key>
-		<string>spearmint $Q3_VERSION</string>
+		<string>mecwerks $Q3_VERSION</string>
 		<key>CFBundleIconFile</key>
 		<string>ioquake3.icns</string>
 		<key>CFBundleIdentifier</key>
@@ -105,7 +105,7 @@ echo "
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>spearmint</string>
+		<string>mecwerks</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>

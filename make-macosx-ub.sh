@@ -1,8 +1,8 @@
 #!/bin/sh
 CC=gcc-4.0
-APPBUNDLE=spearmint.app
-BINARY=spearmint.ub
-DEDBIN=spearmint-server.ub
+APPBUNDLE=mecwerks.app
+BINARY=mecwerks.ub
+DEDBIN=mecwerks-server.ub
 PKGINFO=APPLIOQ3
 ICNS=misc/quake3.icns
 DESTDIR=build/release-darwin-ub
@@ -10,12 +10,12 @@ BASEDIR=baseq3
 MPACKDIR=missionpack
 
 BIN_OBJ="
-	build/release-darwin-ppc/spearmint.ppc
-	build/release-darwin-i386/spearmint.i386
+	build/release-darwin-ppc/mecwerks.ppc
+	build/release-darwin-i386/mecwerks.i386
 "
 BIN_DEDOBJ="
-	build/release-darwin-ppc/spearmint-server.ppc
-	build/release-darwin-i386/spearmint-server.i386
+	build/release-darwin-ppc/mecwerks-server.ppc
+	build/release-darwin-i386/mecwerks-server.i386
 "
 BASE_OBJ="
 	build/release-darwin-ppc/$BASEDIR/cgameppc.dylib
