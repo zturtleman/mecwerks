@@ -1,0 +1,5444 @@
+Index: rend2-readme.txt
+===================================================================
+--- rend2-readme.txt	(revision 325)
++++ rend2-readme.txt	(revision 329)
+@@ -92,13 +92,19 @@
+                                      0    - None. (default)
+                                      1-16 - Some.
+                                      17+  - Too much!
+-									 
++
+   r_ssao                         - Enable screen-space ambient occlusion.
+                                    Currently eats framerate and has some
+-								   visible artifacts.
+-								     0 - No. (default)
+-									 1 - Yes.
++                                   visible artifacts.
++                                     0 - No. (default)
++                                     1 - Yes.
+ 
++  r_softOverbright               - Enable software overbrighting.  This enables
++                                   overbrighting even in a window.  Is disabled
++                                   when r_toneMap 1 and r_hdr 1.
++                                     0 - No.
++                                     1 - Yes. (default)
++
+ Cvars for HDR and tonemapping:
+   r_hdr                          - Do scene rendering in a framebuffer with
+                                    high dynamic range.  (Less banding, and
+@@ -123,63 +129,63 @@
+ 
+   r_forceToneMap                 - Cheat.  Override built-in and map tonemap
+                                    settings and use cvars r_forceToneMapAvg,
+-								   r_forceToneMapMin, and r_forceToneMapMax.
+-								     0 - No. (default)
+-									 1 - Yes.
++                                   r_forceToneMapMin, and r_forceToneMapMax.
++                                     0 - No. (default)
++                                     1 - Yes.
+ 
+   r_forceToneMapAvg              - Cheat.  Map average scene luminance to this
+                                    value, in powers of two.  Requires 
+-								   r_forceToneMap.
+-								    -2.0 - Dark.
+-								    -1.0 - Kinda dark. (default).
+-									 2.0 - Too bright.
++                                   r_forceToneMap.
++                                    -2.0 - Dark.
++                                    -1.0 - Kinda dark. (default).
++                                     2.0 - Too bright.
+ 
+   r_forceToneMapMin              - Cheat.  After mapping average, luminance
+                                    below this level is mapped to black.
+-								   Requires r_forceToneMap.
+-								    -5    - Not noticeable.
+-									-3.25 - Normal. (default)
+-									 0.0  - Too dark.
++                                   Requires r_forceToneMap.
++                                    -5    - Not noticeable.
++                                    -3.25 - Normal. (default)
++                                     0.0  - Too dark.
+ 
+   r_forceToneMapMin              - Cheat.  After mapping average, luminance
+                                    above this level is mapped to white.
+-								   Requires r_forceToneMap.
+-								    0.0 - Too bright.
+-									1.0 - Normal. (default).
+-									2.0 - Washed out.
++                                   Requires r_forceToneMap.
++                                    0.0 - Too bright.
++                                    1.0 - Normal. (default).
++                                    2.0 - Washed out.
+ 
+   r_autoExposure                 - Do automatic exposure based on scene
+                                    brightness.  Hardcoded to -2 to 2 on maps
+-								   that don't specify otherwise.  Requires
++                                   that don't specify otherwise.  Requires
+                                    r_hdr, r_postprocess, and r_toneMap.
+                                      0 - No.
+                                      1 - Yes. (default)
+-									 
++                                     
+   r_forceAutoExposure            - Cheat.  Override built-in and map auto
+                                    exposure settings and use cvars
+-								   r_forceAutoExposureMin and 
+-								   r_forceAutoExposureMax.
+-								     0 - No. (default)
+-									 1 - Yes.
++                                   r_forceAutoExposureMin and 
++                                   r_forceAutoExposureMax.
++                                     0 - No. (default)
++                                     1 - Yes.
+ 
+   r_forceAutoExposureMin         - Cheat.  Set minimum exposure to this value,
+                                    in powers of two.  Requires
+-								   r_forceAutoExpsure.
+-								    -3.0 - Dimmer.
+-									-2.0 - Normal. (default)
+-									-1.0 - Brighter.
++                                   r_forceAutoExpsure.
++                                    -3.0 - Dimmer.
++                                    -2.0 - Normal. (default)
++                                    -1.0 - Brighter.
+ 
+   r_forceAutoExposureMax         - Cheat.  Set maximum exposure to this value,
+                                    in powers of two.  Requires
+-								   r_forceAutoExpsure.
+-								     1.0 - Dimmer.
+-									 2.0 - Normal. (default)
+-									 3.0 - Brighter.
++                                   r_forceAutoExpsure.
++                                     1.0 - Dimmer.
++                                     2.0 - Normal. (default)
++                                     3.0 - Brighter.
+ 
+   r_srgb                         - Treat all input textures as sRGB, and do
+                                    final rendering in a sRGB framebuffer.  Only
+-								   required if assets were created with it in
+-								   mind.
++                                   required if assets were created with it in
++                                   mind.
+                                      0 - No. (default)
+                                      1 - Yes.
+ 
+@@ -191,8 +197,8 @@
+                                      1 - Yes. (default)
+                                      2 - Yes, and use Oren-Nayar reflectance
+                                          model.
+-								     3 - Yes, and use tri-Ace's Oren-Nayar
+-									     reflectance model.
++                                     3 - Yes, and use tri-Ace's Oren-Nayar
++                                         reflectance model.
+ 
+   r_specularMapping              - Enable specular mapping for materials that
+                                    support it, and also specify advanced
+@@ -563,7 +569,7 @@
+ 
+   - Zachary 'Zakk' Slater, Thilo Schulz, Tim Angus, and the rest of the
+     ioquake3 team and contributors, for improving massively upon the raw Quake
+-	3 source, and accepting my and gimhael's modular renderer patch.
++    3 source, and accepting my and gimhael's modular renderer patch.
+ 
+   - Robert 'Tr3B' Beckebans and the other contributors to XReaL, for letting me
+     liberally copy code from you. :)
+@@ -574,7 +580,7 @@
+     
+   - Yoshiharu Gotanda, Tatsuya Shoji, and the rest of tri-Ace's R&D Department,
+     for creating the tri-Ace shading equations and posting their derivations in
+-	simple English.
++    simple English.
+     
+   - Matthias 'gimhael' Bentrup, for random ideas and bits of code.
+   
+Index: README
+===================================================================
+--- README	(revision 325)
++++ README	(revision 329)
+@@ -293,6 +293,8 @@
+                                       cl_aviMotionJpeg is enabled
+   r_mode -2                         - This new video mode automatically uses the
+                                       desktop resolution.
++  r_zfar							- sets z far for testing global fog
++                                      distances, requires cheats to be enabled
+ 
+ New commands
+   video [filename]        - start video capture (use with demo command)
+Index: code/q3_ui/ui_menu.c
+===================================================================
+--- code/q3_ui/ui_menu.c	(revision 325)
++++ code/q3_ui/ui_menu.c	(revision 329)
+@@ -374,7 +374,7 @@
+ 	s_main.cinematics.style					= style;
+ 
+ #ifndef MISSIONPACK
+-	if (UI_TeamArenaExists()) {
++	if ( !uis.demoversion && UI_TeamArenaExists() ) {
+ 		teamArena = qtrue;
+ 		y += MAIN_MENU_VERTICAL_SPACING;
+ 		s_main.teamArena.generic.type			= MTYPE_PTEXT;
+@@ -389,16 +389,18 @@
+ 	}
+ #endif
+ 
+-	y += MAIN_MENU_VERTICAL_SPACING;
+-	s_main.mods.generic.type			= MTYPE_PTEXT;
+-	s_main.mods.generic.flags			= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+-	s_main.mods.generic.x				= 320;
+-	s_main.mods.generic.y				= y;
+-	s_main.mods.generic.id				= ID_MODS;
+-	s_main.mods.generic.callback		= Main_MenuEvent; 
+-	s_main.mods.string					= "MODS";
+-	s_main.mods.color					= color_red;
+-	s_main.mods.style					= style;
++	if ( !uis.demoversion ) {
++		y += MAIN_MENU_VERTICAL_SPACING;
++		s_main.mods.generic.type			= MTYPE_PTEXT;
++		s_main.mods.generic.flags			= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
++		s_main.mods.generic.x				= 320;
++		s_main.mods.generic.y				= y;
++		s_main.mods.generic.id				= ID_MODS;
++		s_main.mods.generic.callback		= Main_MenuEvent; 
++		s_main.mods.string					= "MODS";
++		s_main.mods.color					= color_red;
++		s_main.mods.style					= style;
++	}
+ 
+ 	y += MAIN_MENU_VERTICAL_SPACING;
+ 	s_main.exit.generic.type				= MTYPE_PTEXT;
+@@ -421,7 +423,9 @@
+ 		Menu_AddItem( &s_main.menu,	&s_main.teamArena );
+ 	}
+ #endif
+-	Menu_AddItem( &s_main.menu,	&s_main.mods );
++	if ( !uis.demoversion ) {
++		Menu_AddItem( &s_main.menu,	&s_main.mods );
++	}
+ 	Menu_AddItem( &s_main.menu,	&s_main.exit );             
+ 
+ 	trap_Key_SetCatcher( KEYCATCH_UI );
+Index: code/server/sv_main.c
+===================================================================
+--- code/server/sv_main.c	(revision 325)
++++ code/server/sv_main.c	(revision 329)
+@@ -673,6 +673,10 @@
+ 		return;
+ 	}
+ 
++	// A maximum challenge length of 128 should be more than plenty.
++	if(strlen(Cmd_Argv(1)) > 128)
++		return;
++
+ 	strcpy( infostring, Cvar_InfoString( CVAR_SERVERINFO ) );
+ 
+ 	// echo back the parameter to status. so master servers can use it as a challenge
+Index: code/renderer/tr_mesh.c
+===================================================================
+--- code/renderer/tr_mesh.c	(revision 325)
++++ code/renderer/tr_mesh.c	(revision 329)
+@@ -282,7 +282,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return R_DefaultFogNum();
+ }
+ 
+ /*
+Index: code/renderer/tr_local.h
+===================================================================
+--- code/renderer/tr_local.h	(revision 325)
++++ code/renderer/tr_local.h	(revision 329)
+@@ -321,6 +321,7 @@
+ 	acff_t			adjustColorsForFog;
+ 
+ 	qboolean		isDetail;
++	qboolean		isFogged;					// used only for shaders that have fog disabled, so we can enable it for individual stages
+ } shaderStage_t;
+ 
+ struct shaderCommands_s;
+@@ -350,8 +351,10 @@
+ } skyParms_t;
+ 
+ typedef struct {
+-	vec3_t	color;
+-	float	depthForOpaque;
++	fogType_t	fogType;
++	vec3_t		color;
++	float		depthForOpaque;
++	float		density;
+ } fogParms_t;
+ 
+ 
+@@ -399,6 +402,8 @@
+ 	qboolean	needsST2;
+ 	qboolean	needsColor;
+ 
++	qboolean	noFog;
++
+ 	int			numDeforms;
+ 	deformStage_t	deforms[MAX_SHADER_DEFORMS];
+ 
+@@ -454,6 +459,14 @@
+ 	// text messages for deform text shaders
+ 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
+ 
++	// fog
++	fogType_t	fogType;
++	vec3_t		fogColor;
++	unsigned	fogColorInt;
++	float		fogDepthForOpaque;
++	float		fogDensity;
++	float		fogTcScale;
++
+ 	int			num_entities;
+ 	trRefEntity_t	*entities;
+ 
+@@ -489,12 +502,13 @@
+ 
+ 
+ typedef struct {
++	int			modelNum;				// bsp model the fog belongs to
+ 	int			originalBrushNumber;
+ 	vec3_t		bounds[2];
+ 
++	shader_t	*shader;				// fog shader to get fogParms from
+ 	unsigned	colorInt;				// in packed byte format
+ 	float		tcScale;				// texture coordinate vector scales
+-	fogParms_t	parms;
+ 
+ 	// for clipping distance in fog when outside
+ 	qboolean	hasSurface;
+@@ -812,6 +826,13 @@
+ 	vec3_t		bounds[2];		// for culling
+ 	msurface_t	*firstSurface;
+ 	int			numSurfaces;
++
++	// ydnar: for fog volumes
++	int firstBrush;
++	int numBrushes;
++	orientation_t orientation[ SMP_FRAMES ];
++	qboolean visible[ SMP_FRAMES ];
++	int entityNum[ SMP_FRAMES ];
+ } bmodel_t;
+ 
+ typedef struct {
+@@ -823,6 +844,7 @@
+ 	int			numShaders;
+ 	dshader_t	*shaders;
+ 
++	int			numBModels;
+ 	bmodel_t	*bmodels;
+ 
+ 	int			numplanes;
+@@ -841,6 +863,8 @@
+ 	int			numfogs;
+ 	fog_t		*fogs;
+ 
++	int			globalFog;				// index of global fog in bsp
++
+ 	vec3_t		lightGridOrigin;
+ 	vec3_t		lightGridSize;
+ 	vec3_t		lightGridInverseSize;
+@@ -1035,6 +1059,7 @@
+ 	image_t					*defaultImage;
+ 	image_t					*scratchImage[32];
+ 	image_t					*fogImage;
++	image_t					*linearFogImage;
+ 	image_t					*dlightImage;	// inverse-quare highlight for projective adding
+ 	image_t					*flareImage;
+ 	image_t					*whiteImage;			// full of 0xff
+@@ -1056,6 +1081,7 @@
+ 	int						currentEntityNum;
+ 	int						shiftedEntityNum;	// currentEntityNum << QSORT_REFENTITYNUM_SHIFT
+ 	model_t					*currentModel;
++	bmodel_t				*currentBModel;     // only valid when rendering brush models
+ 
+ 	viewParms_t				viewParms;
+ 
+@@ -1077,6 +1103,24 @@
+ 
+ 	vec4_t					clipRegion;			// 2D clipping region
+ 
++	// set by BSP or fogvars in a shader
++	fogType_t	globalFogType;
++	vec3_t		globalFogColor;
++	float		globalFogDepthForOpaque;
++	float		globalFogDensity;
++
++	// set by skyfogvars in a shader
++	fogType_t	skyFogType;
++	vec3_t		skyFogColor;
++	float		skyFogDepthForOpaque;
++	float		skyFogDensity;
++
++	// set by waterfogvars in a shader
++	fogType_t	waterFogType;
++	vec3_t		waterFogColor;
++	float		waterFogDepthForOpaque;
++	float		waterFogDensity;
++
+ 	//
+ 	// put large tables at the end, so most elements will be
+ 	// within the +/32K indexed range on risc processors
+@@ -1129,6 +1173,7 @@
+ extern cvar_t	*r_verbose;				// used for verbose debug spew
+ extern cvar_t	*r_ignoreFastPath;		// allows us to ignore our Tess fast paths
+ 
++extern cvar_t	*r_zfar;
+ extern cvar_t	*r_znear;				// near Z clip plane
+ extern cvar_t	*r_zproj;				// z distance of projection plane
+ extern cvar_t	*r_stereoSeparation;			// separation of cameras for stereo rendering
+@@ -1245,6 +1290,8 @@
+ 
+ extern cvar_t	*r_marksOnTriangleMeshes;
+ 
++extern cvar_t	*r_useGlFog;
++
+ //====================================================================
+ 
+ float R_NoiseGet4f( float x, float y, float z, float t );
+@@ -1364,8 +1411,12 @@
+ const void *RB_TakeScreenshotCmd( const void *data );
+ void	R_ScreenShot_f( void );
+ 
++#define DEFAULT_FOG_EXP_DENSITY			0.5f
++#define DEFAULT_FOG_LINEAR_DENSITY		1.1f
++
+ void	R_InitFogTable( void );
+ float	R_FogFactor( float s, float t );
++float	R_FogTcScale( fogType_t fogType, float depthForOpaque, float density );
+ void	R_InitImages( void );
+ void	R_DeleteTextures( void );
+ int		R_SumOfUsedImages( void );
+@@ -1868,11 +1919,19 @@
+ 		          int image_width, int image_height, byte *image_buffer, int padding);
+ void RE_TakeVideoFrame( int width, int height,
+ 		byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
++void RE_GetGlobalFog( fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
++void RE_GetWaterFog( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
+ 
+ // font stuff
+ void R_InitFreeType( void );
+ void R_DoneFreeType( void );
+ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
+ 
++// fog stuff
++int R_DefaultFogNum( void );
++void R_FogOff( void );
++void RB_FogOn( void );
++void RB_Fog( int fogNum );
+ 
++
+ #endif //TR_LOCAL_H
+Index: code/renderer/tr_init.c
+===================================================================
+--- code/renderer/tr_init.c	(revision 325)
++++ code/renderer/tr_init.c	(revision 329)
+@@ -56,6 +56,7 @@
+ 
+ cvar_t	*r_detailTextures;
+ 
++cvar_t	*r_zfar;
+ cvar_t	*r_znear;
+ cvar_t	*r_zproj;
+ cvar_t	*r_stereoSeparation;
+@@ -168,6 +169,8 @@
+ cvar_t	*r_aviMotionJpegQuality;
+ cvar_t	*r_screenshotJpegQuality;
+ 
++cvar_t	*r_useGlFog;
++
+ cvar_t	*r_maxpolys;
+ int		max_polys;
+ cvar_t	*r_maxpolyverts;
+@@ -1067,6 +1070,7 @@
+ 	r_lodCurveError = ri.Cvar_Get( "r_lodCurveError", "250", CVAR_ARCHIVE|CVAR_CHEAT );
+ 	r_lodbias = ri.Cvar_Get( "r_lodbias", "0", CVAR_ARCHIVE );
+ 	r_flares = ri.Cvar_Get ("r_flares", "0", CVAR_ARCHIVE );
++	r_zfar = ri.Cvar_Get("r_zfar", "0", CVAR_CHEAT);
+ 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
+ 	ri.Cvar_CheckRange( r_znear, 0.001f, 200, qfalse );
+ 	r_zproj = ri.Cvar_Get( "r_zproj", "64", CVAR_ARCHIVE );
+@@ -1144,6 +1148,9 @@
+ 
+ 	r_marksOnTriangleMeshes = ri.Cvar_Get("r_marksOnTriangleMeshes", "0", CVAR_ARCHIVE);
+ 
++	// ZTM: FIXME: r_useGlFog doesn't work correctly with some multistage shaders. So when r_vertexLight is 0 it's fine.
++	r_useGlFog = ri.Cvar_Get("r_useGlFog", "0", CVAR_CHEAT);
++
+ 	r_aviMotionJpegQuality = ri.Cvar_Get("r_aviMotionJpegQuality", "90", CVAR_ARCHIVE);
+ 	r_screenshotJpegQuality = ri.Cvar_Get("r_screenshotJpegQuality", "90", CVAR_ARCHIVE);
+ 
+@@ -1408,5 +1415,8 @@
+ 
+ 	re.TakeVideoFrame = RE_TakeVideoFrame;
+ 
++	re.GetGlobalFog = RE_GetGlobalFog;
++	re.GetWaterFog = RE_GetWaterFog;
++
+ 	return &re;
+ }
+Index: code/renderer/tr_shade_calc.c
+===================================================================
+--- code/renderer/tr_shade_calc.c	(revision 325)
++++ code/renderer/tr_shade_calc.c	(revision 329)
+@@ -744,19 +744,57 @@
+ ** RB_CalcModulateColorsByFog
+ */
+ void RB_CalcModulateColorsByFog( unsigned char *colors ) {
+-	int		i;
+-	float	texCoords[SHADER_MAX_VERTEXES][2];
++	int			i;
++	float		f, texCoords[SHADER_MAX_VERTEXES][2];
++	fog_t		*fog;
++	qboolean	linearFog;
+ 
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++	}
++
+ 	// calculate texcoords so we can derive density
+ 	// this is not wasted, because it would only have
+ 	// been previously called if the surface was opaque
+ 	RB_CalcFogTexCoords( texCoords[0] );
+ 
+ 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+-		colors[0] *= f;
+-		colors[1] *= f;
+-		colors[2] *= f;
++		if ( texCoords[ i ][ 0 ] <= 0.0f || texCoords[ i ][ 1 ] <= 0.0f ) {
++			continue;
++		}
++
++		if ( linearFog ) {
++			f = 1.0f - ( texCoords[ i ][ 0 ] * texCoords[ i ][ 1 ] );
++		} else {
++			f = 1.0f - R_FogFactor( texCoords[i][0], texCoords[i][1] );
++		}
++
++		if ( f <= 0.0f ) {
++			colors[ 0 ] = 0;
++			colors[ 1 ] = 0;
++			colors[ 2 ] = 0;
++		} else {
++			colors[ 0 ] *= f;
++			colors[ 1 ] *= f;
++			colors[ 2 ] *= f;
++		}
+ 	}
+ }
+ 
+@@ -764,17 +802,53 @@
+ ** RB_CalcModulateAlphasByFog
+ */
+ void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
+-	int		i;
+-	float	texCoords[SHADER_MAX_VERTEXES][2];
++	int			i;
++	float		f, texCoords[SHADER_MAX_VERTEXES][2];
++	fog_t		*fog;
++	qboolean	linearFog;
+ 
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++	}
++
+ 	// calculate texcoords so we can derive density
+ 	// this is not wasted, because it would only have
+ 	// been previously called if the surface was opaque
+ 	RB_CalcFogTexCoords( texCoords[0] );
+ 
+ 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+-		colors[3] *= f;
++		if ( texCoords[ i ][ 0 ] <= 0.0f || texCoords[ i ][ 1 ] <= 0.0f ) {
++			continue;
++		}
++
++		if ( linearFog ) {
++			f = 1.0f - ( texCoords[ i ][ 0 ] * texCoords[ i ][ 1 ] );
++		} else {
++			f = 1.0f - R_FogFactor( texCoords[i][0], texCoords[i][1] );
++		}
++
++		if ( f <= 0.0f ) {
++			colors[ 3 ] = 0;
++		} else {
++			colors[ 3 ] *= f;
++		}
+ 	}
+ }
+ 
+@@ -782,20 +856,59 @@
+ ** RB_CalcModulateRGBAsByFog
+ */
+ void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
+-	int		i;
+-	float	texCoords[SHADER_MAX_VERTEXES][2];
++	int			i;
++	float		f, texCoords[SHADER_MAX_VERTEXES][2];
++	fog_t		*fog;
++	qboolean	linearFog;
+ 
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++	}
++
+ 	// calculate texcoords so we can derive density
+ 	// this is not wasted, because it would only have
+ 	// been previously called if the surface was opaque
+ 	RB_CalcFogTexCoords( texCoords[0] );
+ 
+ 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+-		colors[0] *= f;
+-		colors[1] *= f;
+-		colors[2] *= f;
+-		colors[3] *= f;
++		if ( texCoords[ i ][ 0 ] <= 0.0f || texCoords[ i ][ 1 ] <= 0.0f ) {
++			continue;
++		}
++
++		if ( linearFog ) {
++			f = 1.0f - ( texCoords[ i ][ 0 ] * texCoords[ i ][ 1 ] );
++		} else {
++			f = 1.0f - R_FogFactor( texCoords[i][0], texCoords[i][1] );
++		}
++
++		if ( f <= 0.0f ) {
++			colors[ 0 ] = 0;
++			colors[ 1 ] = 0;
++			colors[ 2 ] = 0;
++			colors[ 3 ] = 0;
++		} else {
++			colors[ 0 ] *= f;
++			colors[ 1 ] *= f;
++			colors[ 2 ] *= f;
++			colors[ 3 ] *= f;
++		}
+ 	}
+ }
+ 
+@@ -824,10 +937,16 @@
+ 	float		eyeT;
+ 	qboolean	eyeOutside;
+ 	fog_t		*fog;
++	bmodel_t	*bmodel;
+ 	vec3_t		local;
+-	vec4_t		fogDistanceVector, fogDepthVector = {0, 0, 0, 0};
++	vec4_t		fogSurface, fogDistanceVector, fogDepthVector = {0, 0, 0, 0};
+ 
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
+ 	fog = tr.world->fogs + tess.fogNum;
++	bmodel = tr.world->bmodels + fog->modelNum;
+ 
+ 	// all fogging distance is based on world Z units
+ 	VectorSubtract( backEnd.or.origin, backEnd.viewParms.or.origin, local );
+@@ -836,62 +955,115 @@
+ 	fogDistanceVector[2] = -backEnd.or.modelMatrix[10];
+ 	fogDistanceVector[3] = DotProduct( local, backEnd.viewParms.or.axis[0] );
+ 
+-	// scale the fog vectors based on the fog's thickness
+-	fogDistanceVector[0] *= fog->tcScale;
+-	fogDistanceVector[1] *= fog->tcScale;
+-	fogDistanceVector[2] *= fog->tcScale;
+-	fogDistanceVector[3] *= fog->tcScale;
++	// level-wide fogging
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
+ 
+-	// rotate the gradient vector for this orientation
+-	if ( fog->hasSurface ) {
+-		fogDepthVector[0] = fog->surface[0] * backEnd.or.axis[0][0] + 
+-			fog->surface[1] * backEnd.or.axis[0][1] + fog->surface[2] * backEnd.or.axis[0][2];
+-		fogDepthVector[1] = fog->surface[0] * backEnd.or.axis[1][0] + 
+-			fog->surface[1] * backEnd.or.axis[1][1] + fog->surface[2] * backEnd.or.axis[1][2];
+-		fogDepthVector[2] = fog->surface[0] * backEnd.or.axis[2][0] + 
+-			fog->surface[1] * backEnd.or.axis[2][1] + fog->surface[2] * backEnd.or.axis[2][2];
+-		fogDepthVector[3] = -fog->surface[3] + DotProduct( backEnd.or.origin, fog->surface );
++		// scale the fog vectors based on the fog's thickness
++		fogDistanceVector[0] *= backEnd.refdef.fogTcScale;
++		fogDistanceVector[1] *= backEnd.refdef.fogTcScale;
++		fogDistanceVector[2] *= backEnd.refdef.fogTcScale;
++		fogDistanceVector[3] *= backEnd.refdef.fogTcScale;
+ 
+-		eyeT = DotProduct( backEnd.or.viewOrigin, fogDepthVector ) + fogDepthVector[3];
++		// calculate density for each point
++		if ( backEnd.refdef.fogType == FT_LINEAR ) {
++			t = 1.0;
++		} else {
++			t = 31.0/32;
++		}
++
++		for ( i = 0, v = tess.xyz[ 0 ]; i < tess.numVertexes; i++, v += 4 ) {
++			// calculate the length in fog (t is always 0 if eye is in fog)
++			st[ 0 ] = DotProduct( v, fogDistanceVector ) + fogDistanceVector[ 3 ];
++			st[ 1 ] = t;
++			st += 2;
++		}
+ 	} else {
+-		eyeT = 1;	// non-surface fog always has eye inside
+-	}
++		// scale the fog vectors based on the fog's thickness
++		fogDistanceVector[0] *= fog->tcScale;
++		fogDistanceVector[1] *= fog->tcScale;
++		fogDistanceVector[2] *= fog->tcScale;
++		fogDistanceVector[3] *= fog->tcScale;
+ 
+-	// see if the viewpoint is outside
+-	// this is needed for clipping distance even for constant fog
++		// offset fog surface
++		VectorCopy( fog->surface, fogSurface );
++#if 1 // WolfET
++		fogSurface[ 3 ] = fog->surface[ 3 ] + DotProduct( fogSurface, bmodel->orientation[ backEnd.smpFrame ].origin );
++#else
++		fogSurface[ 3 ] = fog->surface[ 3 ];
++#endif
+ 
+-	if ( eyeT < 0 ) {
+-		eyeOutside = qtrue;
+-	} else {
+-		eyeOutside = qfalse;
+-	}
++		// rotate the gradient vector for this orientation
++		if ( fog->hasSurface ) {
++			fogDepthVector[0] = fogSurface[0] * backEnd.or.axis[0][0] + 
++				fogSurface[1] * backEnd.or.axis[0][1] + fogSurface[2] * backEnd.or.axis[0][2];
++			fogDepthVector[1] = fogSurface[0] * backEnd.or.axis[1][0] + 
++				fogSurface[1] * backEnd.or.axis[1][1] + fogSurface[2] * backEnd.or.axis[1][2];
++			fogDepthVector[2] = fogSurface[0] * backEnd.or.axis[2][0] + 
++				fogSurface[1] * backEnd.or.axis[2][1] + fogSurface[2] * backEnd.or.axis[2][2];
++			fogDepthVector[3] = -fogSurface[3] + DotProduct( backEnd.or.origin, fogSurface );
+ 
+-	fogDistanceVector[3] += 1.0/512;
++#if 0 // WolfET
++			// scale the fog vectors based on the fog's thickness
++			fogDepthVector[ 0 ] *= fog->shader->fogParms.tcScale;
++			fogDepthVector[ 1 ] *= fog->shader->fogParms.tcScale;
++			fogDepthVector[ 2 ] *= fog->shader->fogParms.tcScale;
++			fogDepthVector[ 3 ] *= fog->shader->fogParms.tcScale;
++#endif
+ 
+-	// calculate density for each point
+-	for (i = 0, v = tess.xyz[0] ; i < tess.numVertexes ; i++, v += 4) {
+-		// calculate the length in fog
+-		s = DotProduct( v, fogDistanceVector ) + fogDistanceVector[3];
+-		t = DotProduct( v, fogDepthVector ) + fogDepthVector[3];
++			eyeT = DotProduct( backEnd.or.viewOrigin, fogDepthVector ) + fogDepthVector[3];
++		} else {
++			eyeT = 1;	// non-surface fog always has eye inside
++		}
+ 
+-		// partially clipped fogs use the T axis		
+-		if ( eyeOutside ) {
+-			if ( t < 1.0 ) {
+-				t = 1.0/32;	// point is outside, so no fogging
+-			} else {
+-				t = 1.0/32 + 30.0/32 * t / ( t - eyeT );	// cut the distance at the fog plane
+-			}
++		// see if the viewpoint is outside
++		// this is needed for clipping distance even for constant fog
++
++		if ( eyeT <= 0 ) {
++			eyeOutside = qtrue;
+ 		} else {
+-			if ( t < 0 ) {
+-				t = 1.0/32;	// point is outside, so no fogging
++			eyeOutside = qfalse;
++		}
++
++		if ( fog->shader->fogParms.fogType == FT_EXP ) {
++			fogDistanceVector[3] += 1.0/512;
++		}
++
++		// calculate density for each point
++		for (i = 0, v = tess.xyz[0] ; i < tess.numVertexes ; i++, v += 4) {
++			// calculate the length in fog
++			s = DotProduct( v, fogDistanceVector ) + fogDistanceVector[3];
++			t = DotProduct( v, fogDepthVector ) + fogDepthVector[3];
++
++			if ( fog->shader->fogParms.fogType == FT_LINEAR ) {
++				if ( !eyeOutside ) {
++					t += eyeT;
++				}
++
++				//%	t *= fog->tcScale;
+ 			} else {
+-				t = 31.0/32;
++				// partially clipped fogs use the T axis
++				if ( eyeOutside ) {
++					if ( t < 1.0 ) {
++						t = 1.0/32;	// point is outside, so no fogging
++					} else {
++						t = 1.0/32 + 30.0/32 * t / ( t - eyeT );	// cut the distance at the fog plane
++					}
++				} else {
++					if ( t < 0 ) {
++						t = 1.0/32;	// point is outside, so no fogging
++					} else {
++						t = 31.0/32;
++					}
++				}
+ 			}
++
++			st[0] = s;
++			st[1] = t;
++			st += 2;
+ 		}
+-
+-		st[0] = s;
+-		st[1] = t;
+-		st += 2;
+ 	}
+ }
+ 
+Index: code/renderer/tr_bsp.c
+===================================================================
+--- code/renderer/tr_bsp.c	(revision 325)
++++ code/renderer/tr_bsp.c	(revision 329)
+@@ -1507,7 +1507,7 @@
+ 	R_MovePatchSurfacesToHunk();
+ #endif
+ 
+-	ri.Printf(PRINT_DEVELOPER, "...loaded %d faces, %i meshes, %i trisurfs, %i flares,  %i foliage\n", 
++	ri.Printf(PRINT_DEVELOPER, "...loaded %d faces, %i meshes, %i trisurfs, %i flares, %i foliage\n", 
+ 		numFaces, numMeshes, numTriSurfs, numFlares, numFoliage );
+ }
+ 
+@@ -1528,6 +1528,7 @@
+ 		ri.Error (ERR_DROP, "LoadMap: funny lump size in %s",s_worldData.name);
+ 	count = l->filelen / sizeof(*in);
+ 
++	s_worldData.numBModels = count;
+ 	s_worldData.bmodels = out = ri.Hunk_Alloc( count * sizeof(*out), h_low );
+ 
+ 	for ( i=0 ; i<count ; i++, in++, out++ ) {
+@@ -1551,6 +1552,10 @@
+ 
+ 		out->firstSurface = s_worldData.surfaces + LittleLong( in->firstSurface );
+ 		out->numSurfaces = LittleLong( in->numSurfaces );
++
++		// for attaching fog brushes to models
++		out->firstBrush = LittleLong( in->firstBrush );
++		out->numBrushes = LittleLong( in->numBrushes );
+ 	}
+ }
+ 
+@@ -1792,7 +1797,7 @@
+ =================
+ */
+ static	void R_LoadFogs( lump_t *l, lump_t *brushesLump, lump_t *sidesLump ) {
+-	int			i;
++	int			i, j;
+ 	fog_t		*out;
+ 	dfog_t		*fogs;
+ 	dbrush_t 	*brushes, *brush;
+@@ -1811,11 +1816,15 @@
+ 	count = l->filelen / sizeof(*fogs);
+ 
+ 	// create fog strucutres for them
+-	s_worldData.numfogs = count + 1;
++	s_worldData.numfogs = count + 2;
+ 	s_worldData.fogs = ri.Hunk_Alloc ( s_worldData.numfogs*sizeof(*out), h_low);
+ 	out = s_worldData.fogs + 1;
+ 
++	// reset global fog
++	s_worldData.globalFog = -1;
++
+ 	if ( !count ) {
++		goto forceGlobalFogSetup;
+ 		return;
+ 	}
+ 
+@@ -1834,76 +1843,111 @@
+ 	for ( i=0 ; i<count ; i++, fogs++) {
+ 		out->originalBrushNumber = LittleLong( fogs->brushNum );
+ 
+-		// ZTM: Global fog support will be added later.
+-		if (out->originalBrushNumber == -1) {
+-			ri.Printf(PRINT_WARNING, "Global fog not supported yet.\n");
+-			continue;
+-		}
++		// global fog has a brush number of -1, and no visible side
++		if ( out->originalBrushNumber == -1 ) {
++			VectorSet( out->bounds[ 0 ], MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD );
++			VectorSet( out->bounds[ 1 ], MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD );
+ 
+-		if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
+-			ri.Error( ERR_DROP, "fog brushNumber out of range" );
+-		}
+-		brush = brushes + out->originalBrushNumber;
++			firstSide = 0;
++		} else {
++			if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
++				ri.Error( ERR_DROP, "fog brushNumber out of range" );
++			}
+ 
+-		firstSide = LittleLong( brush->firstSide );
++			// find which bsp submodel the fog volume belongs to
++			for ( j = 0; j < s_worldData.numBModels; j++ )
++			{
++				if ( out->originalBrushNumber >= s_worldData.bmodels[ j ].firstBrush &&
++					 out->originalBrushNumber < ( s_worldData.bmodels[ j ].firstBrush + s_worldData.bmodels[ j ].numBrushes ) ) {
++					out->modelNum = j;
++					break;
++				}
++			}
+ 
+-		if ( (unsigned)firstSide > sidesCount - 6 ) {
+-			ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
+-		}
++			brush = brushes + out->originalBrushNumber;
+ 
+-		// brushes are always sorted with the axial sides first
+-		sideNum = firstSide + 0;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[0][0] = -s_worldData.planes[ planeNum ].dist;
++			firstSide = LittleLong( brush->firstSide );
+ 
+-		sideNum = firstSide + 1;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[1][0] = s_worldData.planes[ planeNum ].dist;
++			if ( (unsigned)firstSide > sidesCount - 6 ) {
++				ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
++			}
+ 
+-		sideNum = firstSide + 2;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[0][1] = -s_worldData.planes[ planeNum ].dist;
++			// brushes are always sorted with the axial sides first
++			sideNum = firstSide + 0;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[0][0] = -s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 3;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[1][1] = s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 1;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[1][0] = s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 4;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[0][2] = -s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 2;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[0][1] = -s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 5;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[1][2] = s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 3;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[1][1] = s_worldData.planes[ planeNum ].dist;
+ 
++			sideNum = firstSide + 4;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[0][2] = -s_worldData.planes[ planeNum ].dist;
++
++			sideNum = firstSide + 5;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[1][2] = s_worldData.planes[ planeNum ].dist;
++		}
++
+ 		// get information from the shader for fog parameters
+ 		shader = R_FindShader( fogs->shader, LIGHTMAP_NONE, qtrue );
+ 
+-		out->parms = shader->fogParms;
++		out->shader = shader;
+ 
+ 		out->colorInt = ColorBytes4 ( shader->fogParms.color[0] * tr.identityLight, 
+ 			                          shader->fogParms.color[1] * tr.identityLight, 
+ 			                          shader->fogParms.color[2] * tr.identityLight, 1.0 );
+ 
+ 		d = shader->fogParms.depthForOpaque < 1 ? 1 : shader->fogParms.depthForOpaque;
+-		out->tcScale = 1.0f / ( d * 8 );
++		out->tcScale = R_FogTcScale( shader->fogParms.fogType, d, shader->fogParms.density );
+ 
+-		// set the gradient vector
+-		sideNum = LittleLong( fogs->visibleSide );
++		if ( out->originalBrushNumber == -1 ) {
++			s_worldData.globalFog = i + 1;
++		} else {
++			// set the gradient vector
++			sideNum = LittleLong( fogs->visibleSide );
+ 
+-		// ydnar: made this check a little more strenuous (was sideNum == -1)
+-		if ( sideNum < 0 || sideNum >= sidesCount ) {
+-			out->hasSurface = qfalse;
+-		} else {
+-			out->hasSurface = qtrue;
+-			planeNum = LittleLong( sides[ firstSide + sideNum ].planeNum );
+-			VectorSubtract( vec3_origin, s_worldData.planes[ planeNum ].normal, out->surface );
+-			out->surface[3] = -s_worldData.planes[ planeNum ].dist;
++			if ( sideNum < 0 || sideNum >= sidesCount ) {
++				out->hasSurface = qfalse;
++			} else {
++				out->hasSurface = qtrue;
++				planeNum = LittleLong( sides[ firstSide + sideNum ].planeNum );
++				VectorSubtract( vec3_origin, s_worldData.planes[ planeNum ].normal, out->surface );
++				out->surface[3] = -s_worldData.planes[ planeNum ].dist;
++			}
+ 		}
+ 
+ 		out++;
+ 	}
+ 
++forceGlobalFogSetup:
++
++	// Add global fog if not present in bsp.
++	if ( s_worldData.globalFog == -1 ) {
++		s_worldData.globalFog = s_worldData.numfogs - 1;
++
++		out = s_worldData.fogs + s_worldData.globalFog;
++
++		out->originalBrushNumber = -1;
++
++		VectorSet( out->bounds[ 0 ], 0, 0, 0 );
++		VectorSet( out->bounds[ 1 ], 0, 0, 0 );
++
++		// Don't check bounds of global fog.
++		//s_worldData.numfogs--;
++	} else {
++		// Ignore internal global fog.
++		s_worldData.numfogs--;
++	}
+ }
+ 
+ 
+@@ -2122,11 +2166,11 @@
+ 	R_LoadShaders( &header->lumps[LUMP_SHADERS] );
+ 	R_LoadLightmaps( &header->lumps[LUMP_LIGHTMAPS] );
+ 	R_LoadPlanes (&header->lumps[LUMP_PLANES]);
+-	R_LoadFogs( &header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
+ 	R_LoadSurfaces( &header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES] );
+ 	R_LoadMarksurfaces (&header->lumps[LUMP_LEAFSURFACES]);
+ 	R_LoadNodesAndLeafs (&header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS]);
+ 	R_LoadSubmodels (&header->lumps[LUMP_MODELS]);
++	R_LoadFogs( &header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
+ 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
+ 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
+ 	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+@@ -2136,6 +2180,15 @@
+ 	// only set tr.world now that we know the entire level has loaded properly
+ 	tr.world = &s_worldData;
+ 
++	// If global fog was found in BSP and hasn't been set by a shader, use it
++	if ( tr.world->globalFog != -1 && tr.world->fogs[tr.world->globalFog].shader  && !tr.globalFogType ) {
++		// Set default global fog
++		tr.globalFogType = tr.world->fogs[tr.world->globalFog].shader->fogParms.fogType;
++		VectorCopy( tr.world->fogs[tr.world->globalFog].shader->fogParms.color, tr.globalFogColor );
++		tr.globalFogDepthForOpaque = tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque;
++		tr.globalFogDensity = tr.world->fogs[tr.world->globalFog].shader->fogParms.density;
++	}
++
+     ri.FS_FreeFile( buffer.v );
+ }
+ 
+Index: code/renderer/tr_cmds.c
+===================================================================
+--- code/renderer/tr_cmds.c	(revision 325)
++++ code/renderer/tr_cmds.c	(revision 329)
+@@ -489,6 +489,56 @@
+ 	r_numpolyverts += numverts;
+ }
+ 
++/*
++====================
++RE_GetGlobalFog
++====================
++*/
++void RE_GetGlobalFog( fogType_t *type, vec3_t color, float *depthForOpaque, float *density ) {
++	if (type) {
++		*type = tr.globalFogType;
++	}
++
++	if (color) {
++		VectorCopy( tr.globalFogColor, color );
++	}
++
++	if (depthForOpaque) {
++		*depthForOpaque = tr.globalFogDepthForOpaque;
++	}
++
++	if (density) {
++		*density = tr.globalFogDensity;
++	}
++}
++
++/*
++====================
++RE_GetWaterFog
++====================
++*/
++void RE_GetWaterFog( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density ) {
++	// ZTM: TODO: Use origin to get water fog.
++	// Idea: For each bmodel containing point `origin', check shader on each side for waterfogvars
++	(void)origin;
++
++	if (type) {
++		*type = tr.waterFogType;
++	}
++
++	if (color) {
++		VectorCopy( tr.waterFogColor, color );
++	}
++
++	if (depthForOpaque) {
++		*depthForOpaque = tr.waterFogDepthForOpaque;
++	}
++
++	if (density) {
++		*density = tr.waterFogDensity;
++	}
++}
++
+ #define MODE_RED_CYAN	1
+ #define MODE_RED_BLUE	2
+ #define MODE_RED_GREEN	3
+Index: code/renderer/tr_scene.c
+===================================================================
+--- code/renderer/tr_scene.c	(revision 325)
++++ code/renderer/tr_scene.c	(revision 329)
+@@ -202,7 +202,7 @@
+ 				}
+ 			}
+ 			if ( fogIndex == tr.world->numfogs ) {
+-				fogIndex = 0;
++				fogIndex = R_DefaultFogNum();
+ 			}
+ 		}
+ 		poly->fogIndex = fogIndex;
+@@ -272,7 +272,7 @@
+ 		}
+ 	}
+ 	if ( fogIndex == tr.world->numfogs ) {
+-		fogIndex = 0;
++		fogIndex = R_DefaultFogNum();
+ 	}
+ 
+ 	pPolySurf->fogIndex = fogIndex;
+@@ -412,6 +412,28 @@
+ 	tr.refdef.time = fd->time;
+ 	tr.refdef.rdflags = fd->rdflags;
+ 
++	tr.refdef.fogType = fd->fogType;
++	if ( tr.refdef.fogType < FT_NONE || tr.refdef.fogType >= FT_MAX_FOG_TYPE ) {
++		tr.refdef.fogType = FT_NONE;
++	}
++
++	tr.refdef.fogColor[0] = fd->fogColor[0] * tr.identityLight;
++	tr.refdef.fogColor[1] = fd->fogColor[1] * tr.identityLight;
++	tr.refdef.fogColor[2] = fd->fogColor[2] * tr.identityLight;
++
++	tr.refdef.fogColorInt = ColorBytes4( tr.refdef.fogColor[0],
++									  tr.refdef.fogColor[1],
++									  tr.refdef.fogColor[2], 1.0 );
++
++	tr.refdef.fogDensity = fd->fogDensity;
++
++	if ( r_zfar->value ) {
++		tr.refdef.fogDepthForOpaque = r_zfar->value < 1 ? 1 : r_zfar->value;
++	} else {
++		tr.refdef.fogDepthForOpaque = fd->fogDepthForOpaque < 1 ? 1 : fd->fogDepthForOpaque;
++	}
++	tr.refdef.fogTcScale = R_FogTcScale( tr.refdef.fogType, tr.refdef.fogDepthForOpaque, tr.refdef.fogDensity );
++
+ 	// copy the areamask data over and note if it has changed, which
+ 	// will force a reset of the visible leafs even if the view hasn't moved
+ 	tr.refdef.areamaskModified = qfalse;
+Index: code/renderer/tr_shader.c
+===================================================================
+--- code/renderer/tr_shader.c	(revision 325)
++++ code/renderer/tr_shader.c	(revision 329)
+@@ -815,6 +815,21 @@
+ 			stage->isDetail = qtrue;
+ 		}
+ 		//
++		// fog
++		//
++		else if ( !Q_stricmp( token, "fog" ) ) {
++			token = COM_ParseExt( text, qfalse );
++			if ( token[0] == 0 ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing parm for fog in shader '%s'\n", shader.name );
++				continue;
++			}
++			if ( !Q_stricmp( token, "on" ) ) {
++				stage->isFogged = qtrue;
++			} else {
++				stage->isFogged = qfalse;
++			}
++		}
++		//
+ 		// blendfunc <srcFactor> <dstFactor>
+ 		// or blendfunc <add|filter|blend>
+ 		//
+@@ -1584,25 +1599,62 @@
+ 			shader.entityMergable = qtrue;
+ 			continue;
+ 		}
+-		// fogParms
+-		else if ( !Q_stricmp( token, "fogParms" ) ) 
++		// ZTM: TODO: Use shader name set here instead of always "sun"
++		else if ( !Q_stricmp( token, "sunshader" ) ) {
++			token = COM_ParseExt( text, qfalse );
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing shader name for 'sunshader'\n" );
++				continue;
++			}
++
++			ri.Printf( PRINT_WARNING, "Sunshader = %s\n", token );
++			//tr.sunShaderName = CopyString( token );
++			continue;
++		}
++		// fogParms ( <red> <green> <blue> ) <depthForOpaque>
++		else if ( !Q_stricmp( token, "fogParms" ) )
+ 		{
++			shader.fogParms.fogType = FT_EXP;
++
+ 			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
+ 				return qfalse;
+ 			}
+ 
+ 			token = COM_ParseExt( text, qfalse );
+-			if ( !token[0] ) 
+-			{
++			if ( !token[0] ) {
+ 				ri.Printf( PRINT_WARNING, "WARNING: missing parm for 'fogParms' keyword in shader '%s'\n", shader.name );
+ 				continue;
+ 			}
+ 			shader.fogParms.depthForOpaque = atof( token );
+ 
++			shader.fogParms.density = DEFAULT_FOG_EXP_DENSITY;
++
+ 			// skip any old gradient directions
+ 			SkipRestOfLine( text );
+ 			continue;
+ 		}
++		// linearFogParms ( <red> <green> <blue> ) <depthForOpaque>
++		else if ( !Q_stricmp( token, "linearFogParms" ) )
++		{
++			shader.fogParms.fogType = FT_LINEAR;
++
++			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
++				return qfalse;
++			}
++
++			token = COM_ParseExt( text, qfalse );
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing parm for 'linearFogParms' keyword in shader '%s'\n", shader.name );
++				continue;
++			}
++			shader.fogParms.depthForOpaque = atof( token );
++
++			shader.fogParms.density = DEFAULT_FOG_LINEAR_DENSITY;
++
++			// skip any old gradient directions
++			SkipRestOfLine( text );
++			continue;
++		}
+ 		// portal
+ 		else if ( !Q_stricmp(token, "portal") )
+ 		{
+@@ -1615,6 +1667,127 @@
+ 			ParseSkyParms( text );
+ 			continue;
+ 		}
++		// skyfogvars ( <red> <green> <blue> ) <density>
++		else if ( !Q_stricmp( token, "skyfogvars" ) ) {
++			vec3_t fogColor;
++			float fogDensity;
++
++			if ( !ParseVector( text, 3, fogColor ) ) {
++				return qfalse;
++			}
++			token = COM_ParseExt( text, qfalse );
++
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing density value for skyfogvars\n" );
++				continue;
++			}
++
++			fogDensity = atof( token );
++
++			if ( fogDensity > 1 ) {
++				ri.Printf( PRINT_WARNING, "WARNING: last value for skyfogvars is 'density' which needs to be 0.0-1.0\n" );
++				continue;
++			}
++
++			tr.skyFogType = FT_EXP;
++
++			//tr.skyFogDepthForOpaque = 5; // ZTM: FIXME: Um, what? this doesn't seems like it would work using Q3 fogging.
++			tr.skyFogDepthForOpaque = 2048;
++
++			tr.skyFogDensity = fogDensity;
++			VectorCopy( fogColor, tr.skyFogColor);
++			continue;
++		}
++		// waterfogvars ( <red> <green> <blue> ) [density <= 1 or depthForOpaque > 1]
++		else if ( !Q_stricmp( token, "waterfogvars" ) ) {
++			vec3_t watercolor;
++			float fogvar;
++
++			if ( !ParseVector( text, 3, watercolor ) ) {
++				return qfalse;
++			}
++			token = COM_ParseExt( text, qfalse );
++
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing density/distance value for waterfogvars\n" );
++				continue;
++			}
++
++			fogvar = atof( token );
++
++			//----(SA)	right now allow one water color per map.  I'm sure this will need
++			//			to change at some point, but I'm not sure how to track fog parameters
++			//			on a "per-water volume" basis yet.
++
++			if ( fogvar == 0 ) {
++				// Specifies "use the map values for everything except the fog color"
++				tr.waterFogType = FT_NONE;
++
++				if ( watercolor[0] == 0 && watercolor[1] == 0 && watercolor[2] == 0 ) {
++					// Color must be non-zero.
++					watercolor[0] = watercolor[1] = watercolor[2] = 0.00001;
++				}
++			} else if ( fogvar > 1 ) {
++				tr.waterFogType = FT_LINEAR;
++				tr.waterFogDepthForOpaque = fogvar;
++				tr.waterFogDensity = DEFAULT_FOG_LINEAR_DENSITY;
++			} else {
++				tr.waterFogType = FT_EXP;
++				tr.waterFogDensity = fogvar;
++				//tr.waterFogDepthForOpaque = 5; // ZTM: FIXME: Um, what? this doesn't seems like it would work using Q3 fogging.
++				tr.waterFogDepthForOpaque = 2048;
++			}
++
++			VectorCopy( watercolor, tr.waterFogColor );
++			continue;
++		}
++		// fogvars ( <red> <green> <blue> ) [density <= 1 or depthForOpaque > 1]
++		else if ( !Q_stricmp( token, "fogvars" ) ) {
++			vec3_t fogColor;
++			float fogvar;
++
++			if ( !ParseVector( text, 3, fogColor ) ) {
++				return qfalse;
++			}
++
++			token = COM_ParseExt( text, qfalse );
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing density value for the fog\n" );
++				continue;
++			}
++
++			// fogFar > 1 means the shader is setting the farclip, < 1 means setting
++			// density (so old maps or maps that just need softening fog don't have to care about farclip)
++			fogvar = atof( token );
++
++			if ( fogvar > 1 ) {
++				tr.globalFogType = FT_LINEAR;
++				tr.globalFogDepthForOpaque = fogvar;
++				tr.globalFogDensity = DEFAULT_FOG_LINEAR_DENSITY;
++			} else {
++				tr.globalFogType = FT_EXP;
++				tr.globalFogDensity = fogvar;
++				tr.globalFogDepthForOpaque = 5; // ZTM: FIXME: Um, what? this doesn't seems like it would work using Q3 fogging.
++				//tr.globalFogDepthForOpaque = 2048;
++			}
++
++			VectorCopy( fogColor, tr.globalFogColor );
++			continue;
++		}
++		// nofog, allow disabling fog for some shaders
++		else if ( !Q_stricmp( token, "nofog" ) ) {
++			shader.noFog = qtrue;
++			continue;
++		}
++		// RF, allow each shader to permit compression if available
++		// ZTM: Just ignore them for now.
++		else if ( !Q_stricmp( token, "allowcompress" ) ) {
++			//tr.allowCompress = qtrue;
++			continue;
++		} else if ( !Q_stricmp( token, "nocompress" ) )   {
++			//tr.allowCompress = -1;
++			continue;
++		}
+ 		// light <value> determines flaring in q3map, not needed here
+ 		else if ( !Q_stricmp(token, "light") ) 
+ 		{
+Index: code/renderer/tr_model_iqm.c
+===================================================================
+--- code/renderer/tr_model_iqm.c	(revision 325)
++++ code/renderer/tr_model_iqm.c	(revision 329)
+@@ -752,7 +752,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return R_DefaultFogNum();
+ }
+ 
+ /*
+Index: code/renderer/tr_types.h
+===================================================================
+--- code/renderer/tr_types.h	(revision 325)
++++ code/renderer/tr_types.h	(revision 329)
+@@ -65,6 +65,7 @@
+ // refdef flags
+ #define RDF_NOWORLDMODEL	0x0001		// used for player configuration screen
+ #define RDF_HYPERSPACE		0x0004		// teleportation effect
++#define RDF_UNDERWATER		0x0008		// underwater
+ 
+ typedef struct {
+ 	vec3_t		xyz;
+@@ -149,6 +150,14 @@
+ #define	MAX_RENDER_STRINGS			8
+ #define	MAX_RENDER_STRING_LENGTH	32
+ 
++typedef enum {
++	FT_NONE,
++	FT_EXP,
++	FT_LINEAR,
++
++	FT_MAX_FOG_TYPE
++} fogType_t;
++
+ typedef struct {
+ 	int			x, y, width, height;
+ 	float		fov_x, fov_y;
+@@ -165,6 +174,12 @@
+ 
+ 	// text messages for deform text shaders
+ 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
++
++	// fog
++	fogType_t	fogType;
++	vec3_t		fogColor;
++	float		fogDepthForOpaque;
++	float		fogDensity;
+ } refdef_t;
+ 
+ 
+Index: code/renderer/tr_animation.c
+===================================================================
+--- code/renderer/tr_animation.c	(revision 325)
++++ code/renderer/tr_animation.c	(revision 329)
+@@ -310,7 +310,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return R_DefaultFogNum();
+ }
+ 
+ 
+Index: code/renderer/tr_image.c
+===================================================================
+--- code/renderer/tr_image.c	(revision 325)
++++ code/renderer/tr_image.c	(revision 329)
+@@ -1055,12 +1055,9 @@
+ void R_InitFogTable( void ) {
+ 	int		i;
+ 	float	d;
+-	float	exp;
+-	
+-	exp = 0.5;
+ 
+ 	for ( i = 0 ; i < FOG_TABLE_SIZE ; i++ ) {
+-		d = pow ( (float)i/(FOG_TABLE_SIZE-1), exp );
++		d = pow ( (float)i/(FOG_TABLE_SIZE-1), DEFAULT_FOG_EXP_DENSITY );
+ 
+ 		tr.fogTable[i] = d;
+ 	}
+@@ -1103,34 +1100,57 @@
+ 
+ /*
+ ================
+-R_CreateFogImage
++R_FogTcScale
+ ================
+ */
+-#define	FOG_S	256
+-#define	FOG_T	32
+-static void R_CreateFogImage( void ) {
+-	int		x,y;
++float R_FogTcScale( fogType_t fogType, float depthForOpaque, float density ) {
++	float scale;
++
++	if ( fogType == FT_LINEAR ) {
++		scale = DEFAULT_FOG_LINEAR_DENSITY / density;
++		return ( 1.0f / ( depthForOpaque * scale ) );
++	}
++
++	// exponential fog
++	scale = DEFAULT_FOG_EXP_DENSITY / density;
++	return ( 1.0f / ( depthForOpaque * 8 * scale ) );
++}
++
++/*
++================
++R_CreateFogImages
++
++Create fog images for exponential and linear fog.
++================
++*/
++static void R_CreateFogImages( void ) {
++	int		x, y, alpha;
+ 	byte	*data;
+ 	float	d;
+ 	float	borderColor[4];
++	int		fog_s, fog_t;
+ 
+-	data = ri.Hunk_AllocateTempMemory( FOG_S * FOG_T * 4 );
++	// Create exponential fog image
++	fog_s = 256;
++	fog_t = 32;
++	data = ri.Hunk_AllocateTempMemory( fog_s * fog_t * 4 );
+ 
+ 	// S is distance, T is depth
+-	for (x=0 ; x<FOG_S ; x++) {
+-		for (y=0 ; y<FOG_T ; y++) {
+-			d = R_FogFactor( ( x + 0.5f ) / FOG_S, ( y + 0.5f ) / FOG_T );
++	for (x=0 ; x<fog_s ; x++) {
++		for (y=0 ; y<fog_t ; y++) {
++			d = R_FogFactor( ( x + 0.5f ) / fog_s, ( y + 0.5f ) / fog_t );
+ 
+-			data[(y*FOG_S+x)*4+0] = 
+-			data[(y*FOG_S+x)*4+1] = 
+-			data[(y*FOG_S+x)*4+2] = 255;
+-			data[(y*FOG_S+x)*4+3] = 255*d;
++			data[(y*fog_s+x)*4+0] = 
++			data[(y*fog_s+x)*4+1] = 
++			data[(y*fog_s+x)*4+2] = 255;
++			data[(y*fog_s+x)*4+3] = 255*d;
+ 		}
+ 	}
++
+ 	// standard openGL clamping doesn't really do what we want -- it includes
+ 	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
+ 	// what we want.
+-	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, qfalse, qfalse, GL_CLAMP_TO_EDGE );
++	tr.fogImage = R_CreateImage("*fog", (byte *)data, fog_s, fog_t, qfalse, qfalse, GL_CLAMP_TO_EDGE );
+ 	ri.Hunk_FreeTempMemory( data );
+ 
+ 	borderColor[0] = 1.0;
+@@ -1139,6 +1159,52 @@
+ 	borderColor[3] = 1;
+ 
+ 	qglTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor );
++
++
++	// Create linear fog image
++	fog_s = 16;
++	fog_t = 16;
++	data = ri.Hunk_AllocateTempMemory( fog_s * fog_t * 4 );
++
++	// ydnar: new, linear fog texture generating algo for GL_CLAMP_TO_EDGE (OpenGL 1.2+)
++
++	// S is distance, T is depth
++	for ( x = 0 ; x < fog_s ; x++ ) {
++		for ( y = 0 ; y < fog_t ; y++ ) {
++			alpha = 270 * ( (float) x / fog_s ) * ( (float) y / fog_t );    // need slop room for fp round to 0
++			if ( alpha < 0 ) {
++				alpha = 0;
++			} else if ( alpha > 255 ) {
++				alpha = 255;
++			}
++
++			// ensure edge/corner cases are fully transparent (at 0,0) or fully opaque (at 1,N where N is 0-1.0)
++			if ( x == 0 ) {
++				alpha = 0;
++			} else if ( x == ( fog_s - 1 ) ) {
++				alpha = 255;
++			}
++
++			data[( y * fog_s + x ) * 4 + 0] =
++			data[( y * fog_s + x ) * 4 + 1] =
++			data[( y * fog_s + x ) * 4 + 2] = 255;
++			data[( y * fog_s + x ) * 4 + 3] = alpha;
++		}
++	}
++
++	// standard openGL clamping doesn't really do what we want -- it includes
++	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
++	// what we want.
++	tr.linearFogImage = R_CreateImage("*linearfog", (byte *)data, fog_s, fog_t, qfalse, qfalse, GL_CLAMP_TO_EDGE );
++	ri.Hunk_FreeTempMemory( data );
++
++	// ydnar: the following lines are unecessary for new GL_CLAMP_TO_EDGE fog
++	borderColor[0] = 1.0;
++	borderColor[1] = 1.0;
++	borderColor[2] = 1.0;
++	borderColor[3] = 1;
++
++	qglTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor );
+ }
+ 
+ /*
+@@ -1212,7 +1278,7 @@
+ 	}
+ 
+ 	R_CreateDlightImage();
+-	R_CreateFogImage();
++	R_CreateFogImages();
+ }
+ 
+ 
+Index: code/renderer/tr_public.h
+===================================================================
+--- code/renderer/tr_public.h	(revision 325)
++++ code/renderer/tr_public.h	(revision 329)
+@@ -111,6 +111,9 @@
+ 	qboolean (*inPVS)( const vec3_t p1, const vec3_t p2 );
+ 
+ 	void (*TakeVideoFrame)( int h, int w, byte* captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
++
++	void (*GetGlobalFog)( fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
++	void (*GetWaterFog)( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
+ } refexport_t;
+ 
+ //
+Index: code/renderer/tr_shade.c
+===================================================================
+--- code/renderer/tr_shade.c	(revision 325)
++++ code/renderer/tr_shade.c	(revision 329)
+@@ -358,6 +358,16 @@
+ 
+ 	pStage = tess.xstages[stage];
+ 
++	if ( tess.shader->noFog && pStage->isFogged ) {
++		RB_FogOn();
++	} else if ( tess.shader->noFog && !pStage->isFogged ) {
++		// turn fog back off
++		R_FogOff();
++	} else {
++		// make sure fog is on
++		RB_FogOn();
++	}
++
+ 	GL_State( pStage->stateBits );
+ 
+ 	// this is an ugly hack to work around a GeForce driver
+@@ -576,6 +586,7 @@
+ 		qglEnableClientState( GL_COLOR_ARRAY );
+ 		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorArray );
+ 
++		R_FogOff();
+ 		GL_Bind( tr.dlightImage );
+ 		// include GLS_DEPTHFUNC_EQUAL so alpha tested surfaces don't add light
+ 		// where they aren't rendered
+@@ -588,6 +599,7 @@
+ 		R_DrawElements( numIndexes, hitIndexes );
+ 		backEnd.pc.c_totalIndexes += numIndexes;
+ 		backEnd.pc.c_dlightIndexes += numIndexes;
++		RB_FogOn();
+ 	}
+ }
+ #endif
+@@ -730,6 +742,7 @@
+ 		qglEnableClientState( GL_COLOR_ARRAY );
+ 		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorArray );
+ 
++		R_FogOff();
+ 		GL_Bind( tr.dlightImage );
+ 		// include GLS_DEPTHFUNC_EQUAL so alpha tested surfaces don't add light
+ 		// where they aren't rendered
+@@ -742,6 +755,7 @@
+ 		R_DrawElements( numIndexes, hitIndexes );
+ 		backEnd.pc.c_totalIndexes += numIndexes;
+ 		backEnd.pc.c_dlightIndexes += numIndexes;
++		RB_FogOn();
+ 	}
+ }
+ 
+@@ -766,26 +780,61 @@
+ */
+ static void RB_FogPass( void ) {
+ 	fog_t		*fog;
++	unsigned	colorInt;
++	qboolean	linearFog;
+ 	int			i;
+ 
++	// no fog pass
++	if ( tess.shader->noFog ) {
++		return;
++	}
++
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	// Global fog
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++		colorInt = backEnd.refdef.fogColorInt;
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++		colorInt = fog->colorInt;
++	}
++
+ 	qglEnableClientState( GL_COLOR_ARRAY );
+ 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+ 
+ 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
+ 	qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
+ 
+-	fog = tr.world->fogs + tess.fogNum;
+-
+ 	for ( i = 0; i < tess.numVertexes; i++ ) {
+-		* ( int * )&tess.svars.colors[i] = fog->colorInt;
++		* ( int * )&tess.svars.colors[i] = colorInt;
+ 	}
+ 
+ 	RB_CalcFogTexCoords( ( float * ) tess.svars.texcoords[0] );
+ 
+-	GL_Bind( tr.fogImage );
++	if ( linearFog ) {
++		GL_Bind( tr.linearFogImage );
++	} else {
++		GL_Bind( tr.fogImage );
++	}
+ 
+ 	if ( tess.shader->fogPass == FP_EQUAL ) {
+ 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL );
++	} else if ( tess.shader->sort >= SS_BLEND0 ) {
++		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL );
+ 	} else {
+ 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
+ 	}
+@@ -864,11 +913,25 @@
+ 		case CGEN_FOG:
+ 			{
+ 				fog_t		*fog;
++				unsigned	colorInt;
+ 
+ 				fog = tr.world->fogs + tess.fogNum;
+ 
++#if 0
++				if ( r_useGlFog->integer ) {
++					Com_Memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
++					break;
++				}
++#endif
++
++				if ( fog->originalBrushNumber < 0 ) {
++					colorInt = backEnd.refdef.fogColorInt;
++				} else {
++					colorInt = fog->colorInt;
++				}
++
+ 				for ( i = 0; i < tess.numVertexes; i++ ) {
+-					* ( int * )&tess.svars.colors[i] = fog->colorInt;
++					* ( int * )&tess.svars.colors[i] = colorInt;
+ 				}
+ 			}
+ 			break;
+@@ -968,7 +1031,7 @@
+ 	//
+ 	// fog adjustment for colors to fade out as fog increases
+ 	//
+-	if ( tess.fogNum )
++	if ( tess.fogNum && !tess.shader->noFog )
+ 	{
+ 		switch ( pStage->adjustColorsForFog )
+ 		{
+@@ -1112,6 +1175,26 @@
+ }
+ 
+ /*
++==============
++SetIteratorFog
++
++Set the fog parameters for this pass.
++==============
++*/
++void SetIteratorFog( void ) {
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		R_FogOff();
++		return;
++	}
++
++	if ( tess.fogNum && ( tess.shader->fogPass || ( tess.shader->sort > SS_OPAQUE && tess.shader->sort < SS_BLEND0 && tr.world && tess.fogNum == tr.world->globalFog ) ) ) {
++		RB_Fog( tess.fogNum );
++	} else {
++		R_FogOff();
++	}
++}
++
++/*
+ ** RB_IterateStagesGeneric
+ */
+ static void RB_IterateStagesGeneric( shaderCommands_t *input )
+@@ -1157,9 +1240,20 @@
+ 			{
+ 				GL_Bind( tr.whiteImage );
+ 			}
+-			else 
++			else
+ 				R_BindAnimatedImage( &pStage->bundle[0] );
+ 
++			// per stage fogging (detail textures)
++			if ( tess.shader->noFog && pStage->isFogged ) {
++				RB_FogOn();
++			} else if ( tess.shader->noFog && !pStage->isFogged ) {
++				// turn fog back off
++				R_FogOff();
++			} else {
++				// make sure fog is on
++				RB_FogOn();
++			}
++
+ 			GL_State( pStage->stateBits );
+ 
+ 			//
+@@ -1200,6 +1294,11 @@
+ 	}
+ 
+ 	//
++	// set GL fog
++	//
++	SetIteratorFog();
++
++	//
+ 	// set face culling appropriately
+ 	//
+ 	GL_Cull( shader->cullType );
+@@ -1269,7 +1368,7 @@
+ 	//
+ 	// now do fog
+ 	//
+-	if ( tess.fogNum && tess.shader->fogPass ) {
++	if ( tess.fogNum && ( tess.shader->fogPass || ( tess.shader->sort > SS_OPAQUE && tr.world && tess.fogNum == tr.world->globalFog ) ) ) {
+ 		RB_FogPass();
+ 	}
+ 
+@@ -1319,6 +1418,11 @@
+ 	}
+ 
+ 	//
++	// set GL fog
++	//
++	SetIteratorFog();
++
++	//
+ 	// set face culling appropriately
+ 	//
+ 	GL_Cull( shader->cullType );
+@@ -1356,7 +1460,7 @@
+ 	//
+ 	// now do fog
+ 	//
+-	if ( tess.fogNum && tess.shader->fogPass ) {
++	if ( tess.fogNum && ( tess.shader->fogPass || ( tess.shader->sort > SS_OPAQUE && tr.world && tess.fogNum == tr.world->globalFog ) ) ) {
+ 		RB_FogPass();
+ 	}
+ 
+@@ -1389,6 +1493,11 @@
+ 	}
+ 
+ 	//
++	// set GL fog
++	//
++	SetIteratorFog();
++
++	//
+ 	// set face culling appropriately
+ 	//
+ 	GL_Cull( shader->cullType );
+@@ -1463,7 +1572,7 @@
+ 	//
+ 	// now do fog
+ 	//
+-	if ( tess.fogNum && tess.shader->fogPass ) {
++	if ( tess.fogNum && ( tess.shader->fogPass || ( tess.shader->sort > SS_OPAQUE && tr.world && tess.fogNum == tr.world->globalFog ) ) ) {
+ 		RB_FogPass();
+ 	}
+ 
+Index: code/renderer/tr_main.c
+===================================================================
+--- code/renderer/tr_main.c	(revision 325)
++++ code/renderer/tr_main.c	(revision 329)
+@@ -51,8 +51,171 @@
+ // point at this for their sorting surface
+ surfaceType_t	entitySurface = SF_ENTITY;
+ 
++// fog stuff
++qboolean fogIsOn = qfalse;
++
+ /*
+ =================
++RB_Fog
++=================
++*/
++void RB_Fog( int fogNum ) {
++	//static int			lastFogMode = 0;
++	//static vec3_t		lastColor = { -1, -1, -1 };
++	//static float		lastDensity = -1;
++	//static int			lastHint = -1;
++	//static float		lastStart = -1, lastEnd = -1;
++
++	int					fogMode;
++	vec3_t				color;
++	float				density;
++	int					hint;
++	float				start, end;
++
++	if ( !r_useGlFog->integer ) {
++		R_FogOff();
++		return;
++	}
++
++	if ( tr.world && fogNum == tr.world->globalFog ) {
++		switch ( backEnd.refdef.fogType ) {
++			case FT_LINEAR:
++				fogMode = GL_LINEAR;
++				end = backEnd.refdef.fogDepthForOpaque;
++				break;
++
++			case FT_EXP:
++				fogMode = GL_EXP;
++				end = 5; // ZTM: ???
++				break;
++
++			default:
++				R_FogOff();
++				return;
++		}
++
++		VectorCopy( backEnd.refdef.fogColor, color );
++
++		density = backEnd.refdef.fogDensity;
++
++	} else {
++		fog_t *fog;
++
++		fog = tr.world->fogs + fogNum;
++
++		if ( !fog->shader ) {
++			R_FogOff();
++			return;
++		}
++
++		switch ( fog->shader->fogParms.fogType ) {
++			case FT_LINEAR:
++				fogMode = GL_LINEAR;
++				end = backEnd.refdef.fogDepthForOpaque;
++				break;
++
++			case FT_EXP:
++				fogMode = GL_EXP;
++				end = 5; // ZTM: ???
++				break;
++
++			default:
++				R_FogOff();
++				return;
++		}
++
++		VectorCopy( fog->shader->fogParms.color, color );
++
++		end = fog->shader->fogParms.depthForOpaque;
++		density = fog->shader->fogParms.density;
++	}
++
++	hint = GL_DONT_CARE;
++	start = 0;
++
++	RB_FogOn();
++
++	// only send changes if necessary
++
++	//if ( fogMode != lastFogMode ) {
++		qglFogi( GL_FOG_MODE, fogMode );
++	//	lastFogMode = fogMode;
++	//}
++	//if ( color[0] != lastColor[0] || color[1] != lastColor[1] || color[2] != lastColor[2] || !lastFogMode ) {
++		qglFogfv( GL_FOG_COLOR, color );
++	//	VectorCopy( lastColor, color );
++	//}
++	//if ( density != lastDensity || !lastFogMode ) {
++		qglFogf( GL_FOG_DENSITY, density );
++	//	lastDensity = density;
++	//}
++	//if ( hint != lastHint || !lastFogMode ) {
++		qglHint( GL_FOG_HINT, hint );
++	//	lastHint = hint;
++	//}
++	//if ( start != lastStart || !lastFogMode ) {
++		qglFogf( GL_FOG_START, start );
++	//	lastStart = start;
++	//}
++	//if ( end != lastEnd || !lastFogMode ) {
++		qglFogf( GL_FOG_END, end );
++	//	lastEnd = end;
++	//}
++
++#if 0 // ZTM: TODO: Add NVidia fog code?
++// TTimo - from SP NV fog code
++	// NV fog mode
++	if ( glConfig.NVFogAvailable ) {
++		qglFogi( GL_FOG_DISTANCE_MODE_NV, glConfig.NVFogMode );
++	}
++// end
++#endif
++
++	//qglClearColor( color[0], color[1], color[2], 1.0f );
++}
++
++void R_FogOff( void ) {
++	if ( !fogIsOn ) {
++		return;
++	}
++	qglDisable( GL_FOG );
++	fogIsOn = qfalse;
++}
++
++void RB_FogOn( void ) {
++	if ( fogIsOn ) {
++		return;
++	}
++
++//	if(r_uiFullScreen->integer) {	// don't fog in the menu
++//		R_FogOff();
++//		return;
++//	}
++
++	if ( !r_useGlFog->integer ) {
++		return;
++	}
++
++	// ZTM: FIXME:
++	//if ( backEnd.refdef.fogType == FT_NONE ) {
++	//	return;
++	//}
++
++	qglEnable( GL_FOG );
++	fogIsOn = qtrue;
++}
++
++/*
++=================
++R_DefaultFogNum
++=================
++*/
++int R_DefaultFogNum( void ) {
++	return ( tr.world && tr.refdef.fogType != FT_NONE ) ? tr.world->globalFog : 0;
++}
++
++/*
++=================
+ R_CullLocalBox
+ 
+ Returns CULL_IN, CULL_CLIP, or CULL_OUT
+@@ -401,6 +564,12 @@
+ 		return;
+ 	}
+ 
++	// set r_zfar to experiment with different distances
++	if ( r_zfar->value ) {
++		tr.viewParms.zFar = r_zfar->integer;
++		return;
++	}
++
+ 	//
+ 	// set far clipping planes dynamically
+ 	//
+@@ -448,6 +617,11 @@
+ 		}
+ 	}
+ 	tr.viewParms.zFar = sqrt( farthestCornerDistance );
++
++	// global fog
++	if ( tr.refdef.fogType == FT_LINEAR && tr.refdef.fogDepthForOpaque > 1 && tr.refdef.fogDepthForOpaque < tr.viewParms.zFar ) {
++		tr.viewParms.zFar = tr.refdef.fogDepthForOpaque;
++	}
+ }
+ 
+ /*
+@@ -589,7 +763,13 @@
+ 	float zNear, zFar, depth;
+ 	
+ 	zNear	= r_znear->value;
+-	zFar	= dest->zFar;	
++
++	if ( r_zfar->integer ) {
++		zFar = r_zfar->integer; // (SA) allow override for helping level designers test fog distances
++	} else {
++		zFar = dest->zFar;
++	}
++
+ 	depth	= zFar - zNear;
+ 
+ 	dest->projectionMatrix[2] = 0;
+@@ -1466,7 +1646,9 @@
+ 	R_SortDrawSurfs( tr.refdef.drawSurfs + firstDrawSurf, tr.refdef.numDrawSurfs - firstDrawSurf );
+ 
+ 	// draw main system development information (surface outlines, etc)
++	R_FogOff();
+ 	R_DebugGraphics();
++	//RB_FogOn();
+ }
+ 
+ 
+Index: code/renderer/tr_world.c
+===================================================================
+--- code/renderer/tr_world.c	(revision 325)
++++ code/renderer/tr_world.c	(revision 329)
+@@ -204,16 +204,16 @@
+ R_AddWorldSurface
+ ======================
+ */
+-static void R_AddWorldSurface( msurface_t *surf, int dlightBits ) {
++static void R_AddWorldSurface( msurface_t *surf, shader_t *shader, int fogNum, int dlightBits ) {
+ 	if ( surf->viewCount == tr.viewCount ) {
+ 		return;		// already in this view
+ 	}
+ 
+ 	surf->viewCount = tr.viewCount;
+-	// FIXME: bmodel fog?
++	surf->fogIndex = fogNum;
+ 
+ 	// try to cull before dlighting or adding
+-	if ( R_CullSurface( surf->data, surf->shader ) ) {
++	if ( R_CullSurface( surf->data, shader ) ) {
+ 		return;
+ 	}
+ 
+@@ -223,7 +223,7 @@
+ 		dlightBits = ( dlightBits != 0 );
+ 	}
+ 
+-	R_AddDrawSurf( surf->data, surf->shader, surf->fogIndex, dlightBits );
++	R_AddDrawSurf( surf->data, shader, surf->fogIndex, dlightBits );
+ }
+ 
+ /*
+@@ -236,14 +236,48 @@
+ 
+ /*
+ =================
++R_BmodelFogNum
++
++See if a sprite is inside a fog volume
++Return positive with /any part/ of the brush falling within a fog volume
++=================
++*/
++int R_BmodelFogNum( trRefEntity_t *re, bmodel_t *bmodel ) {
++	int i, j;
++	fog_t *fog;
++
++	for ( i = 1; i < tr.world->numfogs; i++ )
++	{
++		fog = &tr.world->fogs[ i ];
++		for ( j = 0; j < 3; j++ )
++		{
++			if ( re->e.origin[ j ] + bmodel->bounds[ 0 ][ j ] >= fog->bounds[ 1 ][ j ] ) {
++				break;
++			}
++			if ( re->e.origin[ j ] + bmodel->bounds[ 1 ][ j ] <= fog->bounds[ 0 ][ j ] ) {
++				break;
++			}
++		}
++		if ( j == 3 ) {
++			return i;
++		}
++	}
++
++	return R_DefaultFogNum();
++}
++
++/*
++=================
+ R_AddBrushModelSurfaces
+ =================
+ */
+ void R_AddBrushModelSurfaces ( trRefEntity_t *ent ) {
+ 	bmodel_t	*bmodel;
+ 	int			clip;
+-	model_t             *pModel;
++	model_t		*pModel;
+ 	int			i;
++	int			fognum;
++	msurface_t	*surf;
+ 
+ 	pModel = R_GetModelByHandle( ent->e.hModel );
+ 
+@@ -254,12 +288,37 @@
+ 		return;
+ 	}
+ 
++	// set current brush model to world
++	tr.currentBModel = bmodel;
++
++	// set model state for decals and dynamic fog
++	VectorCopy( ent->e.origin, bmodel->orientation[ tr.smpFrame ].origin );
++	VectorCopy( ent->e.axis[ 0 ], bmodel->orientation[ tr.smpFrame ].axis[ 0 ] );
++	VectorCopy( ent->e.axis[ 1 ], bmodel->orientation[ tr.smpFrame ].axis[ 1 ] );
++	VectorCopy( ent->e.axis[ 2 ], bmodel->orientation[ tr.smpFrame ].axis[ 2 ] );
++	bmodel->visible[ tr.smpFrame ] = qtrue;
++	bmodel->entityNum[ tr.smpFrame ] = tr.currentEntityNum;
++
+ 	R_SetupEntityLighting( &tr.refdef, ent );
+ 	R_DlightBmodel( bmodel );
+ 
+-	for ( i = 0 ; i < bmodel->numSurfaces ; i++ ) {
+-		R_AddWorldSurface( bmodel->firstSurface + i, tr.currentEntity->needDlights );
++	// determine if in fog
++	fognum = R_BmodelFogNum( ent, bmodel );
++
++	// add model surfaces
++	for ( i = 0; i < bmodel->numSurfaces; i++ ) {
++		surf = ( msurface_t * )( bmodel->firstSurface + i );
++
++		// custom shader support for brushmodels
++		if ( ent->e.customShader ) {
++			R_AddWorldSurface( surf, R_GetShaderByHandle( ent->e.customShader ), fognum, tr.currentEntity->needDlights );
++		} else {
++			R_AddWorldSurface( surf, surf->shader, fognum, tr.currentEntity->needDlights );
++		}
+ 	}
++
++	// clear current brush model
++	tr.currentBModel = NULL;
+ }
+ 
+ 
+@@ -271,9 +330,90 @@
+ =============================================================
+ */
+ 
++/*
++=================
++R_LeafFogNum
+ 
++See if leaf is inside a fog volume
++Return positive with /any part/ of the leaf falling within a fog volume
++=================
++*/
++int R_LeafFogNum( mnode_t *node ) {
++	int i, j;
++	fog_t *fog;
++
++	for ( i = 1; i < tr.world->numfogs; i++ )
++	{
++		fog = &tr.world->fogs[ i ];
++		for ( j = 0; j < 3; j++ )
++		{
++			if ( node->mins[ j ] >= fog->bounds[ 1 ][ j ] ) {
++				break;
++			}
++			if ( node->maxs[ j ] <= fog->bounds[ 0 ][ j ] ) {
++				break;
++			}
++		}
++		if ( j == 3 ) {
++			return i;
++		}
++	}
++
++	return R_DefaultFogNum();
++}
++
+ /*
+ ================
++R_AddLeafSurfaces
++
++Adds a leaf's drawsurfaces
++================
++*/
++static void R_AddLeafSurfaces( mnode_t *node, int dlightBits ) {
++	int c, fogNum;
++	msurface_t  *surf, **mark;
++
++	// add to count
++	tr.pc.c_leafs++;
++
++	// add to z buffer bounds
++	if ( node->mins[0] < tr.viewParms.visBounds[0][0] ) {
++		tr.viewParms.visBounds[0][0] = node->mins[0];
++	}
++	if ( node->mins[1] < tr.viewParms.visBounds[0][1] ) {
++		tr.viewParms.visBounds[0][1] = node->mins[1];
++	}
++	if ( node->mins[2] < tr.viewParms.visBounds[0][2] ) {
++		tr.viewParms.visBounds[0][2] = node->mins[2];
++	}
++
++	if ( node->maxs[0] > tr.viewParms.visBounds[1][0] ) {
++		tr.viewParms.visBounds[1][0] = node->maxs[0];
++	}
++	if ( node->maxs[1] > tr.viewParms.visBounds[1][1] ) {
++		tr.viewParms.visBounds[1][1] = node->maxs[1];
++	}
++	if ( node->maxs[2] > tr.viewParms.visBounds[1][2] ) {
++		tr.viewParms.visBounds[1][2] = node->maxs[2];
++	}
++
++	fogNum = R_LeafFogNum( node );
++
++	// add the individual surfaces
++	mark = node->firstmarksurface;
++	c = node->nummarksurfaces;
++	while ( c-- ) {
++		// the surface may have already been added if it
++		// spans multiple leafs
++		surf = *mark;
++		R_AddWorldSurface( surf, surf->shader, fogNum, dlightBits );
++		mark++;
++	}
++}
++
++
++/*
++================
+ R_RecursiveWorldNode
+ ================
+ */
+@@ -385,46 +525,12 @@
+ 		dlightBits = newDlights[1];
+ 	} while ( 1 );
+ 
+-	{
+-		// leaf node, so add mark surfaces
+-		int			c;
+-		msurface_t	*surf, **mark;
+-
+-		tr.pc.c_leafs++;
+-
+-		// add to z buffer bounds
+-		if ( node->mins[0] < tr.viewParms.visBounds[0][0] ) {
+-			tr.viewParms.visBounds[0][0] = node->mins[0];
+-		}
+-		if ( node->mins[1] < tr.viewParms.visBounds[0][1] ) {
+-			tr.viewParms.visBounds[0][1] = node->mins[1];
+-		}
+-		if ( node->mins[2] < tr.viewParms.visBounds[0][2] ) {
+-			tr.viewParms.visBounds[0][2] = node->mins[2];
+-		}
+-
+-		if ( node->maxs[0] > tr.viewParms.visBounds[1][0] ) {
+-			tr.viewParms.visBounds[1][0] = node->maxs[0];
+-		}
+-		if ( node->maxs[1] > tr.viewParms.visBounds[1][1] ) {
+-			tr.viewParms.visBounds[1][1] = node->maxs[1];
+-		}
+-		if ( node->maxs[2] > tr.viewParms.visBounds[1][2] ) {
+-			tr.viewParms.visBounds[1][2] = node->maxs[2];
+-		}
+-
+-		// add the individual surfaces
+-		mark = node->firstmarksurface;
+-		c = node->nummarksurfaces;
+-		while (c--) {
+-			// the surface may have already been added if it
+-			// spans multiple leafs
+-			surf = *mark;
+-			R_AddWorldSurface( surf, dlightBits );
+-			mark++;
+-		}
++	// short circuit
++	if ( node->nummarksurfaces == 0 ) {
++		return;
+ 	}
+ 
++	R_AddLeafSurfaces( node, dlightBits );
+ }
+ 
+ 
+@@ -589,6 +695,9 @@
+ 	tr.currentEntityNum = REFENTITYNUM_WORLD;
+ 	tr.shiftedEntityNum = tr.currentEntityNum << QSORT_REFENTITYNUM_SHIFT;
+ 
++	// set current brush model to world
++	tr.currentBModel = &tr.world->bmodels[ 0 ];
++
+ 	// determine which leaves are in the PVS / areamask
+ 	R_MarkLeaves ();
+ 
+@@ -599,5 +708,8 @@
+ 	if ( tr.refdef.num_dlights > 32 ) {
+ 		tr.refdef.num_dlights = 32 ;
+ 	}
+-	R_RecursiveWorldNode( tr.world->nodes, 15, ( 1 << tr.refdef.num_dlights ) - 1 );
++	R_RecursiveWorldNode( tr.world->nodes, 255, ( 1 << tr.refdef.num_dlights ) - 1 );
++
++	// clear brush model
++	tr.currentBModel = NULL;
+ }
+Index: code/renderer/tr_backend.c
+===================================================================
+--- code/renderer/tr_backend.c	(revision 325)
++++ code/renderer/tr_backend.c	(revision 329)
+@@ -453,14 +453,13 @@
+ 	{
+ 		clearBits |= GL_STENCIL_BUFFER_BIT;
+ 	}
+-	if ( r_fastsky->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) )
+-	{
+-		clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
+-#ifdef _DEBUG
+-		qglClearColor( 0.8f, 0.7f, 0.4f, 1.0f );	// FIXME: get color of sky
+-#else
+-		qglClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// FIXME: get color of sky
+-#endif
++	if ( ( backEnd.refdef.fogType == FT_LINEAR || r_fastsky->integer )
++		&& !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
++		clearBits |= GL_COLOR_BUFFER_BIT;
++
++		qglClearColor( backEnd.refdef.fogColor[ 0 ],
++					   backEnd.refdef.fogColor[ 1 ],
++					   backEnd.refdef.fogColor[ 2 ], 1.0 );
+ 	}
+ 	qglClear( clearBits );
+ 
+@@ -502,7 +501,20 @@
+ 	}
+ }
+ 
++/*
++=================
++RB_EndDrawingView
++=================
++*/
++void RB_EndDrawingView( void ) {
++	// ZTM: Disable fog?
++	//R_FogOff();
+ 
++	// ZTM: Reset portal clipping?
++	//qglDisable (GL_CLIP_PLANE0);
++}
++
++
+ #define	MAC_EVENT_PUMP_MSEC		5
+ 
+ /*
+@@ -688,6 +700,8 @@
+ 
+ 	// add light flares on lights that aren't obscured
+ 	RB_RenderFlares();
++
++	RB_EndDrawingView();
+ }
+ 
+ 
+Index: code/qcommon/q_shared.h
+===================================================================
+--- code/qcommon/q_shared.h	(revision 325)
++++ code/qcommon/q_shared.h	(revision 329)
+@@ -892,7 +892,7 @@
+ //
+ char *Info_ValueForKey( const char *s, const char *key );
+ void Info_RemoveKey( char *s, const char *key );
+-void Info_RemoveKey_big( char *s, const char *key );
++void Info_RemoveKey_Big( char *s, const char *key );
+ void Info_SetValueForKey( char *s, const char *key, const char *value );
+ void Info_SetValueForKey_Big( char *s, const char *key, const char *value );
+ qboolean Info_Validate( const char *s );
+Index: code/game/g_cmds.c
+===================================================================
+--- code/game/g_cmds.c	(revision 325)
++++ code/game/g_cmds.c	(revision 329)
+@@ -1021,7 +1021,7 @@
+ 	}
+ 
+ 	target = &g_entities[targetNum];
+-	if ( !target || !target->inuse || !target->client ) {
++	if ( !target->inuse || !target->client ) {
+ 		return;
+ 	}
+ 
+@@ -1147,7 +1147,7 @@
+ 	}
+ 
+ 	target = &g_entities[targetNum];
+-	if ( !target || !target->inuse || !target->client ) {
++	if ( !target->inuse || !target->client ) {
+ 		return;
+ 	}
+ 
+@@ -1261,6 +1261,14 @@
+ 		return;
+ 	}
+ 
++	trap_Argv( 2, arg, sizeof( arg ) );
++	order = atoi( arg );
++
++	if ( order < 0 || order >= numgc_orders ) {
++		trap_SendServerCommand( ent-g_entities, va("print \"Bad order: %i\n\"", order));
++		return;
++	}
++
+ 	trap_Argv( 1, arg, sizeof( arg ) );
+ 	targetNum = ClientNumberFromString( ent, arg, qtrue, qtrue );
+ 	if ( targetNum == -1 ) {
+@@ -1268,18 +1276,10 @@
+ 	}
+ 
+ 	target = &g_entities[targetNum];
+-	if ( !target || !target->inuse || !target->client ) {
++	if ( !target->inuse || !target->client ) {
+ 		return;
+ 	}
+ 
+-	trap_Argv( 2, arg, sizeof( arg ) );
+-	order = atoi( arg );
+-
+-	if ( order < 0 || order >= numgc_orders ) {
+-		trap_SendServerCommand( ent-g_entities, va("print \"Bad order: %i\n\"", order));
+-		return;
+-	}
+-
+ 	G_LogPrintf( "tell: %s to %s: %s\n", ent->client->pers.netname, target->client->pers.netname, gc_orders[order] );
+ 	G_Say( ent, target, SAY_TELL, gc_orders[order] );
+ 	// don't tell to the player self if it was already directed to this player
+Index: code/rend2/tr_mesh.c
+===================================================================
+--- code/rend2/tr_mesh.c	(revision 325)
++++ code/rend2/tr_mesh.c	(revision 329)
+@@ -283,7 +283,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return R_DefaultFogNum();
+ }
+ 
+ /*
+Index: code/rend2/tr_local.h
+===================================================================
+--- code/rend2/tr_local.h	(revision 325)
++++ code/rend2/tr_local.h	(revision 329)
+@@ -454,6 +454,7 @@
+ 	acff_t			adjustColorsForFog;
+ 
+ 	qboolean		isDetail;
++	qboolean		isFogged;					// used only for shaders that have fog disabled, so we can enable it for individual stages
+ 
+ 	stageType_t     type;
+ 	struct shaderProgram_s *glslShaderGroup;
+@@ -488,8 +489,10 @@
+ } skyParms_t;
+ 
+ typedef struct {
+-	vec3_t	color;
+-	float	depthForOpaque;
++	fogType_t	fogType;
++	vec3_t		color;
++	float		depthForOpaque;
++	float		density;
+ } fogParms_t;
+ 
+ 
+@@ -535,6 +538,8 @@
+ 
+ 	int         vertexAttribs;          // not all shaders will need all data to be gathered
+ 
++	qboolean	noFog;
++
+ 	int			numDeforms;
+ 	deformStage_t	deforms[MAX_SHADER_DEFORMS];
+ 
+@@ -957,6 +962,14 @@
+ 	// text messages for deform text shaders
+ 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
+ 
++	// fog
++	fogType_t	fogType;
++	vec3_t		fogColor;
++	unsigned	fogColorInt;
++	float		fogDepthForOpaque;
++	float		fogDensity;
++	float		fogTcScale;
++
+ 	int			num_entities;
+ 	trRefEntity_t	*entities;
+ 
+@@ -1003,12 +1016,13 @@
+ 
+ 
+ typedef struct {
++	int			modelNum;				// bsp model the fog belongs to
+ 	int			originalBrushNumber;
+ 	vec3_t		bounds[2];
+ 
++	shader_t	*shader;				// fog shader to get fogParms from
+ 	unsigned	colorInt;				// in packed byte format
+ 	float		tcScale;				// texture coordinate vector scales
+-	fogParms_t	parms;
+ 
+ 	// for clipping distance in fog when outside
+ 	qboolean	hasSurface;
+@@ -1429,6 +1443,13 @@
+ 	vec3_t		bounds[2];		// for culling
+ 	int	        firstSurface;
+ 	int			numSurfaces;
++
++	// ydnar: for fog volumes
++	int firstBrush;
++	int numBrushes;
++	orientation_t orientation[ SMP_FRAMES ];
++	qboolean visible[ SMP_FRAMES ];
++	int entityNum[ SMP_FRAMES ];
+ } bmodel_t;
+ 
+ typedef struct {
+@@ -1458,12 +1479,14 @@
+ 	int			numsurfaces;
+ 	msurface_t	*surfaces;
+ 	int         *surfacesViewCount;
++	int         *surfacesFogNum;
+ 	int         *surfacesDlightBits;
+ 	int			*surfacesPshadowBits;
+ 
+ 	int			numMergedSurfaces;
+ 	msurface_t	*mergedSurfaces;
+ 	int         *mergedSurfacesViewCount;
++	int         *mergedSurfacesFogNum;
+ 	int         *mergedSurfacesDlightBits;
+ 	int			*mergedSurfacesPshadowBits;
+ 
+@@ -1474,6 +1497,8 @@
+ 	int			numfogs;
+ 	fog_t		*fogs;
+ 
++	int			globalFog;				// index of global fog in bsp
++
+ 	vec3_t		lightGridOrigin;
+ 	vec3_t		lightGridSize;
+ 	vec3_t		lightGridInverseSize;
+@@ -1845,6 +1870,7 @@
+ 	image_t					*defaultImage;
+ 	image_t					*scratchImage[32];
+ 	image_t					*fogImage;
++	image_t					*linearFogImage;
+ 	image_t					*dlightImage;	// inverse-quare highlight for projective adding
+ 	image_t					*flareImage;
+ 	image_t					*whiteImage;			// full of 0xff
+@@ -1906,6 +1932,7 @@
+ 	int						currentEntityNum;
+ 	int						shiftedEntityNum;	// currentEntityNum << QSORT_REFENTITYNUM_SHIFT
+ 	model_t					*currentModel;
++	bmodel_t				*currentBModel;     // only valid when rendering brush models
+ 
+ 	//
+ 	// GPU shader programs
+@@ -1952,6 +1979,24 @@
+ 
+ 	vec4_t					clipRegion;			// 2D clipping region
+ 
++	// set by BSP or fogvars in a shader
++	fogType_t	globalFogType;
++	vec3_t		globalFogColor;
++	float		globalFogDepthForOpaque;
++	float		globalFogDensity;
++
++	// set by skyfogvars in a shader
++	fogType_t	skyFogType;
++	vec3_t		skyFogColor;
++	float		skyFogDepthForOpaque;
++	float		skyFogDensity;
++
++	// set by waterfogvars in a shader
++	fogType_t	waterFogType;
++	vec3_t		waterFogColor;
++	float		waterFogDepthForOpaque;
++	float		waterFogDensity;
++
+ 	//
+ 	// put large tables at the end, so most elements will be
+ 	// within the +/32K indexed range on risc processors
+@@ -2023,6 +2068,7 @@
+ extern cvar_t	*r_ignore;				// used for debugging anything
+ extern cvar_t	*r_verbose;				// used for verbose debug spew
+ 
++extern cvar_t	*r_zfar;
+ extern cvar_t	*r_znear;				// near Z clip plane
+ extern cvar_t	*r_zproj;				// z distance of projection plane
+ extern cvar_t	*r_stereoSeparation;			// separation of cameras for stereo rendering
+@@ -2125,6 +2171,8 @@
+ extern  cvar_t  *r_mergeMultidraws;
+ extern  cvar_t  *r_mergeLeafSurfaces;
+ 
++extern  cvar_t  *r_softOverbright;
++
+ extern  cvar_t  *r_hdr;
+ extern  cvar_t  *r_postProcess;
+ 
+@@ -2188,6 +2236,8 @@
+ 
+ extern cvar_t	*r_marksOnTriangleMeshes;
+ 
++extern cvar_t	*r_useGlFog;
++
+ //====================================================================
+ 
+ float R_NoiseGet4f( float x, float y, float z, float t );
+@@ -2322,8 +2372,12 @@
+ const void *RB_TakeScreenshotCmd( const void *data );
+ void	R_ScreenShot_f( void );
+ 
++#define DEFAULT_FOG_EXP_DENSITY			0.5f
++#define DEFAULT_FOG_LINEAR_DENSITY		1.1f
++
+ void	R_InitFogTable( void );
+ float	R_FogFactor( float s, float t );
++float	R_FogTcScale( fogType_t fogType, float depthForOpaque, float density );
+ void	R_InitImages( void );
+ void	R_DeleteTextures( void );
+ int		R_SumOfUsedImages( void );
+@@ -2932,11 +2986,18 @@
+ 		          int image_width, int image_height, byte *image_buffer, int padding);
+ void RE_TakeVideoFrame( int width, int height,
+ 		byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
++void RE_GetGlobalFog( fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
++void RE_GetWaterFog( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
+ 
+ // font stuff
+ void R_InitFreeType( void );
+ void R_DoneFreeType( void );
+ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
+ 
++// fog stuff
++int R_DefaultFogNum( void );
++void R_FogOff( void );
++void RB_FogOn( void );
++void RB_Fog( int fogNum );
+ 
+ #endif //TR_LOCAL_H
+Index: code/rend2/tr_init.c
+===================================================================
+--- code/rend2/tr_init.c	(revision 325)
++++ code/rend2/tr_init.c	(revision 329)
+@@ -59,6 +59,7 @@
+ 
+ cvar_t	*r_detailTextures;
+ 
++cvar_t	*r_zfar;
+ cvar_t	*r_znear;
+ cvar_t	*r_zproj;
+ cvar_t	*r_stereoSeparation;
+@@ -115,6 +116,9 @@
+ cvar_t  *r_mergeLeafSurfaces;
+ 
+ cvar_t  *r_cameraExposure;
++
++cvar_t  *r_softOverbright;
++
+ cvar_t  *r_hdr;
+ cvar_t  *r_postProcess;
+ 
+@@ -223,6 +227,8 @@
+ cvar_t	*r_aviMotionJpegQuality;
+ cvar_t	*r_screenshotJpegQuality;
+ 
++cvar_t	*r_useGlFog;
++
+ cvar_t	*r_maxpolys;
+ int		max_polys;
+ cvar_t	*r_maxpolyverts;
+@@ -1153,6 +1159,8 @@
+ 	r_greyscale = ri.Cvar_Get("r_greyscale", "0", CVAR_ARCHIVE | CVAR_LATCH);
+ 	ri.Cvar_CheckRange(r_greyscale, 0, 1, qfalse);
+ 
++	r_softOverbright = ri.Cvar_Get( "r_softOverbright", "1", CVAR_ARCHIVE | CVAR_LATCH );
++
+ 	r_hdr = ri.Cvar_Get( "r_hdr", "1", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_postProcess = ri.Cvar_Get( "r_postProcess", "1", CVAR_ARCHIVE );
+ 
+@@ -1213,6 +1221,7 @@
+ 	r_lodCurveError = ri.Cvar_Get( "r_lodCurveError", "250", CVAR_ARCHIVE|CVAR_CHEAT );
+ 	r_lodbias = ri.Cvar_Get( "r_lodbias", "0", CVAR_ARCHIVE );
+ 	r_flares = ri.Cvar_Get ("r_flares", "0", CVAR_ARCHIVE );
++	r_zfar = ri.Cvar_Get("r_zfar", "0", CVAR_CHEAT);
+ 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
+ 	ri.Cvar_CheckRange( r_znear, 0.001f, 200, qfalse );
+ 	r_zproj = ri.Cvar_Get( "r_zproj", "64", CVAR_ARCHIVE );
+@@ -1289,6 +1298,9 @@
+ 
+ 	r_marksOnTriangleMeshes = ri.Cvar_Get("r_marksOnTriangleMeshes", "0", CVAR_ARCHIVE);
+ 
++	// ZTM: FIXME: r_useGlFog doesn't work correctly with some multistage shaders. So when r_vertexLight is 0 it's fine.
++	r_useGlFog = ri.Cvar_Get("r_useGlFog", "0", CVAR_CHEAT);
++
+ 	r_aviMotionJpegQuality = ri.Cvar_Get("r_aviMotionJpegQuality", "90", CVAR_ARCHIVE);
+ 	r_screenshotJpegQuality = ri.Cvar_Get("r_screenshotJpegQuality", "90", CVAR_ARCHIVE);
+ 
+@@ -1589,5 +1601,11 @@
+ 
+ 	re.TakeVideoFrame = RE_TakeVideoFrame;
+ 
++	re.GetGlobalFog = RE_GetGlobalFog;
++	re.GetWaterFog = RE_GetWaterFog;
++
++	re.GetGlobalFog = RE_GetGlobalFog;
++	re.GetWaterFog = RE_GetWaterFog;
++
+ 	return &re;
+ }
+Index: code/rend2/tr_shade_calc.c
+===================================================================
+--- code/rend2/tr_shade_calc.c	(revision 325)
++++ code/rend2/tr_shade_calc.c	(revision 329)
+@@ -789,19 +789,57 @@
+ ** RB_CalcModulateColorsByFog
+ */
+ void RB_CalcModulateColorsByFog( unsigned char *colors ) {
+-	int		i;
+-	float	texCoords[SHADER_MAX_VERTEXES][2];
++	int			i;
++	float		f, texCoords[SHADER_MAX_VERTEXES][2];
++	fog_t		*fog;
++	qboolean	linearFog;
+ 
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++	}
++
+ 	// calculate texcoords so we can derive density
+ 	// this is not wasted, because it would only have
+ 	// been previously called if the surface was opaque
+ 	RB_CalcFogTexCoords( texCoords[0] );
+ 
+ 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+-		colors[0] *= f;
+-		colors[1] *= f;
+-		colors[2] *= f;
++		if ( texCoords[ i ][ 0 ] <= 0.0f || texCoords[ i ][ 1 ] <= 0.0f ) {
++			continue;
++		}
++
++		if ( linearFog ) {
++			f = 1.0f - ( texCoords[ i ][ 0 ] * texCoords[ i ][ 1 ] );
++		} else {
++			f = 1.0f - R_FogFactor( texCoords[i][0], texCoords[i][1] );
++		}
++
++		if ( f <= 0.0f ) {
++			colors[ 0 ] = 0;
++			colors[ 1 ] = 0;
++			colors[ 2 ] = 0;
++		} else {
++			colors[ 0 ] *= f;
++			colors[ 1 ] *= f;
++			colors[ 2 ] *= f;
++		}
+ 	}
+ }
+ 
+@@ -809,17 +847,53 @@
+ ** RB_CalcModulateAlphasByFog
+ */
+ void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
+-	int		i;
+-	float	texCoords[SHADER_MAX_VERTEXES][2];
++	int			i;
++	float		f, texCoords[SHADER_MAX_VERTEXES][2];
++	fog_t		*fog;
++	qboolean	linearFog;
+ 
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++	}
++
+ 	// calculate texcoords so we can derive density
+ 	// this is not wasted, because it would only have
+ 	// been previously called if the surface was opaque
+ 	RB_CalcFogTexCoords( texCoords[0] );
+ 
+ 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+-		colors[3] *= f;
++		if ( texCoords[ i ][ 0 ] <= 0.0f || texCoords[ i ][ 1 ] <= 0.0f ) {
++			continue;
++		}
++
++		if ( linearFog ) {
++			f = 1.0f - ( texCoords[ i ][ 0 ] * texCoords[ i ][ 1 ] );
++		} else {
++			f = 1.0f - R_FogFactor( texCoords[i][0], texCoords[i][1] );
++		}
++
++		if ( f <= 0.0f ) {
++			colors[ 3 ] = 0;
++		} else {
++			colors[ 3 ] *= f;
++		}
+ 	}
+ }
+ 
+@@ -827,20 +901,59 @@
+ ** RB_CalcModulateRGBAsByFog
+ */
+ void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
+-	int		i;
+-	float	texCoords[SHADER_MAX_VERTEXES][2];
++	int			i;
++	float		f, texCoords[SHADER_MAX_VERTEXES][2];
++	fog_t		*fog;
++	qboolean	linearFog;
+ 
++	// no world, no fogging
++	if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
++		return;
++	}
++
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
++	fog = tr.world->fogs + tess.fogNum;
++
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		linearFog = ( backEnd.refdef.fogType == FT_LINEAR );
++	} else {
++		linearFog = ( fog->shader->fogParms.fogType == FT_LINEAR );
++	}
++
+ 	// calculate texcoords so we can derive density
+ 	// this is not wasted, because it would only have
+ 	// been previously called if the surface was opaque
+ 	RB_CalcFogTexCoords( texCoords[0] );
+ 
+ 	for ( i = 0; i < tess.numVertexes; i++, colors += 4 ) {
+-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
+-		colors[0] *= f;
+-		colors[1] *= f;
+-		colors[2] *= f;
+-		colors[3] *= f;
++		if ( texCoords[ i ][ 0 ] <= 0.0f || texCoords[ i ][ 1 ] <= 0.0f ) {
++			continue;
++		}
++
++		if ( linearFog ) {
++			f = 1.0f - ( texCoords[ i ][ 0 ] * texCoords[ i ][ 1 ] );
++		} else {
++			f = 1.0f - R_FogFactor( texCoords[i][0], texCoords[i][1] );
++		}
++
++		if ( f <= 0.0f ) {
++			colors[ 0 ] = 0;
++			colors[ 1 ] = 0;
++			colors[ 2 ] = 0;
++			colors[ 3 ] = 0;
++		} else {
++			colors[ 0 ] *= f;
++			colors[ 1 ] *= f;
++			colors[ 2 ] *= f;
++			colors[ 3 ] *= f;
++		}
+ 	}
+ }
+ 
+@@ -869,10 +982,16 @@
+ 	float		eyeT;
+ 	qboolean	eyeOutside;
+ 	fog_t		*fog;
++	bmodel_t	*bmodel;
+ 	vec3_t		local;
+-	vec4_t		fogDistanceVector, fogDepthVector = {0, 0, 0, 0};
++	vec4_t		fogSurface, fogDistanceVector, fogDepthVector = {0, 0, 0, 0};
+ 
++	if ( r_useGlFog->integer ) {
++		return;
++	}
++
+ 	fog = tr.world->fogs + tess.fogNum;
++	bmodel = tr.world->bmodels + fog->modelNum;
+ 
+ 	// all fogging distance is based on world Z units
+ 	VectorSubtract( backEnd.or.origin, backEnd.viewParms.or.origin, local );
+@@ -881,62 +1000,115 @@
+ 	fogDistanceVector[2] = -backEnd.or.modelMatrix[10];
+ 	fogDistanceVector[3] = DotProduct( local, backEnd.viewParms.or.axis[0] );
+ 
+-	// scale the fog vectors based on the fog's thickness
+-	fogDistanceVector[0] *= fog->tcScale;
+-	fogDistanceVector[1] *= fog->tcScale;
+-	fogDistanceVector[2] *= fog->tcScale;
+-	fogDistanceVector[3] *= fog->tcScale;
++	// level-wide fogging
++	if ( fog->originalBrushNumber < 0 ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
+ 
+-	// rotate the gradient vector for this orientation
+-	if ( fog->hasSurface ) {
+-		fogDepthVector[0] = fog->surface[0] * backEnd.or.axis[0][0] + 
+-			fog->surface[1] * backEnd.or.axis[0][1] + fog->surface[2] * backEnd.or.axis[0][2];
+-		fogDepthVector[1] = fog->surface[0] * backEnd.or.axis[1][0] + 
+-			fog->surface[1] * backEnd.or.axis[1][1] + fog->surface[2] * backEnd.or.axis[1][2];
+-		fogDepthVector[2] = fog->surface[0] * backEnd.or.axis[2][0] + 
+-			fog->surface[1] * backEnd.or.axis[2][1] + fog->surface[2] * backEnd.or.axis[2][2];
+-		fogDepthVector[3] = -fog->surface[3] + DotProduct( backEnd.or.origin, fog->surface );
++		// scale the fog vectors based on the fog's thickness
++		fogDistanceVector[0] *= backEnd.refdef.fogTcScale;
++		fogDistanceVector[1] *= backEnd.refdef.fogTcScale;
++		fogDistanceVector[2] *= backEnd.refdef.fogTcScale;
++		fogDistanceVector[3] *= backEnd.refdef.fogTcScale;
+ 
+-		eyeT = DotProduct( backEnd.or.viewOrigin, fogDepthVector ) + fogDepthVector[3];
++		// calculate density for each point
++		if ( backEnd.refdef.fogType == FT_LINEAR ) {
++			t = 1.0;
++		} else {
++			t = 31.0/32;
++		}
++
++		for ( i = 0, v = tess.xyz[ 0 ]; i < tess.numVertexes; i++, v += 4 ) {
++			// calculate the length in fog (t is always 0 if eye is in fog)
++			st[ 0 ] = DotProduct( v, fogDistanceVector ) + fogDistanceVector[ 3 ];
++			st[ 1 ] = t;
++			st += 2;
++		}
+ 	} else {
+-		eyeT = 1;	// non-surface fog always has eye inside
+-	}
++		// scale the fog vectors based on the fog's thickness
++		fogDistanceVector[0] *= fog->tcScale;
++		fogDistanceVector[1] *= fog->tcScale;
++		fogDistanceVector[2] *= fog->tcScale;
++		fogDistanceVector[3] *= fog->tcScale;
+ 
+-	// see if the viewpoint is outside
+-	// this is needed for clipping distance even for constant fog
++		// offset fog surface
++		VectorCopy( fog->surface, fogSurface );
++#if 1 // WolfET
++		fogSurface[ 3 ] = fog->surface[ 3 ] + DotProduct( fogSurface, bmodel->orientation[ backEnd.smpFrame ].origin );
++#else
++		fogSurface[ 3 ] = fog->surface[ 3 ];
++#endif
+ 
+-	if ( eyeT < 0 ) {
+-		eyeOutside = qtrue;
+-	} else {
+-		eyeOutside = qfalse;
+-	}
++		// rotate the gradient vector for this orientation
++		if ( fog->hasSurface ) {
++			fogDepthVector[0] = fogSurface[0] * backEnd.or.axis[0][0] + 
++				fogSurface[1] * backEnd.or.axis[0][1] + fogSurface[2] * backEnd.or.axis[0][2];
++			fogDepthVector[1] = fogSurface[0] * backEnd.or.axis[1][0] + 
++				fogSurface[1] * backEnd.or.axis[1][1] + fogSurface[2] * backEnd.or.axis[1][2];
++			fogDepthVector[2] = fogSurface[0] * backEnd.or.axis[2][0] + 
++				fogSurface[1] * backEnd.or.axis[2][1] + fogSurface[2] * backEnd.or.axis[2][2];
++			fogDepthVector[3] = -fogSurface[3] + DotProduct( backEnd.or.origin, fogSurface );
+ 
+-	fogDistanceVector[3] += 1.0/512;
++#if 0 // WolfET
++			// scale the fog vectors based on the fog's thickness
++			fogDepthVector[ 0 ] *= fog->shader->fogParms.tcScale;
++			fogDepthVector[ 1 ] *= fog->shader->fogParms.tcScale;
++			fogDepthVector[ 2 ] *= fog->shader->fogParms.tcScale;
++			fogDepthVector[ 3 ] *= fog->shader->fogParms.tcScale;
++#endif
+ 
+-	// calculate density for each point
+-	for (i = 0, v = tess.xyz[0] ; i < tess.numVertexes ; i++, v += 4) {
+-		// calculate the length in fog
+-		s = DotProduct( v, fogDistanceVector ) + fogDistanceVector[3];
+-		t = DotProduct( v, fogDepthVector ) + fogDepthVector[3];
++			eyeT = DotProduct( backEnd.or.viewOrigin, fogDepthVector ) + fogDepthVector[3];
++		} else {
++			eyeT = 1;	// non-surface fog always has eye inside
++		}
+ 
+-		// partially clipped fogs use the T axis		
+-		if ( eyeOutside ) {
+-			if ( t < 1.0 ) {
+-				t = 1.0/32;	// point is outside, so no fogging
+-			} else {
+-				t = 1.0/32 + 30.0/32 * t / ( t - eyeT );	// cut the distance at the fog plane
+-			}
++		// see if the viewpoint is outside
++		// this is needed for clipping distance even for constant fog
++
++		if ( eyeT <= 0 ) {
++			eyeOutside = qtrue;
+ 		} else {
+-			if ( t < 0 ) {
+-				t = 1.0/32;	// point is outside, so no fogging
++			eyeOutside = qfalse;
++		}
++
++		if ( fog->shader->fogParms.fogType == FT_EXP ) {
++			fogDistanceVector[3] += 1.0/512;
++		}
++
++		// calculate density for each point
++		for (i = 0, v = tess.xyz[0] ; i < tess.numVertexes ; i++, v += 4) {
++			// calculate the length in fog
++			s = DotProduct( v, fogDistanceVector ) + fogDistanceVector[3];
++			t = DotProduct( v, fogDepthVector ) + fogDepthVector[3];
++
++			if ( fog->shader->fogParms.fogType == FT_LINEAR ) {
++				if ( !eyeOutside ) {
++					t += eyeT;
++				}
++
++				//%	t *= fog->tcScale;
+ 			} else {
+-				t = 31.0/32;
++				// partially clipped fogs use the T axis
++				if ( eyeOutside ) {
++					if ( t < 1.0 ) {
++						t = 1.0/32;	// point is outside, so no fogging
++					} else {
++						t = 1.0/32 + 30.0/32 * t / ( t - eyeT );	// cut the distance at the fog plane
++					}
++				} else {
++					if ( t < 0 ) {
++						t = 1.0/32;	// point is outside, so no fogging
++					} else {
++						t = 31.0/32;
++					}
++				}
+ 			}
++
++			st[0] = s;
++			st[1] = t;
++			st += 2;
+ 		}
+-
+-		st[0] = s;
+-		st[1] = t;
+-		st += 2;
+ 	}
+ }
+ 
+Index: code/rend2/tr_postprocess.c
+===================================================================
+--- code/rend2/tr_postprocess.c	(revision 325)
++++ code/rend2/tr_postprocess.c	(revision 329)
+@@ -120,14 +120,16 @@
+ 		if (blur > 0.0f)
+ 		{
+ 			// create a quarter texture
+-			FBO_Blit(tr.screenScratchFbo, NULL, NULL, tr.quarterFbo[0], NULL, NULL, NULL, 0);
++			//FBO_Blit(NULL, NULL, NULL, tr.quarterFbo[0], NULL, NULL, NULL, 0);
++			FBO_FastBlit(tr.screenScratchFbo, NULL, tr.quarterFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+ 		}
+ 
+ #ifndef HQ_BLUR
+ 		if (blur > 1.0f)
+ 		{
+ 			// create a 1/16th texture
+-			FBO_Blit(tr.quarterFbo[0], NULL, NULL, tr.textureScratchFbo[0], NULL, NULL, NULL, 0);
++			//FBO_Blit(tr.quarterFbo[0], NULL, NULL, tr.textureScratchFbo[0], NULL, NULL, NULL, 0);
++			FBO_FastBlit(tr.quarterFbo[0], NULL, tr.textureScratchFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+ 		}
+ #endif
+ 
+@@ -348,16 +350,15 @@
+ 		VectorSet4(color, mul, mul, mul, 1);
+ 
+ 		// first, downsample the framebuffer
+-		VectorSet4(srcBox, 0, 0, tr.godRaysFbo->width, tr.godRaysFbo->height);
+-		VectorSet4(dstBox, 0, 0, tr.quarterFbo[0]->width, tr.quarterFbo[0]->height);
+-		FBO_Blit(tr.godRaysFbo, srcBox, texScale, tr.quarterFbo[0], dstBox, &tr.textureColorShader, color, 0);
+-		
+ 		if (colorize)
+ 		{
+-			VectorSet4(srcBox, 0, 0, tr.screenScratchFbo->width, tr.screenScratchFbo->height);
+-			FBO_Blit(tr.screenScratchFbo, srcBox, texScale, tr.quarterFbo[0], dstBox, &tr.textureColorShader, color, 
+-			         GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
+-		}	
++			FBO_FastBlit(tr.screenScratchFbo, NULL, tr.quarterFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
++			FBO_Blit(tr.godRaysFbo, NULL, NULL, tr.quarterFbo[0], NULL, NULL, color, GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
++		}
++		else
++		{
++			FBO_FastBlit(tr.godRaysFbo, NULL, tr.quarterFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
++		}
+ 	}
+ 
+ 	// radial blur passes, ping-ponging between the two quarter-size buffers
+@@ -383,7 +384,7 @@
+ 		VectorSet4(color, mul, mul, mul, 1);
+ 
+ 		VectorSet4(srcBox, 0, 0, tr.quarterFbo[0]->width, tr.quarterFbo[0]->height);
+-		VectorSet4(dstBox, 0, 0, tr.screenScratchFbo->width, tr.screenScratchFbo->height);
++		VectorSet4(dstBox, 0, 0, glConfig.vidWidth, glConfig.vidHeight);
+ 		FBO_Blit(tr.quarterFbo[0], srcBox, texScale, tr.screenScratchFbo, dstBox, &tr.textureColorShader, color, GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
+ 	}
+ }
+@@ -470,14 +471,9 @@
+ 		VectorSet4(color, 1, 1, 1, 1);
+ 
+ 		// first, downsample the framebuffer
+-		VectorSet4(srcBox, 0, 0, tr.screenScratchFbo->width, tr.screenScratchFbo->height);
+-		VectorSet4(dstBox, 0, 0, tr.quarterFbo[0]->width, tr.quarterFbo[0]->height);
+-		FBO_Blit(tr.screenScratchFbo, srcBox, texScale, tr.quarterFbo[0], dstBox, &tr.textureColorShader, color, 0);
++		FBO_FastBlit(tr.screenScratchFbo, NULL, tr.quarterFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
++		FBO_FastBlit(tr.quarterFbo[0], NULL, tr.textureScratchFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+ 
+-		VectorSet4(srcBox, 0, 0, tr.quarterFbo[0]->width, tr.quarterFbo[0]->height);
+-		VectorSet4(dstBox, 0, 0, tr.textureScratchFbo[0]->width, tr.textureScratchFbo[0]->height);
+-		FBO_Blit(tr.quarterFbo[0], srcBox, texScale, tr.textureScratchFbo[0], dstBox, &tr.textureColorShader, color, 0);
+-
+ 		// set the alpha channel
+ 		VectorSet4(srcBox, 0, 0, tr.whiteImage->width, tr.whiteImage->height);
+ 		VectorSet4(dstBox, 0, 0, tr.textureScratchFbo[0]->width, tr.textureScratchFbo[0]->height);
+@@ -491,7 +487,7 @@
+ 
+ 		// finally, merge back to framebuffer
+ 		VectorSet4(srcBox, 0, 0, tr.textureScratchFbo[0]->width, tr.textureScratchFbo[0]->height);
+-		VectorSet4(dstBox, 0, 0, tr.screenScratchFbo->width,     tr.screenScratchFbo->height);
++		VectorSet4(dstBox, 0, 0, glConfig.vidWidth,              glConfig.vidHeight);
+ 		color[3] = factor;
+ 		FBO_Blit(tr.textureScratchFbo[0], srcBox, texScale, tr.screenScratchFbo, dstBox, &tr.textureColorShader, color, GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA);
+ 	}
+Index: code/rend2/tr_bsp.c
+===================================================================
+--- code/rend2/tr_bsp.c	(revision 325)
++++ code/rend2/tr_bsp.c	(revision 329)
+@@ -529,6 +529,11 @@
+ 	if (lightmapnum < 0)
+ 		return input;
+ 
++	if (tr.fatLightmapStep == 0) {
++		ri.Printf( PRINT_WARNING, "FatPackU: tr.fatLightmapStep == 0 ???\n" );
++		return input;
++	}
++
+ 	if (tr.worldDeluxeMapping)
+ 		lightmapnum >>= 1;
+ 
+@@ -549,6 +554,11 @@
+ 	if (lightmapnum < 0)
+ 		return input;
+ 
++	if (tr.fatLightmapStep == 0) {
++		ri.Printf( PRINT_WARNING, "FatPackV: tr.fatLightmapStep == 0 ???\n" );
++		return input;
++	}
++
+ 	if (tr.worldDeluxeMapping)
+ 		lightmapnum >>= 1;
+ 
+@@ -2178,6 +2188,7 @@
+ 	s_worldData.surfaces = out;
+ 	s_worldData.numsurfaces = count;
+ 	s_worldData.surfacesViewCount = ri.Hunk_Alloc ( count * sizeof(*s_worldData.surfacesViewCount), h_low );
++	s_worldData.surfacesFogNum = ri.Hunk_Alloc ( count * sizeof(*s_worldData.surfacesFogNum), h_low );
+ 	s_worldData.surfacesDlightBits = ri.Hunk_Alloc ( count * sizeof(*s_worldData.surfacesDlightBits), h_low );
+ 	s_worldData.surfacesPshadowBits = ri.Hunk_Alloc ( count * sizeof(*s_worldData.surfacesPshadowBits), h_low );
+ 
+@@ -2326,6 +2337,10 @@
+ 		out->firstSurface = LittleLong( in->firstSurface );
+ 		out->numSurfaces = LittleLong( in->numSurfaces );
+ 
++		// for attaching fog brushes to models
++		out->firstBrush = LittleLong( in->firstBrush );
++		out->numBrushes = LittleLong( in->numBrushes );
++
+ 		if(i == 0)
+ 		{
+ 			// Tr3B: add this for limiting VBO surface creation
+@@ -2527,7 +2542,7 @@
+ =================
+ */
+ static	void R_LoadFogs( lump_t *l, lump_t *brushesLump, lump_t *sidesLump ) {
+-	int			i;
++	int			i, j;
+ 	fog_t		*out;
+ 	dfog_t		*fogs;
+ 	dbrush_t 	*brushes, *brush;
+@@ -2546,11 +2561,15 @@
+ 	count = l->filelen / sizeof(*fogs);
+ 
+ 	// create fog strucutres for them
+-	s_worldData.numfogs = count + 1;
++	s_worldData.numfogs = count + 2;
+ 	s_worldData.fogs = ri.Hunk_Alloc ( s_worldData.numfogs*sizeof(*out), h_low);
+ 	out = s_worldData.fogs + 1;
+ 
++	// reset global fog
++	s_worldData.globalFog = -1;
++
+ 	if ( !count ) {
++		goto forceGlobalFogSetup;
+ 		return;
+ 	}
+ 
+@@ -2569,76 +2588,100 @@
+ 	for ( i=0 ; i<count ; i++, fogs++) {
+ 		out->originalBrushNumber = LittleLong( fogs->brushNum );
+ 
+-		// ZTM: TODO: Add global fog support.
+-		if (out->originalBrushNumber == -1) {
+-			ri.Printf(PRINT_ERROR, "Global fog not supported in Rend2.\n");
+-			continue;
+-		}
++		// global fog has a brush number of -1, and no visible side
++		if ( out->originalBrushNumber == -1 ) {
++			VectorSet( out->bounds[ 0 ], MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD );
++			VectorSet( out->bounds[ 1 ], MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD );
+ 
+-		if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
+-			ri.Error( ERR_DROP, "fog brushNumber out of range" );
+-		}
+-		brush = brushes + out->originalBrushNumber;
++			firstSide = 0;
++		} else {
++			if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
++				ri.Error( ERR_DROP, "fog brushNumber out of range" );
++			}
++			brush = brushes + out->originalBrushNumber;
+ 
+-		firstSide = LittleLong( brush->firstSide );
++			firstSide = LittleLong( brush->firstSide );
+ 
+-		if ( (unsigned)firstSide > sidesCount - 6 ) {
+-			ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
+-		}
++			if ( (unsigned)firstSide > sidesCount - 6 ) {
++				ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
++			}
+ 
+-		// brushes are always sorted with the axial sides first
+-		sideNum = firstSide + 0;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[0][0] = -s_worldData.planes[ planeNum ].dist;
++			// brushes are always sorted with the axial sides first
++			sideNum = firstSide + 0;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[0][0] = -s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 1;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[1][0] = s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 1;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[1][0] = s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 2;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[0][1] = -s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 2;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[0][1] = -s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 3;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[1][1] = s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 3;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[1][1] = s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 4;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[0][2] = -s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 4;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[0][2] = -s_worldData.planes[ planeNum ].dist;
+ 
+-		sideNum = firstSide + 5;
+-		planeNum = LittleLong( sides[ sideNum ].planeNum );
+-		out->bounds[1][2] = s_worldData.planes[ planeNum ].dist;
++			sideNum = firstSide + 5;
++			planeNum = LittleLong( sides[ sideNum ].planeNum );
++			out->bounds[1][2] = s_worldData.planes[ planeNum ].dist;
++		}
+ 
+ 		// get information from the shader for fog parameters
+ 		shader = R_FindShader( fogs->shader, LIGHTMAP_NONE, qtrue );
+ 
+-		out->parms = shader->fogParms;
++		out->shader = shader;
+ 
+ 		out->colorInt = ColorBytes4 ( shader->fogParms.color[0] * tr.identityLight, 
+ 			                          shader->fogParms.color[1] * tr.identityLight, 
+ 			                          shader->fogParms.color[2] * tr.identityLight, 1.0 );
+ 
+ 		d = shader->fogParms.depthForOpaque < 1 ? 1 : shader->fogParms.depthForOpaque;
+-		out->tcScale = 1.0f / ( d * 8 );
++		out->tcScale = R_FogTcScale( shader->fogParms.fogType, d, shader->fogParms.density );
+ 
+-		// set the gradient vector
+-		sideNum = LittleLong( fogs->visibleSide );
++		if ( out->originalBrushNumber == -1 ) {
++			s_worldData.globalFog = i + 1;
++		} else {
++			// set the gradient vector
++			sideNum = LittleLong( fogs->visibleSide );
+ 
+-		// ydnar: made this check a little more strenuous (was sideNum == -1)
+-		if ( sideNum < 0 || sideNum >= sidesCount ) {
+-			out->hasSurface = qfalse;
+-		} else {
+-			out->hasSurface = qtrue;
+-			planeNum = LittleLong( sides[ firstSide + sideNum ].planeNum );
+-			VectorSubtract( vec3_origin, s_worldData.planes[ planeNum ].normal, out->surface );
+-			out->surface[3] = -s_worldData.planes[ planeNum ].dist;
++			if ( sideNum < 0 || sideNum >= sidesCount ) {
++				out->hasSurface = qfalse;
++			} else {
++				out->hasSurface = qtrue;
++				planeNum = LittleLong( sides[ firstSide + sideNum ].planeNum );
++				VectorSubtract( vec3_origin, s_worldData.planes[ planeNum ].normal, out->surface );
++				out->surface[3] = -s_worldData.planes[ planeNum ].dist;
++			}
+ 		}
+ 
+ 		out++;
+ 	}
+ 
++forceGlobalFogSetup:
++
++	// Add global fog if not present in bsp.
++	if ( s_worldData.globalFog == -1 ) {
++		s_worldData.globalFog = s_worldData.numfogs - 1;
++
++		out = s_worldData.fogs + s_worldData.globalFog;
++
++		out->originalBrushNumber = -1;
++
++		VectorSet( out->bounds[ 0 ], 0, 0, 0 );
++		VectorSet( out->bounds[ 1 ], 0, 0, 0 );
++
++		// Don't check bounds of global fog.
++		//s_worldData.numfogs--;
++	} else {
++		// Ignore internal global fog.
++		s_worldData.numfogs--;
++	}
+ }
+ 
+ 
+@@ -2985,6 +3028,7 @@
+ 	// Allocate merged surfaces
+ 	s_worldData.mergedSurfaces = ri.Hunk_Alloc(sizeof(*s_worldData.mergedSurfaces) * numMergedSurfaces, h_low);
+ 	s_worldData.mergedSurfacesViewCount = ri.Hunk_Alloc(sizeof(*s_worldData.mergedSurfacesViewCount) * numMergedSurfaces, h_low);
++	s_worldData.mergedSurfacesFogNum = ri.Hunk_Alloc(sizeof(*s_worldData.mergedSurfacesFogNum) * numMergedSurfaces, h_low);
+ 	s_worldData.mergedSurfacesDlightBits = ri.Hunk_Alloc(sizeof(*s_worldData.mergedSurfacesDlightBits) * numMergedSurfaces, h_low);
+ 	s_worldData.mergedSurfacesPshadowBits = ri.Hunk_Alloc(sizeof(*s_worldData.mergedSurfacesPshadowBits) * numMergedSurfaces, h_low);
+ 	s_worldData.numMergedSurfaces = numMergedSurfaces;
+@@ -3358,11 +3402,11 @@
+ 	R_LoadShaders( &header->lumps[LUMP_SHADERS] );
+ 	R_LoadLightmaps( &header->lumps[LUMP_LIGHTMAPS], &header->lumps[LUMP_SURFACES] );
+ 	R_LoadPlanes (&header->lumps[LUMP_PLANES]);
+-	R_LoadFogs( &header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
+ 	R_LoadSurfaces( &header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES] );
+ 	R_LoadMarksurfaces (&header->lumps[LUMP_LEAFSURFACES]);
+ 	R_LoadNodesAndLeafs (&header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS]);
+ 	R_LoadSubmodels (&header->lumps[LUMP_MODELS]);
++	R_LoadFogs( &header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
+ 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
+ 	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+ 
+@@ -3385,5 +3429,14 @@
+ 	R_BindNullVBO();
+ 	R_BindNullIBO();
+ 
++	// If global fog was found in BSP and hasn't been set by a shader, use it
++	if ( tr.world->globalFog != -1 && tr.world->fogs[tr.world->globalFog].shader  && !tr.globalFogType ) {
++		// Set default global fog
++		tr.globalFogType = tr.world->fogs[tr.world->globalFog].shader->fogParms.fogType;
++		VectorCopy( tr.world->fogs[tr.world->globalFog].shader->fogParms.color, tr.globalFogColor );
++		tr.globalFogDepthForOpaque = tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque;
++		tr.globalFogDensity = tr.world->fogs[tr.world->globalFog].shader->fogParms.density;
++	}
++
+     ri.FS_FreeFile( buffer.v );
+ }
+Index: code/rend2/tr_cmds.c
+===================================================================
+--- code/rend2/tr_cmds.c	(revision 325)
++++ code/rend2/tr_cmds.c	(revision 329)
+@@ -535,6 +535,56 @@
+ 	r_numpolyverts += numverts;
+ }
+ 
++/*
++====================
++RE_GetGlobalFog
++====================
++*/
++void RE_GetGlobalFog( fogType_t *type, vec3_t color, float *depthForOpaque, float *density ) {
++	if (type) {
++		*type = tr.globalFogType;
++	}
++
++	if (color) {
++		VectorCopy( tr.globalFogColor, color );
++	}
++
++	if (depthForOpaque) {
++		*depthForOpaque = tr.globalFogDepthForOpaque;
++	}
++
++	if (density) {
++		*density = tr.globalFogDensity;
++	}
++}
++
++/*
++====================
++RE_GetWaterFog
++====================
++*/
++void RE_GetWaterFog( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density ) {
++	// ZTM: TODO: Use origin to get water fog.
++	// Idea: For each bmodel containing point `origin', check shader on each side for waterfogvars
++	(void)origin;
++
++	if (type) {
++		*type = tr.waterFogType;
++	}
++
++	if (color) {
++		VectorCopy( tr.waterFogColor, color );
++	}
++
++	if (depthForOpaque) {
++		*depthForOpaque = tr.waterFogDepthForOpaque;
++	}
++
++	if (density) {
++		*density = tr.waterFogDensity;
++	}
++}
++
+ #define MODE_RED_CYAN	1
+ #define MODE_RED_BLUE	2
+ #define MODE_RED_GREEN	3
+@@ -697,29 +747,21 @@
+ 				if (glRefConfig.framebufferObject)
+ 				{
+ 					// clear all framebuffers
+-					// FIXME: must be a better way to do this
+-					int i;
++					if (tr.msaaResolveFbo)
++					{
++						FBO_Bind(tr.msaaResolveFbo);
++						qglClear(GL_COLOR_BUFFER_BIT);
++					}
+ 
+-					for (i = 0; i < 3; i++)
++					if (tr.renderFbo)
+ 					{
+-						if (i == 1 && !tr.msaaResolveFbo)
+-							continue;
++						FBO_Bind(tr.renderFbo);
++						qglClear(GL_COLOR_BUFFER_BIT);
++					}
+ 
+-						switch(i)
+-						{
+-							case 0:
+-								FBO_Bind(tr.renderFbo);
+-								break;
+-
+-							case 1:
+-								FBO_Bind(tr.msaaResolveFbo);
+-								break;
+-
+-							case 2:
+-								FBO_Bind(tr.screenScratchFbo);
+-								break;
+-						}
+-
++					if (tr.screenScratchFbo)
++					{
++						FBO_Bind(tr.screenScratchFbo);
+ 						qglClear(GL_COLOR_BUFFER_BIT);
+ 					}
+ 
+Index: code/rend2/tr_scene.c
+===================================================================
+--- code/rend2/tr_scene.c	(revision 325)
++++ code/rend2/tr_scene.c	(revision 329)
+@@ -207,7 +207,7 @@
+ 				}
+ 			}
+ 			if ( fogIndex == tr.world->numfogs ) {
+-				fogIndex = 0;
++				fogIndex = R_DefaultFogNum();
+ 			}
+ 		}
+ 		poly->fogIndex = fogIndex;
+@@ -277,7 +277,7 @@
+ 		}
+ 	}
+ 	if ( fogIndex == tr.world->numfogs ) {
+-		fogIndex = 0;
++		fogIndex = R_DefaultFogNum();
+ 	}
+ 
+ 	pPolySurf->fogIndex = fogIndex;
+@@ -428,6 +428,28 @@
+ 	tr.refdef.time = fd->time;
+ 	tr.refdef.rdflags = fd->rdflags;
+ 
++	tr.refdef.fogType = fd->fogType;
++	if ( tr.refdef.fogType < FT_NONE || tr.refdef.fogType >= FT_MAX_FOG_TYPE ) {
++		tr.refdef.fogType = FT_NONE;
++	}
++
++	tr.refdef.fogColor[0] = fd->fogColor[0] * tr.identityLight;
++	tr.refdef.fogColor[1] = fd->fogColor[1] * tr.identityLight;
++	tr.refdef.fogColor[2] = fd->fogColor[2] * tr.identityLight;
++
++	tr.refdef.fogColorInt = ColorBytes4( tr.refdef.fogColor[0],
++									  tr.refdef.fogColor[1],
++									  tr.refdef.fogColor[2], 1.0 );
++
++	tr.refdef.fogDensity = fd->fogDensity;
++
++	if ( r_zfar->value ) {
++		tr.refdef.fogDepthForOpaque = r_zfar->value < 1 ? 1 : r_zfar->value;
++	} else {
++		tr.refdef.fogDepthForOpaque = fd->fogDepthForOpaque < 1 ? 1 : fd->fogDepthForOpaque;
++	}
++	tr.refdef.fogTcScale = R_FogTcScale( tr.refdef.fogType, tr.refdef.fogDepthForOpaque, tr.refdef.fogDensity );
++
+ 	// copy the areamask data over and note if it has changed, which
+ 	// will force a reset of the visible leafs even if the view hasn't moved
+ 	tr.refdef.areamaskModified = qfalse;
+Index: code/rend2/tr_fbo.c
+===================================================================
+--- code/rend2/tr_fbo.c	(revision 325)
++++ code/rend2/tr_fbo.c	(revision 329)
+@@ -317,7 +317,7 @@
+ */
+ void FBO_Bind(FBO_t * fbo)
+ {
+-	if (fbo && glState.currentFBO == fbo)
++	if (glState.currentFBO == fbo)
+ 		return;
+ 		
+ 	if (r_logFile->integer)
+@@ -413,6 +413,8 @@
+ 		ri.Cvar_SetValue("r_ext_framebuffer_multisample", (float)multisample);
+ 	}
+ 	
++	// only create a render FBO if we need to resolve MSAA or do HDR
++	// otherwise just render straight to the screen (tr.renderFbo = NULL)
+ 	if (multisample && glRefConfig.framebufferMultisample)
+ 	{
+ 		tr.renderFbo = FBO_Create("_render", tr.renderDepthImage->width, tr.renderDepthImage->height);
+@@ -435,7 +437,7 @@
+ 
+ 		R_CheckFBO(tr.msaaResolveFbo);
+ 	}
+-	else
++	else if (r_hdr->integer)
+ 	{
+ 		tr.renderFbo = FBO_Create("_render", tr.renderDepthImage->width, tr.renderDepthImage->height);
+ 		FBO_Bind(tr.renderFbo);
+@@ -451,10 +453,13 @@
+ 
+ 	// clear render buffer
+ 	// this fixes the corrupt screen bug with r_hdr 1 on older hardware
+-	FBO_Bind(tr.renderFbo);
+-	qglClearColor( 1, 0, 0.5, 1 );
+-	qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+-	FBO_Bind(NULL);
++	if (tr.renderFbo)
++	{
++		FBO_Bind(tr.renderFbo);
++		qglClearColor( 1, 0, 0.5, 1 );
++		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
++		FBO_Bind(NULL);
++	}
+ 
+ #ifdef REACTION
+ 	{
+@@ -533,6 +538,7 @@
+ 		R_CheckFBO(tr.targetLevelsFbo);
+ 	}
+ 
++	if (r_softOverbright->integer)
+ 	{
+ 		//tr.screenScratchFbo = FBO_Create("_screenscratch", width, height);
+ 		tr.screenScratchFbo = FBO_Create("_screenscratch", tr.screenScratchImage->width, tr.screenScratchImage->height);
+Index: code/rend2/tr_shader.c
+===================================================================
+--- code/rend2/tr_shader.c	(revision 325)
++++ code/rend2/tr_shader.c	(revision 329)
+@@ -854,6 +854,21 @@
+ 			stage->isDetail = qtrue;
+ 		}
+ 		//
++		// fog
++		//
++		else if ( !Q_stricmp( token, "fog" ) ) {
++			token = COM_ParseExt( text, qfalse );
++			if ( token[0] == 0 ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing parm for fog in shader '%s'\n", shader.name );
++				continue;
++			}
++			if ( !Q_stricmp( token, "on" ) ) {
++				stage->isFogged = qtrue;
++			} else {
++				stage->isFogged = qfalse;
++			}
++		}
++		//
+ 		// blendfunc <srcFactor> <dstFactor>
+ 		// or blendfunc <add|filter|blend>
+ 		//
+@@ -1741,25 +1756,62 @@
+ 			shader.entityMergable = qtrue;
+ 			continue;
+ 		}
+-		// fogParms
+-		else if ( !Q_stricmp( token, "fogParms" ) ) 
++		// ZTM: TODO: Use shader name set here instead of always "sun"
++		else if ( !Q_stricmp( token, "sunshader" ) ) {
++			token = COM_ParseExt( text, qfalse );
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing shader name for 'sunshader'\n" );
++				continue;
++			}
++
++			ri.Printf( PRINT_WARNING, "Sunshader = %s\n", token );
++			//tr.sunShaderName = CopyString( token );
++			continue;
++		}
++		// fogParms ( <red> <green> <blue> ) <depthForOpaque>
++		else if ( !Q_stricmp( token, "fogParms" ) )
+ 		{
++			shader.fogParms.fogType = FT_EXP;
++
+ 			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
+ 				return qfalse;
+ 			}
+ 
+ 			token = COM_ParseExt( text, qfalse );
+-			if ( !token[0] ) 
+-			{
++			if ( !token[0] ) {
+ 				ri.Printf( PRINT_WARNING, "WARNING: missing parm for 'fogParms' keyword in shader '%s'\n", shader.name );
+ 				continue;
+ 			}
+ 			shader.fogParms.depthForOpaque = atof( token );
+ 
++			shader.fogParms.density = DEFAULT_FOG_EXP_DENSITY;
++
+ 			// skip any old gradient directions
+ 			SkipRestOfLine( text );
+ 			continue;
+ 		}
++		// linearFogParms ( <red> <green> <blue> ) <depthForOpaque>
++		else if ( !Q_stricmp( token, "linearFogParms" ) )
++		{
++			shader.fogParms.fogType = FT_LINEAR;
++
++			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
++				return qfalse;
++			}
++
++			token = COM_ParseExt( text, qfalse );
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing parm for 'linearFogParms' keyword in shader '%s'\n", shader.name );
++				continue;
++			}
++			shader.fogParms.depthForOpaque = atof( token );
++
++			shader.fogParms.density = DEFAULT_FOG_LINEAR_DENSITY;
++
++			// skip any old gradient directions
++			SkipRestOfLine( text );
++			continue;
++		}
+ 		// portal
+ 		else if ( !Q_stricmp(token, "portal") )
+ 		{
+@@ -1773,6 +1825,127 @@
+ 			ParseSkyParms( text );
+ 			continue;
+ 		}
++		// skyfogvars ( <red> <green> <blue> ) <density>
++		else if ( !Q_stricmp( token, "skyfogvars" ) ) {
++			vec3_t fogColor;
++			float fogDensity;
++
++			if ( !ParseVector( text, 3, fogColor ) ) {
++				return qfalse;
++			}
++			token = COM_ParseExt( text, qfalse );
++
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing density value for skyfogvars\n" );
++				continue;
++			}
++
++			fogDensity = atof( token );
++
++			if ( fogDensity > 1 ) {
++				ri.Printf( PRINT_WARNING, "WARNING: last value for skyfogvars is 'density' which needs to be 0.0-1.0\n" );
++				continue;
++			}
++
++			tr.skyFogType = FT_EXP;
++
++			//tr.skyFogDepthForOpaque = 5; // ZTM: FIXME: Um, what? this doesn't seems like it would work using Q3 fogging.
++			tr.skyFogDepthForOpaque = 2048;
++
++			tr.skyFogDensity = fogDensity;
++			VectorCopy( fogColor, tr.skyFogColor);
++			continue;
++		}
++		// waterfogvars ( <red> <green> <blue> ) [density <= 1 or depthForOpaque > 1]
++		else if ( !Q_stricmp( token, "waterfogvars" ) ) {
++			vec3_t watercolor;
++			float fogvar;
++
++			if ( !ParseVector( text, 3, watercolor ) ) {
++				return qfalse;
++			}
++			token = COM_ParseExt( text, qfalse );
++
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing density/distance value for waterfogvars\n" );
++				continue;
++			}
++
++			fogvar = atof( token );
++
++			//----(SA)	right now allow one water color per map.  I'm sure this will need
++			//			to change at some point, but I'm not sure how to track fog parameters
++			//			on a "per-water volume" basis yet.
++
++			if ( fogvar == 0 ) {
++				// Specifies "use the map values for everything except the fog color"
++				tr.waterFogType = FT_NONE;
++
++				if ( watercolor[0] == 0 && watercolor[1] == 0 && watercolor[2] == 0 ) {
++					// Color must be non-zero.
++					watercolor[0] = watercolor[1] = watercolor[2] = 0.00001;
++				}
++			} else if ( fogvar > 1 ) {
++				tr.waterFogType = FT_LINEAR;
++				tr.waterFogDepthForOpaque = fogvar;
++				tr.waterFogDensity = DEFAULT_FOG_LINEAR_DENSITY;
++			} else {
++				tr.waterFogType = FT_EXP;
++				tr.waterFogDensity = fogvar;
++				//tr.waterFogDepthForOpaque = 5; // ZTM: FIXME: Um, what? this doesn't seems like it would work using Q3 fogging.
++				tr.waterFogDepthForOpaque = 2048;
++			}
++
++			VectorCopy( watercolor, tr.waterFogColor );
++			continue;
++		}
++		// fogvars ( <red> <green> <blue> ) [density <= 1 or depthForOpaque > 1]
++		else if ( !Q_stricmp( token, "fogvars" ) ) {
++			vec3_t fogColor;
++			float fogvar;
++
++			if ( !ParseVector( text, 3, fogColor ) ) {
++				return qfalse;
++			}
++
++			token = COM_ParseExt( text, qfalse );
++			if ( !token[0] ) {
++				ri.Printf( PRINT_WARNING, "WARNING: missing density value for the fog\n" );
++				continue;
++			}
++
++			// fogFar > 1 means the shader is setting the farclip, < 1 means setting
++			// density (so old maps or maps that just need softening fog don't have to care about farclip)
++			fogvar = atof( token );
++
++			if ( fogvar > 1 ) {
++				tr.globalFogType = FT_LINEAR;
++				tr.globalFogDepthForOpaque = fogvar;
++				tr.globalFogDensity = DEFAULT_FOG_LINEAR_DENSITY;
++			} else {
++				tr.globalFogType = FT_EXP;
++				tr.globalFogDensity = fogvar;
++				tr.globalFogDepthForOpaque = 5; // ZTM: FIXME: Um, what? this doesn't seems like it would work using Q3 fogging.
++				//tr.globalFogDepthForOpaque = 2048;
++			}
++
++			VectorCopy( fogColor, tr.globalFogColor );
++			continue;
++		}
++		// nofog, allow disabling fog for some shaders
++		else if ( !Q_stricmp( token, "nofog" ) ) {
++			shader.noFog = qtrue;
++			continue;
++		}
++		// RF, allow each shader to permit compression if available
++		// ZTM: Just ignore them for now.
++		else if ( !Q_stricmp( token, "allowcompress" ) ) {
++			//tr.allowCompress = qtrue;
++			continue;
++		} else if ( !Q_stricmp( token, "nocompress" ) )   {
++			//tr.allowCompress = -1;
++			continue;
++		}
+ 		// light <value> determines flaring in q3map, not needed here
+ 		else if ( !Q_stricmp(token, "light") ) 
+ 		{
+Index: code/rend2/tr_model_iqm.c
+===================================================================
+--- code/rend2/tr_model_iqm.c	(revision 325)
++++ code/rend2/tr_model_iqm.c	(revision 329)
+@@ -752,7 +752,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return R_DefaultFogNum();
+ }
+ 
+ /*
+Index: code/rend2/tr_animation.c
+===================================================================
+--- code/rend2/tr_animation.c	(revision 325)
++++ code/rend2/tr_animation.c	(revision 329)
+@@ -310,7 +310,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return R_DefaultFogNum();
+ }
+ 
+ 
+Index: code/rend2/tr_image.c
+===================================================================
+--- code/rend2/tr_image.c	(revision 325)
++++ code/rend2/tr_image.c	(revision 329)
+@@ -2760,12 +2760,9 @@
+ void R_InitFogTable( void ) {
+ 	int		i;
+ 	float	d;
+-	float	exp;
+-	
+-	exp = 0.5;
+ 
+ 	for ( i = 0 ; i < FOG_TABLE_SIZE ; i++ ) {
+-		d = pow ( (float)i/(FOG_TABLE_SIZE-1), exp );
++		d = pow ( (float)i/(FOG_TABLE_SIZE-1), DEFAULT_FOG_EXP_DENSITY );
+ 
+ 		tr.fogTable[i] = d;
+ 	}
+@@ -2808,34 +2805,57 @@
+ 
+ /*
+ ================
+-R_CreateFogImage
++R_FogTcScale
+ ================
+ */
+-#define	FOG_S	256
+-#define	FOG_T	32
+-static void R_CreateFogImage( void ) {
+-	int		x,y;
++float R_FogTcScale( fogType_t fogType, float depthForOpaque, float density ) {
++	float scale;
++
++	if ( fogType == FT_LINEAR ) {
++		scale = DEFAULT_FOG_LINEAR_DENSITY / density;
++		return ( 1.0f / ( depthForOpaque * scale ) );
++	}
++
++	// exponential fog
++	scale = DEFAULT_FOG_EXP_DENSITY / density;
++	return ( 1.0f / ( depthForOpaque * 8 * scale ) );
++}
++
++/*
++================
++R_CreateFogImages
++
++Create fog images for exponential and linear fog.
++================
++*/
++static void R_CreateFogImages( void ) {
++	int		x, y, alpha;
+ 	byte	*data;
+ 	float	d;
+ 	float	borderColor[4];
++	int		fog_s, fog_t;
+ 
+-	data = ri.Hunk_AllocateTempMemory( FOG_S * FOG_T * 4 );
++	// Create exponential fog image
++	fog_s = 256;
++	fog_t = 32;
++	data = ri.Hunk_AllocateTempMemory( fog_s * fog_t * 4 );
+ 
+ 	// S is distance, T is depth
+-	for (x=0 ; x<FOG_S ; x++) {
+-		for (y=0 ; y<FOG_T ; y++) {
+-			d = R_FogFactor( ( x + 0.5f ) / FOG_S, ( y + 0.5f ) / FOG_T );
++	for (x=0 ; x<fog_s ; x++) {
++		for (y=0 ; y<fog_t ; y++) {
++			d = R_FogFactor( ( x + 0.5f ) / fog_s, ( y + 0.5f ) / fog_t );
+ 
+-			data[(y*FOG_S+x)*4+0] = 
+-			data[(y*FOG_S+x)*4+1] = 
+-			data[(y*FOG_S+x)*4+2] = 255;
+-			data[(y*FOG_S+x)*4+3] = 255*d;
++			data[(y*fog_s+x)*4+0] = 
++			data[(y*fog_s+x)*4+1] = 
++			data[(y*fog_s+x)*4+2] = 255;
++			data[(y*fog_s+x)*4+3] = 255*d;
+ 		}
+ 	}
++
+ 	// standard openGL clamping doesn't really do what we want -- it includes
+ 	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
+ 	// what we want.
+-	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
++	tr.fogImage = R_CreateImage("*fog", (byte *)data, fog_s, fog_t, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
+ 	ri.Hunk_FreeTempMemory( data );
+ 
+ 	borderColor[0] = 1.0;
+@@ -2844,6 +2864,52 @@
+ 	borderColor[3] = 1;
+ 
+ 	qglTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor );
++
++
++	// Create linear fog image
++	fog_s = 16;
++	fog_t = 16;
++	data = ri.Hunk_AllocateTempMemory( fog_s * fog_t * 4 );
++
++	// ydnar: new, linear fog texture generating algo for GL_CLAMP_TO_EDGE (OpenGL 1.2+)
++
++	// S is distance, T is depth
++	for ( x = 0 ; x < fog_s ; x++ ) {
++		for ( y = 0 ; y < fog_t ; y++ ) {
++			alpha = 270 * ( (float) x / fog_s ) * ( (float) y / fog_t );    // need slop room for fp round to 0
++			if ( alpha < 0 ) {
++				alpha = 0;
++			} else if ( alpha > 255 ) {
++				alpha = 255;
++			}
++
++			// ensure edge/corner cases are fully transparent (at 0,0) or fully opaque (at 1,N where N is 0-1.0)
++			if ( x == 0 ) {
++				alpha = 0;
++			} else if ( x == ( fog_s - 1 ) ) {
++				alpha = 255;
++			}
++
++			data[( y * fog_s + x ) * 4 + 0] =
++			data[( y * fog_s + x ) * 4 + 1] =
++			data[( y * fog_s + x ) * 4 + 2] = 255;
++			data[( y * fog_s + x ) * 4 + 3] = alpha;
++		}
++	}
++
++	// standard openGL clamping doesn't really do what we want -- it includes
++	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
++	// what we want.
++	tr.linearFogImage = R_CreateImage("*linearfog", (byte *)data, fog_s, fog_t, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
++	ri.Hunk_FreeTempMemory( data );
++
++	// ydnar: the following lines are unecessary for new GL_CLAMP_TO_EDGE fog
++	borderColor[0] = 1.0;
++	borderColor[1] = 1.0;
++	borderColor[2] = 1.0;
++	borderColor[3] = 1;
++
++	qglTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor );
+ }
+ 
+ /*
+@@ -2925,7 +2991,7 @@
+ 	}
+ 
+ 	R_CreateDlightImage();
+-	R_CreateFogImage();
++	R_CreateFogImages();
+ 
+ 	if (glRefConfig.framebufferObject)
+ 	{
+@@ -2951,6 +3017,7 @@
+ 		tr.godRaysImage = R_CreateImage("*godRays", NULL, width, height, IMGTYPE_COLORALPHA, IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, GL_RGBA8);
+ #endif
+ 
++		if (r_softOverbright->integer)
+ 		{
+ 			int format;
+ 
+@@ -3041,14 +3108,14 @@
+ 		tr.overbrightBits = 0;		// need hardware gamma for overbright
+ 	}
+ 
+-	// never overbright in windowed mode
+-	if ( 0 /* !glConfig.isFullscreen */ ) 
++	// never overbright in windowed mode without soft overbright
++	if ( !glConfig.isFullscreen && !r_softOverbright->integer ) 
+ 	{
+ 		tr.overbrightBits = 0;
+ 	}
+ 
+ 	// never overbright with tonemapping
+-	if ( r_toneMap->integer )
++	if ( r_toneMap->integer && r_hdr->integer )
+ 	{
+ 		tr.overbrightBits = 0;
+ 	}
+@@ -3085,8 +3152,11 @@
+ 
+ 	shift = tr.overbrightBits;
+ 
+-	if (glRefConfig.framebufferObject)
++	// no shift with soft overbright
++	if (r_softOverbright->integer)
++	{
+ 		shift = 0;
++	}
+ 
+ 	for ( i = 0; i < 256; i++ ) {
+ 		if ( g == 1 ) {
+Index: code/rend2/tr_shade.c
+===================================================================
+--- code/rend2/tr_shade.c	(revision 325)
++++ code/rend2/tr_shade.c	(revision 329)
+@@ -664,12 +664,23 @@
+ 	// from RB_CalcFogTexCoords()
+ 	fog_t  *fog;
+ 	vec3_t  local;
++	float tcScale;
+ 
+ 	if (!tess.fogNum)
+ 		return;
+ 
+ 	fog = tr.world->fogs + tess.fogNum;
+ 
++	if ( tr.world && tess.fogNum == tr.world->globalFog ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		tcScale = backEnd.refdef.fogTcScale;
++	} else {
++		tcScale = fog->tcScale;
++	}
++
+ 	VectorSubtract( backEnd.or.origin, backEnd.viewParms.or.origin, local );
+ 	fogDistanceVector[0] = -backEnd.or.modelMatrix[2];
+ 	fogDistanceVector[1] = -backEnd.or.modelMatrix[6];
+@@ -677,7 +688,7 @@
+ 	fogDistanceVector[3] = DotProduct( local, backEnd.viewParms.or.axis[0] );
+ 
+ 	// scale the fog vectors based on the fog's thickness
+-	VectorScale4(fogDistanceVector, fog->tcScale, fogDistanceVector);
++	VectorScale4(fogDistanceVector, tcScale, fogDistanceVector);
+ 
+ 	// rotate the gradient vector for this orientation
+ 	if ( fog->hasSurface ) {
+@@ -792,7 +803,7 @@
+ 			GLSL_SetUniformFloat(sp, GENERIC_UNIFORM_TIME, tess.shaderTime);
+ 		}
+ 
+-		if ( input->fogNum ) {
++		if ( input->fogNum && ( !input->shader->noFog || pStage->isFogged ) ) {
+ 			vec4_t fogColorMask;
+ 
+ 			GLSL_SetUniformVec4(sp, GENERIC_UNIFORM_FOGDISTANCE, fogDistanceVector);
+@@ -982,7 +993,7 @@
+ 			GLSL_SetUniformFloat(sp, GENERIC_UNIFORM_TIME, tess.shaderTime);
+ 		}
+ 
+-		if ( input->fogNum ) {
++		if ( input->fogNum && ( !input->shader->noFog || pStage->isFogged ) ) {
+ 			vec4_t fogColorMask;
+ 
+ 			GLSL_SetUniformVec4(sp, GENERIC_UNIFORM_FOGDISTANCE, fogDistanceVector);
+@@ -1178,10 +1189,23 @@
+ 	vec4_t	fogDistanceVector, fogDepthVector = {0, 0, 0, 0};
+ 	float	eyeT = 0;
+ 	shaderProgram_t *sp;
++	int		colorInt;
+ 
+ 	int deformGen;
+ 	vec5_t deformParams;
+ 
++	if ( tr.world && tess.fogNum == tr.world->globalFog ) {
++		if ( backEnd.refdef.fogType == FT_NONE ) {
++			return;
++		}
++
++		colorInt = backEnd.refdef.fogColorInt;
++	} else {
++		fog = tr.world->fogs + tess.fogNum;
++
++		colorInt = fog->colorInt;
++	}
++
+ 	ComputeDeformValues(&deformGen, deformParams);
+ 
+ 	{
+@@ -1200,8 +1224,6 @@
+ 
+ 	GLSL_BindProgram(sp);
+ 
+-	fog = tr.world->fogs + tess.fogNum;
+-
+ 	GLSL_SetUniformMatrix16(sp, FOGPASS_UNIFORM_MODELVIEWPROJECTIONMATRIX, glState.modelviewProjection);
+ 
+ 	GLSL_SetUniformFloat(sp, FOGPASS_UNIFORM_VERTEXLERP, glState.vertexAttribsInterpolation);
+@@ -1213,10 +1235,10 @@
+ 		GLSL_SetUniformFloat(sp, FOGPASS_UNIFORM_TIME, tess.shaderTime);
+ 	}
+ 
+-	color[0] = ((unsigned char *)(&fog->colorInt))[0] / 255.0f;
+-	color[1] = ((unsigned char *)(&fog->colorInt))[1] / 255.0f;
+-	color[2] = ((unsigned char *)(&fog->colorInt))[2] / 255.0f;
+-	color[3] = ((unsigned char *)(&fog->colorInt))[3] / 255.0f;
++	color[0] = ((unsigned char *)(&colorInt))[0] / 255.0f;
++	color[1] = ((unsigned char *)(&colorInt))[1] / 255.0f;
++	color[2] = ((unsigned char *)(&colorInt))[2] / 255.0f;
++	color[3] = ((unsigned char *)(&colorInt))[3] / 255.0f;
+ 	GLSL_SetUniformVec4(sp, FOGPASS_UNIFORM_COLOR, color);
+ 
+ 	ComputeFogValues(fogDistanceVector, fogDepthVector, &eyeT);
+@@ -1227,6 +1249,8 @@
+ 
+ 	if ( tess.shader->fogPass == FP_EQUAL ) {
+ 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL );
++	} else if ( tess.shader->sort >= SS_BLEND0 ) {
++		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_EQUAL );
+ 	} else {
+ 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
+ 	}
+@@ -1360,7 +1384,7 @@
+ 			GLSL_SetUniformFloat(sp, GENERIC_UNIFORM_TIME, tess.shaderTime);
+ 		}
+ 
+-		if ( input->fogNum ) {
++		if ( input->fogNum && ( !input->shader->noFog || pStage->isFogged ) ) {
+ 			GLSL_SetUniformVec4(sp, GENERIC_UNIFORM_FOGDISTANCE, fogDistanceVector);
+ 			GLSL_SetUniformVec4(sp, GENERIC_UNIFORM_FOGDEPTH, fogDepthVector);
+ 			GLSL_SetUniformFloat(sp, GENERIC_UNIFORM_FOGEYET, eyeT);
+@@ -1439,7 +1463,7 @@
+ 		GLSL_SetUniformInt(sp, GENERIC_UNIFORM_COLORGEN, pStage->rgbGen);
+ 		GLSL_SetUniformInt(sp, GENERIC_UNIFORM_ALPHAGEN, pStage->alphaGen);
+ 
+-		if ( input->fogNum )
++		if ( input->fogNum && ( !input->shader->noFog || pStage->isFogged ) )
+ 		{
+ 			vec4_t fogColorMask;
+ 
+@@ -1789,7 +1813,7 @@
+ 	//
+ 	// now do fog
+ 	//
+-	if ( tess.fogNum && tess.shader->fogPass ) {
++	if ( tess.fogNum && ( tess.shader->fogPass || ( tess.shader->sort > SS_OPAQUE && tr.world && tess.fogNum == tr.world->globalFog ) ) ) {
+ 		RB_FogPass();
+ 	}
+ 
+Index: code/rend2/tr_main.c
+===================================================================
+--- code/rend2/tr_main.c	(revision 325)
++++ code/rend2/tr_main.c	(revision 329)
+@@ -591,8 +591,171 @@
+ }
+ 
+ 
++// fog stuff
++qboolean fogIsOn = qfalse;
++
+ /*
+ =================
++RB_Fog
++=================
++*/
++void RB_Fog( int fogNum ) {
++	//static int			lastFogMode = 0;
++	//static vec3_t		lastColor = { -1, -1, -1 };
++	//static float		lastDensity = -1;
++	//static int			lastHint = -1;
++	//static float		lastStart = -1, lastEnd = -1;
++
++	int					fogMode;
++	vec3_t				color;
++	float				density;
++	int					hint;
++	float				start, end;
++
++	if ( !r_useGlFog->integer ) {
++		R_FogOff();
++		return;
++	}
++
++	if ( tr.world && fogNum == tr.world->globalFog ) {
++		switch ( backEnd.refdef.fogType ) {
++			case FT_LINEAR:
++				fogMode = GL_LINEAR;
++				end = backEnd.refdef.fogDepthForOpaque;
++				break;
++
++			case FT_EXP:
++				fogMode = GL_EXP;
++				end = 5; // ZTM: ???
++				break;
++
++			default:
++				R_FogOff();
++				return;
++		}
++
++		VectorCopy( backEnd.refdef.fogColor, color );
++
++		density = backEnd.refdef.fogDensity;
++
++	} else {
++		fog_t *fog;
++
++		fog = tr.world->fogs + fogNum;
++
++		if ( !fog->shader ) {
++			R_FogOff();
++			return;
++		}
++
++		switch ( fog->shader->fogParms.fogType ) {
++			case FT_LINEAR:
++				fogMode = GL_LINEAR;
++				end = backEnd.refdef.fogDepthForOpaque;
++				break;
++
++			case FT_EXP:
++				fogMode = GL_EXP;
++				end = 5; // ZTM: ???
++				break;
++
++			default:
++				R_FogOff();
++				return;
++		}
++
++		VectorCopy( fog->shader->fogParms.color, color );
++
++		end = fog->shader->fogParms.depthForOpaque;
++		density = fog->shader->fogParms.density;
++	}
++
++	hint = GL_DONT_CARE;
++	start = 0;
++
++	RB_FogOn();
++
++	// only send changes if necessary
++
++	//if ( fogMode != lastFogMode ) {
++		qglFogi( GL_FOG_MODE, fogMode );
++	//	lastFogMode = fogMode;
++	//}
++	//if ( color[0] != lastColor[0] || color[1] != lastColor[1] || color[2] != lastColor[2] || !lastFogMode ) {
++		qglFogfv( GL_FOG_COLOR, color );
++	//	VectorCopy( lastColor, color );
++	//}
++	//if ( density != lastDensity || !lastFogMode ) {
++		qglFogf( GL_FOG_DENSITY, density );
++	//	lastDensity = density;
++	//}
++	//if ( hint != lastHint || !lastFogMode ) {
++		qglHint( GL_FOG_HINT, hint );
++	//	lastHint = hint;
++	//}
++	//if ( start != lastStart || !lastFogMode ) {
++		qglFogf( GL_FOG_START, start );
++	//	lastStart = start;
++	//}
++	//if ( end != lastEnd || !lastFogMode ) {
++		qglFogf( GL_FOG_END, end );
++	//	lastEnd = end;
++	//}
++
++#if 0 // ZTM: TODO: Add NVidia fog code?
++// TTimo - from SP NV fog code
++	// NV fog mode
++	if ( glConfig.NVFogAvailable ) {
++		qglFogi( GL_FOG_DISTANCE_MODE_NV, glConfig.NVFogMode );
++	}
++// end
++#endif
++
++	//qglClearColor( color[0], color[1], color[2], 1.0f );
++}
++
++void R_FogOff( void ) {
++	if ( !fogIsOn ) {
++		return;
++	}
++	qglDisable( GL_FOG );
++	fogIsOn = qfalse;
++}
++
++void RB_FogOn( void ) {
++	if ( fogIsOn ) {
++		return;
++	}
++
++//	if(r_uiFullScreen->integer) {	// don't fog in the menu
++//		R_FogOff();
++//		return;
++//	}
++
++	if ( !r_useGlFog->integer ) {
++		return;
++	}
++
++	// ZTM: FIXME:
++	//if ( backEnd.refdef.fogType == FT_NONE ) {
++	//	return;
++	//}
++
++	qglEnable( GL_FOG );
++	fogIsOn = qtrue;
++}
++
++/*
++=================
++R_DefaultFogNum
++=================
++*/
++int R_DefaultFogNum( void ) {
++	return ( tr.world && tr.refdef.fogType != FT_NONE ) ? tr.world->globalFog : 0;
++}
++
++/*
++=================
+ R_CullLocalBox
+ 
+ Returns CULL_IN, CULL_CLIP, or CULL_OUT
+@@ -1019,6 +1182,12 @@
+ 		return;
+ 	}
+ 
++	// set r_zfar to experiment with different distances
++	if ( r_zfar->value ) {
++		tr.viewParms.zFar = r_zfar->integer;
++		return;
++	}
++
+ 	//
+ 	// set far clipping planes dynamically
+ 	//
+@@ -1066,6 +1235,11 @@
+ 		}
+ 	}
+ 	tr.viewParms.zFar = sqrt( farthestCornerDistance );
++
++	// global fog
++	if ( tr.refdef.fogType == FT_LINEAR && tr.refdef.fogDepthForOpaque > 1 && tr.refdef.fogDepthForOpaque < tr.viewParms.zFar ) {
++		tr.viewParms.zFar = tr.refdef.fogDepthForOpaque;
++	}
+ }
+ 
+ /*
+@@ -1209,8 +1383,13 @@
+ 	float zNear, zFar, depth;
+ 	
+ 	zNear = r_znear->value;
+-	zFar	= dest->zFar;
+ 
++	if ( r_zfar->integer ) {
++		zFar = r_zfar->integer; // (SA) allow override for helping level designers test fog distances
++	} else {
++		zFar = dest->zFar;
++	}
++
+ 	depth	= zFar - zNear;
+ 
+ 	dest->projectionMatrix[2] = 0;
+@@ -2210,7 +2389,9 @@
+ 	R_SortDrawSurfs( tr.refdef.drawSurfs + firstDrawSurf, tr.refdef.numDrawSurfs - firstDrawSurf );
+ 
+ 	// draw main system development information (surface outlines, etc)
++	R_FogOff();
+ 	R_DebugGraphics();
++	//RB_FogOn();
+ }
+ 
+ 
+Index: code/rend2/tr_backend.c
+===================================================================
+--- code/rend2/tr_backend.c	(revision 325)
++++ code/rend2/tr_backend.c	(revision 329)
+@@ -493,7 +493,7 @@
+ 		// drawing more world check is in case of double renders, such as skyportals
+ 		if (backEnd.viewParms.targetFbo == NULL)
+ 		{
+-			if (backEnd.framePostProcessed && (backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
++			if (!tr.renderFbo || (backEnd.framePostProcessed && (backEnd.refdef.rdflags & RDF_NOWORLDMODEL)))
+ 			{
+ 				FBO_Bind(tr.screenScratchFbo);
+ 			}
+@@ -522,14 +522,13 @@
+ 	{
+ 		clearBits |= GL_STENCIL_BUFFER_BIT;
+ 	}
+-	if ( r_fastsky->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) )
+-	{
+-		clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
+-#ifdef _DEBUG
+-		qglClearColor( 0.8f, 0.7f, 0.4f, 1.0f );	// FIXME: get color of sky
+-#else
+-		qglClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// FIXME: get color of sky
+-#endif
++	if ( ( backEnd.refdef.fogType == FT_LINEAR || r_fastsky->integer )
++		&& !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ) {
++		clearBits |= GL_COLOR_BUFFER_BIT;
++
++		qglClearColor( backEnd.refdef.fogColor[ 0 ],
++					   backEnd.refdef.fogColor[ 1 ],
++					   backEnd.refdef.fogColor[ 2 ], 1.0 );
+ 	}
+ 
+ 	// clear to white for shadow maps
+@@ -580,7 +579,20 @@
+ 	}
+ }
+ 
++/*
++=================
++RB_EndDrawingView
++=================
++*/
++void RB_EndDrawingView( void ) {
++	// ZTM: Disable fog?
++	//R_FogOff();
+ 
++	// ZTM: Reset portal clipping?
++	//qglDisable (GL_CLIP_PLANE0);
++}
++
++
+ #define	MAC_EVENT_PUMP_MSEC		5
+ 
+ /*
+@@ -972,7 +984,7 @@
+ 	// FIXME: HUGE hack
+ 	if (glRefConfig.framebufferObject)
+ 	{
+-		if (backEnd.framePostProcessed)
++		if (!tr.renderFbo || backEnd.framePostProcessed)
+ 		{
+ 			FBO_Bind(tr.screenScratchFbo);
+ 		}
+@@ -1121,7 +1133,7 @@
+ 	// FIXME: HUGE hack
+ 	if (glRefConfig.framebufferObject)
+ 	{
+-		if (backEnd.framePostProcessed)
++		if (!tr.renderFbo || backEnd.framePostProcessed)
+ 		{
+ 			FBO_Bind(tr.screenScratchFbo);
+ 		}
+@@ -1495,58 +1507,22 @@
+ 		qglColorMask(!backEnd.colorMask[0], !backEnd.colorMask[1], !backEnd.colorMask[2], !backEnd.colorMask[3]);
+ 		backEnd.depthFill = qfalse;
+ 
+-		// If we're using multisampling, resolve the depth first
+ 		if (tr.msaaResolveFbo)
+ 		{
++			// If we're using multisampling, resolve the depth first
+ 			FBO_FastBlit(tr.renderFbo, NULL, tr.msaaResolveFbo, NULL, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+ 		}
++		else if (tr.renderFbo == NULL)
++		{
++			// If we're rendering directly to the screen, copy the depth to a texture
++			GL_BindToTMU(tr.renderDepthImage, 0);
++			qglCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 0, 0, glConfig.vidWidth, glConfig.vidHeight, 0);
++		}
+ 
+ 		if (r_ssao->integer)
+-		{			
+-			vec2_t srcTexScale;
+-			vec4_t color;
+-			vec4_t quadVerts[4];
+-			vec2_t texCoords[4];
+-			vec2_t invTexRes;
+-			
+-			matrix_t idmatrix;
+-
+-			srcTexScale[0] = srcTexScale[1] = 1.0f;
+-			color[0] = color[1] = color[2] = color[3] = 1.0f;
+-
+-			FBO_Bind(tr.hdrDepthFbo);
+-
+-			qglViewport(0, 0, tr.hdrDepthFbo->width, tr.hdrDepthFbo->height);
+-			qglScissor(0, 0, tr.hdrDepthFbo->width, tr.hdrDepthFbo->height);
+-
+-			Matrix16Identity(idmatrix);
+-
+-			VectorSet4(quadVerts[0], -1,  1, 0, 1);
+-			VectorSet4(quadVerts[1],  1,  1, 0, 1);
+-			VectorSet4(quadVerts[2],  1, -1, 0, 1);
+-			VectorSet4(quadVerts[3], -1, -1, 0, 1);
+-
+-			texCoords[0][0] = 0; texCoords[0][1] = 1;
+-			texCoords[1][0] = 1; texCoords[1][1] = 1;
+-			texCoords[2][0] = 1; texCoords[2][1] = 0;
+-			texCoords[3][0] = 0; texCoords[3][1] = 0;
+-
+-			invTexRes[0] = 0.0f;
+-			invTexRes[1] = 0.0f;
+-
+-			GL_State( GLS_DEPTHTEST_DISABLE );
+-
+-			GLSL_BindProgram(&tr.textureColorShader);
+-			
+-			GL_BindToTMU(tr.renderDepthImage, TB_COLORMAP);
+-
+-			GLSL_SetUniformMatrix16(&tr.textureColorShader, TEXTURECOLOR_UNIFORM_MODELVIEWPROJECTIONMATRIX, idmatrix);
+-			GLSL_SetUniformVec4(&tr.textureColorShader, TEXTURECOLOR_UNIFORM_COLOR, color);
+-			GLSL_SetUniformVec2(&tr.textureColorShader, TEXTURECOLOR_UNIFORM_INVTEXRES, invTexRes);
+-			GLSL_SetUniformVec2(&tr.textureColorShader, TEXTURECOLOR_UNIFORM_AUTOEXPOSUREMINMAX, tr.refdef.autoExposureMinMax);
+-			GLSL_SetUniformVec3(&tr.textureColorShader, TEXTURECOLOR_UNIFORM_TONEMINAVGMAXLINEAR, tr.refdef.toneMinAvgMaxLinear);
+-
+-			RB_InstantQuad2(quadVerts, texCoords); //, color, shaderProgram, invTexRes);
++		{
++			// need the depth in a texture we can do GL_LINEAR sampling on, so copy it to an HDR image
++			FBO_BlitFromTexture(tr.renderDepthImage, NULL, NULL, tr.hdrDepthFbo, NULL, NULL, NULL, 0);
+ 		}
+ 
+ 		if (backEnd.viewParms.flags & VPF_USESUNLIGHT)
+@@ -1725,6 +1701,8 @@
+ 	//if (glRefConfig.framebufferObject)
+ 		//FBO_Bind(NULL);
+ 
++	RB_EndDrawingView();
++
+ 	return (const void *)(cmd + 1);
+ }
+ 
+@@ -1856,7 +1834,7 @@
+ 
+ 	if (glRefConfig.framebufferObject)
+ 	{
+-		if (backEnd.framePostProcessed)
++		if (!tr.renderFbo || backEnd.framePostProcessed)
+ 		{
+ 			FBO_Bind(tr.screenScratchFbo);
+ 		}
+@@ -1871,7 +1849,7 @@
+ 	// if we're doing MSAA, clear the depth texture for the resolve buffer
+ 	if (tr.msaaResolveFbo)
+ 	{
+-		FBO_Bind(tr.screenScratchFbo);
++		FBO_Bind(tr.msaaResolveFbo);
+ 		qglClear(GL_DEPTH_BUFFER_BIT);
+ 	}
+ 
+@@ -1920,47 +1898,38 @@
+ 
+ 	if (glRefConfig.framebufferObject)
+ 	{
+-		// copy final image to screen
+-		vec4_t color;
+-
+-		if (backEnd.framePostProcessed)
++		if (!backEnd.framePostProcessed)
+ 		{
+-			// frame was postprocessed into screen fbo, copy from there
++			if (tr.msaaResolveFbo && r_hdr->integer)
++			{
++				// Resolving an RGB16F MSAA FBO to the screen messes with the brightness, so resolve to an RGB16F FBO first
++				FBO_FastBlit(tr.renderFbo, NULL, tr.msaaResolveFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
++				FBO_FastBlit(tr.msaaResolveFbo, NULL, tr.screenScratchFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
++			}
++			else if (tr.renderFbo)
++			{
++				FBO_FastBlit(tr.renderFbo, NULL, tr.screenScratchFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
++			}
+ 		}
+-		else if (!glRefConfig.framebuffer_srgb)
++
++		if (tr.screenScratchFbo)
+ 		{
+-			// Copy render to screenscratch, possibly resolving MSAA
+-			FBO_FastBlit(tr.renderFbo, NULL, tr.screenScratchFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+-		}
+-		else
+-		{
+-			FBO_t *srcFbo = tr.renderFbo;
++			vec4_t color;
+ 
+-			if (tr.msaaResolveFbo)
+-			{
+-				// Resolve the MSAA before copying
+-				FBO_FastBlit(srcFbo, NULL, tr.msaaResolveFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
++			color[0] =
++			color[1] =
++			color[2] = pow(2, tr.overbrightBits); //exp2(tr.overbrightBits);
++			color[3] = 1.0f;
+ 
+-				srcFbo = tr.msaaResolveFbo;
+-			}
++			// turn off colormask when copying final image
++			if (backEnd.colorMask[0] || backEnd.colorMask[1] || backEnd.colorMask[2] || backEnd.colorMask[3])
++				qglColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
++				
++			FBO_Blit(tr.screenScratchFbo, NULL, NULL, NULL, NULL, NULL, color, 0);
+ 
+-			// need to copy from resolve to screenscratch to fix gamma
+-			FBO_Blit(srcFbo, NULL, NULL, tr.screenScratchFbo, NULL, NULL, NULL, 0);
++			if (backEnd.colorMask[0] || backEnd.colorMask[1] || backEnd.colorMask[2] || backEnd.colorMask[3])
++				qglColorMask(!backEnd.colorMask[0], !backEnd.colorMask[1], !backEnd.colorMask[2], !backEnd.colorMask[3]);
+ 		}
+-		
+-		color[0] =
+-		color[1] =
+-		color[2] = pow(2, tr.overbrightBits); //exp2(tr.overbrightBits);
+-		color[3] = 1.0f;
+-
+-		// turn off colormask when copying final image
+-		if (backEnd.colorMask[0] || backEnd.colorMask[1] || backEnd.colorMask[2] || backEnd.colorMask[3])
+-			qglColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+-			
+-		FBO_Blit(tr.screenScratchFbo, NULL, NULL, NULL, NULL, NULL, color, 0);
+-
+-		if (backEnd.colorMask[0] || backEnd.colorMask[1] || backEnd.colorMask[2] || backEnd.colorMask[3])
+-			qglColorMask(!backEnd.colorMask[0], !backEnd.colorMask[1], !backEnd.colorMask[2], !backEnd.colorMask[3]);
+ 	}
+ 
+ 	if ( !glState.finishCalled ) {
+@@ -2022,11 +1991,9 @@
+ 	FBO_t *srcFbo;
+ 	qboolean autoExposure;
+ 
+-	if (!glRefConfig.framebufferObject)
++	if (!glRefConfig.framebufferObject || !r_postProcess->integer)
+ 	{
+ 		// do nothing
+-		backEnd.framePostProcessed = qtrue;
+-
+ 		return (const void *)(cmd + 1);
+ 	}
+ 
+@@ -2038,36 +2005,37 @@
+ 		srcFbo = tr.msaaResolveFbo;
+ 	}
+ 
+-	if (r_postProcess->integer && r_ssao->integer)
++	if (r_ssao->integer)
+ 	{
+-		vec4i_t dstBox;
+-		VectorSet4(dstBox, 0, 0, srcFbo->width, srcFbo->height);
+-		FBO_BlitFromTexture(tr.screenSsaoImage, NULL, NULL, srcFbo, dstBox, NULL, NULL, GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
++		FBO_BlitFromTexture(tr.screenSsaoImage, NULL, NULL, srcFbo, NULL, NULL, NULL, GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
+ 	}
+ 
+-	if (r_postProcess->integer && (r_toneMap->integer || r_forceToneMap->integer))
++	if (srcFbo)
+ 	{
+-		autoExposure = r_autoExposure->integer || r_forceAutoExposure;
+-		RB_ToneMap(srcFbo, autoExposure);
+-	}
+-	else if (!glRefConfig.framebuffer_srgb && r_cameraExposure->value == 0.0f)
+-	{
+-		FBO_FastBlit(srcFbo, NULL, tr.screenScratchFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+-	}
+-	else
+-	{
+-		vec4_t color;
++		if (r_hdr->integer && (r_toneMap->integer || r_forceToneMap->integer))
++		{
++			autoExposure = r_autoExposure->integer || r_forceAutoExposure->integer;
++			RB_ToneMap(srcFbo, autoExposure);
++		}
++		else if (!glRefConfig.framebuffer_srgb && r_cameraExposure->value == 0.0f)
++		{
++			FBO_FastBlit(srcFbo, NULL, tr.screenScratchFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
++		}
++		else
++		{
++			vec4_t color;
+ 
+-		color[0] =
+-		color[1] =
+-		color[2] = pow(2, r_cameraExposure->value); //exp2(r_cameraExposure->value);
+-		color[3] = 1.0f;
++			color[0] =
++			color[1] =
++			color[2] = pow(2, r_cameraExposure->value); //exp2(r_cameraExposure->value);
++			color[3] = 1.0f;
+ 
+-		FBO_Blit(srcFbo, NULL, NULL, tr.screenScratchFbo, NULL, NULL, color, 0);
++			FBO_Blit(srcFbo, NULL, NULL, tr.screenScratchFbo, NULL, NULL, color, 0);
++		}
+ 	}
+ 
+ #ifdef REACTION
+-	if (r_postProcess->integer && glRefConfig.framebufferObject)
++	if (1)
+ 	{
+ 		RB_GodRays();
+ 
+@@ -2092,16 +2060,16 @@
+ 	if (0)
+ 	{
+ 		vec4i_t dstBox;
+-		VectorSet4(dstBox, 256, tr.screenScratchFbo->height - 256, 256, 256);
++		VectorSet4(dstBox, 256, glConfig.vidHeight - 256, 256, 256);
+ 		FBO_BlitFromTexture(tr.renderDepthImage, NULL, NULL, tr.screenScratchFbo, dstBox, NULL, NULL, 0);
+-		VectorSet4(dstBox, 512, tr.screenScratchFbo->height - 256, 256, 256);
++		VectorSet4(dstBox, 512, glConfig.vidHeight - 256, 256, 256);
+ 		FBO_BlitFromTexture(tr.screenShadowImage, NULL, NULL, tr.screenScratchFbo, dstBox, NULL, NULL, 0);
+ 	}
+ 
+ 	if (0)
+ 	{
+ 		vec4i_t dstBox;
+-		VectorSet4(dstBox, 256, tr.screenScratchFbo->height - 256, 256, 256);
++		VectorSet4(dstBox, 256, glConfig.vidHeight - 256, 256, 256);
+ 		FBO_BlitFromTexture(tr.renderImage, NULL, NULL, tr.screenScratchFbo, dstBox, NULL, NULL, 0);
+ 	}
+ 
+Index: code/rend2/tr_world.c
+===================================================================
+--- code/rend2/tr_world.c	(revision 325)
++++ code/rend2/tr_world.c	(revision 329)
+@@ -331,14 +331,14 @@
+ R_AddWorldSurface
+ ======================
+ */
+-static void R_AddWorldSurface( msurface_t *surf, int dlightBits, int pshadowBits ) {
+-	// FIXME: bmodel fog?
+-
++static void R_AddWorldSurface( msurface_t *surf, shader_t *shader, int fogNum, int dlightBits, int pshadowBits ) {
+ 	// try to cull before dlighting or adding
+ 	if ( R_CullSurface( surf ) ) {
+ 		return;
+ 	}
+ 
++	surf->fogIndex = fogNum;
++
+ 	// check for dlighting
+ 	if ( dlightBits ) {
+ 		dlightBits = R_DlightSurface( surf, dlightBits );
+@@ -351,7 +351,7 @@
+ 		pshadowBits = ( pshadowBits != 0 );
+ 	}
+ 
+-	R_AddDrawSurf( surf->data, surf->shader, surf->fogIndex, dlightBits, pshadowBits );
++	R_AddDrawSurf( surf->data, shader, surf->fogIndex, dlightBits, pshadowBits );
+ }
+ 
+ /*
+@@ -364,6 +364,38 @@
+ 
+ /*
+ =================
++R_BmodelFogNum
++
++See if a sprite is inside a fog volume
++Return positive with /any part/ of the brush falling within a fog volume
++=================
++*/
++int R_BmodelFogNum( trRefEntity_t *re, bmodel_t *bmodel ) {
++	int i, j;
++	fog_t *fog;
++
++	for ( i = 1; i < tr.world->numfogs; i++ )
++	{
++		fog = &tr.world->fogs[ i ];
++		for ( j = 0; j < 3; j++ )
++		{
++			if ( re->e.origin[ j ] + bmodel->bounds[ 0 ][ j ] >= fog->bounds[ 1 ][ j ] ) {
++				break;
++			}
++			if ( re->e.origin[ j ] + bmodel->bounds[ 1 ][ j ] <= fog->bounds[ 0 ][ j ] ) {
++				break;
++			}
++		}
++		if ( j == 3 ) {
++			return i;
++		}
++	}
++
++	return R_DefaultFogNum();
++}
++
++/*
++=================
+ R_AddBrushModelSurfaces
+ =================
+ */
+@@ -372,6 +404,8 @@
+ 	int			clip;
+ 	model_t		*pModel;
+ 	int			i;
++	int			fognum;
++	msurface_t	*surf;
+ 
+ 	pModel = R_GetModelByHandle( ent->e.hModel );
+ 
+@@ -381,19 +415,45 @@
+ 	if ( clip == CULL_OUT ) {
+ 		return;
+ 	}
+-	
++
++	// set current brush model to world
++	tr.currentBModel = bmodel;
++
++	// set model state for decals and dynamic fog
++	VectorCopy( ent->e.origin, bmodel->orientation[ tr.smpFrame ].origin );
++	VectorCopy( ent->e.axis[ 0 ], bmodel->orientation[ tr.smpFrame ].axis[ 0 ] );
++	VectorCopy( ent->e.axis[ 1 ], bmodel->orientation[ tr.smpFrame ].axis[ 1 ] );
++	VectorCopy( ent->e.axis[ 2 ], bmodel->orientation[ tr.smpFrame ].axis[ 2 ] );
++	bmodel->visible[ tr.smpFrame ] = qtrue;
++	bmodel->entityNum[ tr.smpFrame ] = tr.currentEntityNum;
++
+ 	R_SetupEntityLighting( &tr.refdef, ent );
+ 	R_DlightBmodel( bmodel );
+ 
+-	for ( i = 0 ; i < bmodel->numSurfaces ; i++ ) {
+-		int surf = bmodel->firstSurface + i;
++	// determine if in fog
++	fognum = R_BmodelFogNum( ent, bmodel );
+ 
+-		if (tr.world->surfacesViewCount[surf] != tr.viewCount)
++	// add model surfaces
++	for ( i = 0; i < bmodel->numSurfaces; i++ ) {
++		int surfNum = bmodel->firstSurface + i;
++
++		if (tr.world->surfacesViewCount[surfNum] != tr.viewCount)
+ 		{
+-			tr.world->surfacesViewCount[surf] = tr.viewCount;
+-			R_AddWorldSurface( tr.world->surfaces + surf, tr.currentEntity->needDlights, 0 );
++			tr.world->surfacesViewCount[surfNum] = tr.viewCount;
++
++			surf = ( msurface_t * )( tr.world->surfaces + bmodel->firstSurface + i );
++
++			// custom shader support for brushmodels
++			if ( ent->e.customShader ) {
++				R_AddWorldSurface( surf, R_GetShaderByHandle( ent->e.customShader ), fognum, tr.currentEntity->needDlights, 0 );
++			} else {
++				R_AddWorldSurface( surf, surf->shader, fognum, tr.currentEntity->needDlights, 0 );
++			}
+ 		}
+ 	}
++
++	// clear current brush model
++	tr.currentBModel = NULL;
+ }
+ 
+ 
+@@ -405,9 +465,92 @@
+ =============================================================
+ */
+ 
++/*
++=================
++R_LeafFogNum
+ 
++See if leaf is inside a fog volume
++Return positive with /any part/ of the leaf falling within a fog volume
++=================
++*/
++int R_LeafFogNum( mnode_t *node ) {
++	int i, j;
++	fog_t *fog;
++
++	for ( i = 1; i < tr.world->numfogs; i++ )
++	{
++		fog = &tr.world->fogs[ i ];
++		for ( j = 0; j < 3; j++ )
++		{
++			if ( node->mins[ j ] >= fog->bounds[ 1 ][ j ] ) {
++				break;
++			}
++			if ( node->maxs[ j ] <= fog->bounds[ 0 ][ j ] ) {
++				break;
++			}
++		}
++		if ( j == 3 ) {
++			return i;
++		}
++	}
++
++	return R_DefaultFogNum();
++}
++
++#if 0
+ /*
+ ================
++R_AddLeafSurfaces
++
++Adds a leaf's drawsurfaces
++================
++*/
++static void R_AddLeafSurfaces( mnode_t *node, int dlightBits ) {
++	int c, fogNum;
++	msurface_t  *surf, **mark;
++
++	// add to count
++	tr.pc.c_leafs++;
++
++	// add to z buffer bounds
++	if ( node->mins[0] < tr.viewParms.visBounds[0][0] ) {
++		tr.viewParms.visBounds[0][0] = node->mins[0];
++	}
++	if ( node->mins[1] < tr.viewParms.visBounds[0][1] ) {
++		tr.viewParms.visBounds[0][1] = node->mins[1];
++	}
++	if ( node->mins[2] < tr.viewParms.visBounds[0][2] ) {
++		tr.viewParms.visBounds[0][2] = node->mins[2];
++	}
++
++	if ( node->maxs[0] > tr.viewParms.visBounds[1][0] ) {
++		tr.viewParms.visBounds[1][0] = node->maxs[0];
++	}
++	if ( node->maxs[1] > tr.viewParms.visBounds[1][1] ) {
++		tr.viewParms.visBounds[1][1] = node->maxs[1];
++	}
++	if ( node->maxs[2] > tr.viewParms.visBounds[1][2] ) {
++		tr.viewParms.visBounds[1][2] = node->maxs[2];
++	}
++
++	fogNum = R_LeafFogNum( node );
++
++	// add the individual surfaces
++	mark = node->firstmarksurface;
++	c = node->nummarksurfaces;
++	while ( c-- ) {
++		// the surface may have already been added if it
++		// spans multiple leafs
++		surf = *mark;
++		R_AddWorldSurface( surf, surf->shader, fogNum, dlightBits, 0 );
++		mark++;
++	}
++}
++#endif
++
++
++/*
++================
+ R_RecursiveWorldNode
+ ================
+ */
+@@ -547,6 +690,7 @@
+ 		// leaf node, so add mark surfaces
+ 		int			c;
+ 		int surf, *view;
++		int fogNum;
+ 
+ 		tr.pc.c_leafs++;
+ 
+@@ -571,6 +715,8 @@
+ 			tr.viewParms.visBounds[1][2] = node->maxs[2];
+ 		}
+ 
++		fogNum = R_LeafFogNum( node );
++
+ 		// add merged and unmerged surfaces
+ 		if (tr.world->viewSurfaces)
+ 			view = tr.world->viewSurfaces + node->firstmarksurface;
+@@ -586,6 +732,7 @@
+ 				if (tr.world->mergedSurfacesViewCount[-surf - 1] != tr.viewCount)
+ 				{
+ 					tr.world->mergedSurfacesViewCount[-surf - 1]  = tr.viewCount;
++					tr.world->mergedSurfacesFogNum[-surf - 1] = fogNum;
+ 					tr.world->mergedSurfacesDlightBits[-surf - 1] = dlightBits;
+ 					tr.world->mergedSurfacesPshadowBits[-surf - 1] = pshadowBits;
+ 				}
+@@ -600,6 +747,7 @@
+ 				if (tr.world->surfacesViewCount[surf] != tr.viewCount)
+ 				{
+ 					tr.world->surfacesViewCount[surf] = tr.viewCount;
++					tr.world->surfacesFogNum[surf] = fogNum;
+ 					tr.world->surfacesDlightBits[surf] = dlightBits;
+ 					tr.world->surfacesPshadowBits[surf] = pshadowBits;
+ 				}
+@@ -801,6 +949,9 @@
+ 	tr.currentEntityNum = REFENTITYNUM_WORLD;
+ 	tr.shiftedEntityNum = tr.currentEntityNum << QSORT_REFENTITYNUM_SHIFT;
+ 
++	// set current brush model to world
++	tr.currentBModel = &tr.world->bmodels[ 0 ];
++
+ 	// determine which leaves are in the PVS / areamask
+ 	if (!(tr.viewParms.flags & VPF_DEPTHSHADOW))
+ 		R_MarkLeaves ();
+@@ -834,6 +985,7 @@
+ 	// also mask invisible dlights for next frame
+ 	{
+ 		int i;
++		msurface_t *surf;
+ 
+ 		tr.refdef.dlightMask = 0;
+ 
+@@ -842,7 +994,9 @@
+ 			if (tr.world->surfacesViewCount[i] != tr.viewCount)
+ 				continue;
+ 
+-			R_AddWorldSurface( tr.world->surfaces + i, tr.world->surfacesDlightBits[i], tr.world->surfacesPshadowBits[i] );
++			surf = (msurface_t*)tr.world->surfaces + i;
++
++			R_AddWorldSurface( surf, surf->shader, tr.world->surfacesFogNum[i], tr.world->surfacesDlightBits[i], tr.world->surfacesPshadowBits[i] );
+ 			tr.refdef.dlightMask |= tr.world->surfacesDlightBits[i];
+ 		}
+ 		for (i = 0; i < tr.world->numMergedSurfaces; i++)
+@@ -850,10 +1004,15 @@
+ 			if (tr.world->mergedSurfacesViewCount[i] != tr.viewCount)
+ 				continue;
+ 
+-			R_AddWorldSurface( tr.world->mergedSurfaces + i, tr.world->mergedSurfacesDlightBits[i], tr.world->mergedSurfacesPshadowBits[i] );
++			surf = (msurface_t*)tr.world->mergedSurfaces + i;
++
++			R_AddWorldSurface( surf, surf->shader, tr.world->mergedSurfacesFogNum[i], tr.world->mergedSurfacesDlightBits[i], tr.world->mergedSurfacesPshadowBits[i] );
+ 			tr.refdef.dlightMask |= tr.world->mergedSurfacesDlightBits[i];
+ 		}
+ 
+ 		tr.refdef.dlightMask = ~tr.refdef.dlightMask;
+ 	}
++
++	// clear brush model
++	tr.currentBModel = NULL;
+ }
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 325)
++++ code/cgame/cg_syscalls.asm	(revision 329)
+@@ -116,6 +116,8 @@
+ equ trap_R_LightForPoint				-353
+ equ trap_R_inPVS						-354
+ equ trap_R_AddAdditiveLightToScene		-355
++equ trap_R_GetGlobalFog					-356
++equ trap_R_GetWaterFog					-357
+ 
+ 
+ 
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 325)
++++ code/cgame/cg_syscalls.c	(revision 329)
+@@ -401,6 +401,14 @@
+ 	return syscall( CG_R_INPVS, p1, p2 );
+ }
+ 
++void trap_R_GetGlobalFog( fogType_t *type, vec3_t color, float *depthForOpaque, float *density ) {
++	syscall( CG_R_GET_GLOBAL_FOG, type, color, depthForOpaque, density );
++}
++
++void trap_R_GetWaterFog( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density ) {
++	syscall( CG_R_GET_WATER_FOG, origin, type, color, depthForOpaque, density );
++}
++
+ void		trap_GetClipboardData( char *buf, int bufsize ) {
+ 	syscall( CG_GETCLIPBOARDDATA, buf, bufsize );
+ }
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 325)
++++ code/cgame/cg_draw.c	(revision 329)
+@@ -2861,6 +2861,31 @@
+ 
+ /*
+ =====================
++CG_FogView
++=====================
++*/
++void CG_FogView( void ) {
++	if ( cg.refdef.rdflags & RDF_UNDERWATER ) {
++		trap_R_GetWaterFog( cg.refdef.vieworg, &cg.refdef.fogType, cg.refdef.fogColor, &cg.refdef.fogDepthForOpaque, &cg.refdef.fogDensity );
++
++		// Check if using global fog for everything except color.
++		if ( cg.refdef.fogType == FT_NONE && ( cg.refdef.fogColor[0] || cg.refdef.fogColor[1] || cg.refdef.fogColor[2] ) ) {
++			cg.refdef.fogType = cgs.globalFogType;
++			cg.refdef.fogDepthForOpaque = cgs.globalFogDepthForOpaque;
++			cg.refdef.fogDensity = cgs.globalFogDensity;
++		}
++		return;
++	}
++
++	// Use global fog from bsp or fogvars in shader.
++	cg.refdef.fogType = cgs.globalFogType;
++	VectorCopy( cgs.globalFogColor, cg.refdef.fogColor );
++	cg.refdef.fogDepthForOpaque = cgs.globalFogDepthForOpaque;
++	cg.refdef.fogDensity = cgs.globalFogDensity;
++}
++
++/*
++=====================
+ CG_DrawActive
+ 
+ Perform all drawing needed to completely fill the viewport
+@@ -2888,6 +2913,8 @@
+ 
+ 	CG_PB_RenderPolyBuffers();
+ 
++	CG_FogView();
++
+ 	// draw 3D view
+ 	trap_R_RenderScene( &cg.refdef );
+ 
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 325)
++++ code/cgame/cg_local.h	(revision 329)
+@@ -1115,6 +1115,12 @@
+ 	int acceptLeader;
+ 	char acceptVoice[MAX_NAME_LENGTH];
+ 
++	// default global fog from bsp or fogvars in a shader
++	fogType_t	globalFogType;
++	vec3_t		globalFogColor;
++	float		globalFogDepthForOpaque;
++	float		globalFogDensity;
++
+ 	// media
+ 	cgMedia_t		media;
+ 
+@@ -1744,6 +1750,8 @@
+ 					   float frac, const char *tagName );
+ void		trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
+ qboolean	trap_R_inPVS( const vec3_t p1, const vec3_t p2 );
++void		trap_R_GetGlobalFog( fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
++void		trap_R_GetWaterFog( const vec3_t origin, fogType_t *type, vec3_t color, float *depthForOpaque, float *density );
+ 
+ // normal sounds will have their volume dynamically changed as their entity
+ // moves and the listener moves
+Index: code/cgame/cg_view.c
+===================================================================
+--- code/cgame/cg_view.c	(revision 325)
++++ code/cgame/cg_view.c	(revision 329)
+@@ -599,7 +599,6 @@
+ 	float	fov_x, fov_y;
+ 	float	zoomFov;
+ 	float	f;
+-	int		inwater;
+ 
+ 	if ( cg.cur_lc->predictedPlayerState.pm_type == PM_INTERMISSION ) {
+ 		// if in intermission, use a fixed value
+@@ -664,10 +663,10 @@
+ 		v = WAVE_AMPLITUDE * sin( phase );
+ 		fov_x += v;
+ 		fov_y -= v;
+-		inwater = qtrue;
++		cg.refdef.rdflags |= RDF_UNDERWATER;
+ 	}
+ 	else {
+-		inwater = qfalse;
++		cg.refdef.rdflags &= ~RDF_UNDERWATER;
+ 	}
+ 
+ 
+@@ -681,7 +680,7 @@
+ 		cg.cur_lc->zoomSensitivity = cg.refdef.fov_y / 75.0;
+ 	}
+ 
+-	return inwater;
++	return (cg.refdef.rdflags & RDF_UNDERWATER);
+ }
+ 
+ 
+Index: code/cgame/cg_servercmds.c
+===================================================================
+--- code/cgame/cg_servercmds.c	(revision 325)
++++ code/cgame/cg_servercmds.c	(revision 329)
+@@ -288,6 +288,9 @@
+ 			break;
+ 		}
+ 	}
++
++	// Only need to do this once, unless a shader is remapped to new shader with fogvars.
++	trap_R_GetGlobalFog( &cgs.globalFogType, cgs.globalFogColor, &cgs.globalFogDepthForOpaque, &cgs.globalFogDensity );
+ }
+ 
+ /*
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 325)
++++ code/cgame/cg_public.h	(revision 329)
+@@ -191,6 +191,8 @@
+ 	CG_R_LIGHTFORPOINT,
+ 	CG_R_INPVS,
+ 	CG_R_ADDADDITIVELIGHTTOSCENE,
++	CG_R_GET_GLOBAL_FOG,
++	CG_R_GET_WATER_FOG,
+ 
+ 
+ 	CG_S_REGISTERSOUND = 400,
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 325)
++++ code/client/cl_main.c	(revision 329)
+@@ -2356,39 +2356,6 @@
+ 
+ /*
+ ===================
+-CL_DisconnectPacket
+-
+-Sometimes the server can drop the client and the netchan based
+-disconnect can be lost.  If the client continues to send packets
+-to the server, the server will send out of band disconnect packets
+-to the client so it doesn't have to wait for the full timeout period.
+-===================
+-*/
+-void CL_DisconnectPacket( netadr_t from ) {
+-	if ( clc.state < CA_CONNECTING ) {
+-		return;
+-	}
+-
+-	// if not from our server, ignore it
+-	if ( !NET_CompareAdr( from, clc.netchan.remoteAddress ) ) {
+-		return;
+-	}
+-
+-	// if we have received packets within three seconds, ignore it
+-	// (it might be a malicious spoof)
+-	if ( cls.realtime - clc.lastPacketTime < 3000 ) {
+-		return;
+-	}
+-
+-	// drop the connection
+-	Com_Printf( "Server disconnected for unknown reason\n" );
+-	Cvar_Set("com_errorMessage", "Server disconnected for unknown reason\n" );
+-	CL_Disconnect( qtrue );
+-}
+-
+-
+-/*
+-===================
+ CL_MotdPacket
+ 
+ ===================
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 325)
++++ code/client/cl_cgame.c	(revision 329)
+@@ -703,6 +703,12 @@
+ 		return 0;
+ 	case CG_R_LERPTAG:
+ 		return re.LerpTag( VMA(1), args[2], args[3], args[4], VMF(5), VMA(6) );
++	case CG_R_GET_GLOBAL_FOG:
++		re.GetGlobalFog( VMA(1), VMA(2), VMA(3), VMA(4) );
++		return 0;
++	case CG_R_GET_WATER_FOG:
++		re.GetWaterFog( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5) );
++		return 0;
+ 	case CG_GETCLIPBOARDDATA:
+ 		CL_GetClipboardData( VMA(1), args[2] );
+ 		return 0;
+Index: Makefile
+===================================================================
+--- Makefile	(revision 325)
++++ Makefile	(revision 329)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2362
++IOQ3_REVISION = 2369
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 
