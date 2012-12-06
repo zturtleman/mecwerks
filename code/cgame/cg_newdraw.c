@@ -1207,7 +1207,7 @@ static void CG_DrawCapFragLimit(rectDef_t *rect, float scale, vec4_t color, qhan
     
     if (cgs.gametype >= GT_CTF)
         limit = cgs.capturelimit;
-    else if (cgs.gametype == GT_FRENZY)
+    else if (cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY)
         limit = cgs.scorelimit;
     else
         limit = cgs.fraglimit;

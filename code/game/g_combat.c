@@ -69,8 +69,9 @@ void AddScore( gentity_t *ent, vec3_t origin, int score ) {
 	ScorePlum(ent, origin, score);
 	//
 	ent->client->ps.persistant[PERS_SCORE] += score;
-	if ( g_gametype.integer == GT_TEAM )
-		level.teamScores[ ent->client->ps.persistant[PERS_TEAM] ] += score;
+	if ( g_gametype.integer == GT_TEAM ) {
+		AddTeamScore( origin, ent->client->ps.persistant[PERS_TEAM], score );
+	}
 	CalculateRanks();
 }
 
@@ -518,21 +519,21 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		attacker->client->lastkilled_client = self->s.number;
 
 		if ( attacker == self || OnSameTeam (self, attacker ) ) {
-            	if ( g_gametype.integer != GT_FRENZY || g_gametype.integer != GT_TEAM_FRENZY ) {
-                	AddScore( attacker, self->r.currentOrigin, -1 );
-            	}
+	            	if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY ) {
+        	        	AddScore( attacker, self->r.currentOrigin, -1 );
+            		}
 
-            	if ( g_gametype.integer == GT_WPRANK ) {
-            		Ranked_NextWeapon(attacker, 2);
-            	}
+        	    	if ( g_gametype.integer == GT_WPRANK ) {
+        	    		Ranked_NextWeapon(attacker, 2);
+	            	}
 		} else {
-			if ( g_gametype.integer != GT_FRENZY || g_gametype.integer != GT_TEAM_FRENZY ) {
-            	AddScore( attacker, self->r.currentOrigin, 1 );
-            }
+			if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY ) {
+            			AddScore( attacker, self->r.currentOrigin, 1 );
+            		}
 
 			if ( g_gametype.integer == GT_WPRANK ) {
-        		Ranked_NextWeapon(attacker, 1);
-        	}
+        			Ranked_NextWeapon(attacker, 1);
+        		}
             
 			if( meansOfDeath == MOD_GAUNTLET ) {
 				
@@ -563,13 +564,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 		}
 	} else {
-        if ( g_gametype.integer != GT_FRENZY || g_gametype.integer != GT_TEAM_FRENZY ) {
-            AddScore( self, self->r.currentOrigin, -1 );
-        }
+        	if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY ) {
+            		AddScore( self, self->r.currentOrigin, -1 );
+        	}
 
-    	if ( g_gametype.integer == GT_WPRANK ) {
-    		Ranked_NextWeapon(attacker, 2);
-    	}
+    		if ( g_gametype.integer == GT_WPRANK ) {
+    			Ranked_NextWeapon(attacker, 2);
+    		}
 	}
 
 	// Add team bonuses
@@ -808,7 +809,7 @@ int G_InvulnerabilityEffect( gentity_t *targ, vec3_t dir, vec3_t point, vec3_t i
 #endif
 /*
 ============
-T_Damage
+G_Damage
 
 targ		entity that is being damaged
 inflictor	entity that is causing the damage
@@ -1057,10 +1058,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if (take) {
         
 		if ( targ != attacker && targ->health > 9 ) {
-            if ( g_gametype.integer == GT_FRENZY || g_gametype.integer == GT_TEAM_FRENZY ) {
-                AddScore( attacker, targ->r.currentOrigin, take * 10 );
-            }
-        }
+ 	           if ( g_gametype.integer == GT_FRENZY || g_gametype.integer == GT_TEAM_FRENZY ) {
+        	        AddScore( attacker, targ->r.currentOrigin, take );
+            	   }
+        	}
         
         targ->health = targ->health - take;
         

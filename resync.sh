@@ -84,20 +84,24 @@ svn update > checkout.log
 # Make the patch
 #
 echo "Making patch"
-svn diff -r $OLD_REV:$NEW_REV > ../mecwerks/patches/diff_$OLD_REV:$NEW_REV.patch
+svn diff -r $OLD_REV:$NEW_REV > ../mecwerks/patches/diff_$OLD_REV-$NEW_REV.patch
 
-#
-# Update Makefile.local
-#
-cd ../mecwerks
-sed -i 's/\(.*SPEAR_VER = $OLD_REV.*\)/SPEAR_REV = $NEW_REV/g' Makefile.local
-echo "Makefile.local updated"
 
 #
 # Patch if commandline was passed
 #
 if [ "$patch" = "1" ]
 then
+	#
+# Update Makefile.local
+#
+	cd ../mecwerks
+	sed -i 's/\(.*SPEAR_VER = $OLD_REV.*\)/SPEAR_REV = $NEW_REV/g' Makefile.local
+	echo "Makefile.local updated"
+
 	echo "Patching"
-	patch -p0 < patches/diff_$OLD_REV:$NEW_REV.patch
+	patch -p0 < patches/diff_$OLD_REV-$NEW_REV.patch
+
+	git add patches/diff_$OLD_REV-$NEW_REV.patch
+	echo "Added Patch to repo"
 fi

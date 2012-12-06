@@ -788,7 +788,7 @@ ServerOptions_Start
 static void ServerOptions_Start( void ) {
 	int		timelimit;
 	int		fraglimit;
-    int     scorelimit;
+  	int		scorelimit;
 	int		maxclients;
 	int		localClients;
 	int		publicserver;
@@ -797,6 +797,7 @@ static void ServerOptions_Start( void ) {
 	int		flaglimit;
 	int		pure;
 	int		skill;
+	int 		currentplayers;
 	int		n;
 	char	buf[64];
 	const char *info;
@@ -834,26 +835,22 @@ static void ServerOptions_Start( void ) {
 	switch( s_serveroptions.gametype ) {
 	case GT_FFA:
 	default:
-        trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit );
-        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
-        break;
+        	trap_Cvar_SetValue( "ui_ffa_fraglimit", fraglimit );
+        	trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        	break;
             
-    case GT_FRENZY:
-        trap_Cvar_SetValue( "ui_ffa_scorelimit", scorelimit );
-        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
-        break;
+        case GT_TEAM_FRENZY:
+	case GT_FRENZY:
+        	trap_Cvar_SetValue( "ui_ffa_scorelimit", scorelimit );
+        	trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        	break;
    
-    case GT_TEAM_FRENZY:
-        trap_Cvar_SetValue( "ui_ffa_scorelimit", scorelimit );
-        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
-        break;
-
-    case GT_WPRANK:
-        trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
-        break;
+    	case GT_WPRANK:
+        	trap_Cvar_SetValue( "ui_ffa_timelimit", timelimit );
+        	break;
 
  
-    case GT_TOURNAMENT:
+    	case GT_TOURNAMENT:
 		trap_Cvar_SetValue( "ui_tourney_fraglimit", fraglimit );
 		trap_Cvar_SetValue( "ui_tourney_timelimit", timelimit );
 		break;
@@ -928,8 +925,8 @@ static void ServerOptions_Start( void ) {
 
 	// set player's team
 	if( dedicated == 0 && s_serveroptions.gametype >= GT_TEAM ) {
-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait 5; team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
-
+		trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait ; team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
+		
 		for (n = 1; n < UI_MaxSplitView(); ++n) {
 			if (s_serveroptions.playerType[n].curvalue == PT_HUMAN) {
 				trap_Cmd_ExecuteText( EXEC_APPEND, va( "%s %s\n", Com_LocalClientCvarName(n, "team"), playerTeam_list[s_serveroptions.playerTeam[n].curvalue] ) );
@@ -1455,7 +1452,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	s_serveroptions.picframe.focuspic			= GAMESERVER_SELECT;
 
 	y = 272;
-	if ( s_serveroptions.gametype == GT_FRENZY ) {
+	if ( s_serveroptions.gametype == GT_FRENZY || s_serveroptions.gametype == GT_TEAM_FRENZY ) {
     	s_serveroptions.scorelimit.generic.type       = MTYPE_FIELD;
 		s_serveroptions.scorelimit.generic.name       = "Score Limit:";
 		s_serveroptions.scorelimit.generic.flags      = QMF_NUMBERSONLY|QMF_PULSEIFFOCUS|QMF_SMALLFONT;
@@ -1650,7 +1647,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 		}
 	}
 
-    if( s_serveroptions.gametype == GT_FRENZY ) {
+    if( s_serveroptions.gametype == GT_FRENZY || s_serveroptions.gametype == GT_TEAM_FRENZY ) {
         Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.scorelimit );
     } else
 	if( s_serveroptions.gametype <= GT_TEAM ) {
