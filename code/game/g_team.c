@@ -143,7 +143,7 @@ void AddTeamScore(vec3_t origin, int team, int score) {
 			// red took the lead sound
 			eventParm = GTS_REDTEAM_TOOK_LEAD;
 		}
-		else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
+		else if ( score > 0 && g_gametype.integer != GT_TEAM && g_gametype.integer != GT_TEAM_FRENZY ) {
 			// red scored sound
 			eventParm = GTS_REDTEAM_SCORED;
 		}
@@ -158,7 +158,7 @@ void AddTeamScore(vec3_t origin, int team, int score) {
 			// blue took the lead sound
 			eventParm = GTS_BLUETEAM_TOOK_LEAD;
 		}
-		else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
+		else if ( score > 0 && g_gametype.integer != GT_TEAM && g_gametype.integer != GT_TEAM_FRENZY ) {
 			// blue scored sound
 			eventParm = GTS_BLUETEAM_SCORED;
 		}

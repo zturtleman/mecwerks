@@ -1141,7 +1141,7 @@ static float CG_DrawScores( float y ) {
 			v = cgs.capturelimit;
 		} else if ( cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY ) {
 	            v = cgs.scorelimit;
-        } else {
+        	} else {
 			v = cgs.fraglimit;
 		}
 		if ( v ) {
@@ -1205,24 +1205,23 @@ static float CG_DrawScores( float y ) {
 			CG_DrawBigString( x + 4, y, s, 1.0F);
 		}
 
-        if ( cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY ) {
-            if ( cgs.scorelimit ) {
-                s = va( "%2i", cgs.scorelimit );
-                w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-                x -= w;
-                CG_DrawBigString( x + 4, y, s, 1.0F);
-            }
-        } else {
-            if ( cgs.fraglimit ) {
-                s = va( "%2i", cgs.fraglimit );
-                w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
-                x -= w;
-                CG_DrawBigString( x + 4, y, s, 1.0F);
-            }
-        }
-
+        	if ( cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY ) {
+        	    	if ( cgs.scorelimit ) {
+                		s = va( "%2i", cgs.scorelimit );
+                		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
+                		x -= w;
+                		CG_DrawBigString( x + 4, y, s, 1.0F);
+            	    	}
+        	} else {
+            		if ( cgs.fraglimit ) {
+                		s = va( "%2i", cgs.fraglimit );
+                		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH + 8;
+                		x -= w;
+                		CG_DrawBigString( x + 4, y, s, 1.0F);
+            		}
+        	}
 	}
-
+	
 	return y1 - 8;
 }
 #endif // MISSIONPACK_HUD

@@ -264,7 +264,7 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 	}
 	else
 #endif
-	if ( ent->item->quantity != 5 && ent->item->quantity != 100 ) {
+	if ( ent->item->quantity != 50 && ent->item->quantity != 1000 ) {
 		max = other->client->ps.stats[STAT_MAX_HEALTH];
 	} else {
 		max = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
@@ -283,7 +283,7 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 	}
 	other->client->ps.stats[STAT_HEALTH] = other->health;
 
-	if ( ent->item->quantity == 100 ) {		// mega health respawns slow
+	if ( ent->item->quantity == 1000 ) {		// mega health respawns slow
 		return RESPAWN_MEGAHEALTH;
 	}
 
