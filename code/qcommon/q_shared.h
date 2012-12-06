@@ -35,14 +35,14 @@ Suite 120, Rockville, Maryland 20850 USA.
 // A user mod should never modify this file
 
 #if 1 // Change these for your standalone game
-  #define PRODUCT_NAME			"Spearmint"
+  #define PRODUCT_NAME			"Mecwerks"
   #define BASEGAME			"baseq3"
-  #define CLIENT_WINDOW_TITLE     	"Spearmint"
-  #define CLIENT_WINDOW_MIN_TITLE 	"Spearmint"
-  #define HOMEPATH_NAME_UNIX		".spearmint"
-  #define HOMEPATH_NAME_WIN		"Spearmint"
+  #define CLIENT_WINDOW_TITLE     	"Mecwerks"
+  #define CLIENT_WINDOW_MIN_TITLE 	"Mecwerks"
+  #define HOMEPATH_NAME_UNIX		".mecwerks"
+  #define HOMEPATH_NAME_WIN		"Mecwerks"
   #define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
-  #define GAMENAME_FOR_MASTER		"Spearmint"	// must NOT contain whitespace
+  #define GAMENAME_FOR_MASTER		"Mecwerks"	// must NOT contain whitespace
 //  #define LEGACY_PROTOCOL	// You probably don't need this for your standalone game
 
   #ifndef PRODUCT_VERSION
@@ -1161,10 +1161,10 @@ typedef struct {
 //=========================================================
 
 // bit field limits
-#define	MAX_STATS				16
+#define	MAX_STATS			16
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
-#define	MAX_WEAPONS				16		
+#define	MAX_WEAPONS			16		
 
 #define	MAX_PS_EVENTS			2
 
