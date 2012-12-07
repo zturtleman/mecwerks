@@ -363,7 +363,7 @@ void UI_MainMenu( void ) {
 	s_main.demos.string						= "DEMOS";
 	s_main.demos.color						= color_red;
 	s_main.demos.style						= style;
-
+#if 0
 	y += MAIN_MENU_VERTICAL_SPACING;
 	s_main.cinematics.generic.type			= MTYPE_PTEXT;
 	s_main.cinematics.generic.flags			= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
@@ -374,7 +374,7 @@ void UI_MainMenu( void ) {
 	s_main.cinematics.string				= "CINEMATICS";
 	s_main.cinematics.color					= color_red;
 	s_main.cinematics.style					= style;
-
+#endif
 #ifndef MISSIONPACK
 	if ( !uis.demoversion && UI_TeamArenaExists() ) {
 		teamArena = qtrue;
@@ -419,7 +419,8 @@ void UI_MainMenu( void ) {
 	Menu_AddItem( &s_main.menu,	&s_main.multiplayer );
 	Menu_AddItem( &s_main.menu,	&s_main.setup );
 	Menu_AddItem( &s_main.menu,	&s_main.demos );
-	Menu_AddItem( &s_main.menu,	&s_main.cinematics );
+	// Don't draw cinimatics menu
+	//Menu_AddItem( &s_main.menu,	&s_main.cinematics );
 #ifndef MISSIONPACK
 	if (teamArena) {
 		Menu_AddItem( &s_main.menu,	&s_main.teamArena );

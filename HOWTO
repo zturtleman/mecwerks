@@ -1,5 +1,0 @@
-Update to newest spearmint release
-
-svn diff -r ###:### > ../spearmint-###-###.diff
-
-patch -p0 < spearmint-###-###.diff
