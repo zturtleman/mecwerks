@@ -1,0 +1,42 @@
+/-----------------------------------------------------------------------\
+|									|
+|	Key:								|
+|									|
+|    ? = Haven't decided if it will be implemented			|
+|    ! = Definitely will be implemented					|
+|    - = Will probably be implemented					|
+|    X = Implementation depends on functionality			|
+|    $ = Things I would like to implement but are expiramental at best	|
+|									|
+\-----------------------------------------------------------------------/
+
+$ Vehicles
+$ Random generated weapon
+! Replace weapon models
+! Get logo drawn/digitized
+! New intro
+! Rework UI
+! Locational damage
+! Headshots (award?)
+! At least 4 bots (different chat files/characteristics)
+! At least 4 standard player models
+! Replace base textures
+! Replace base sounds
+! Every gamemode should have two maps that it can be played on (maps can be shared between gamemodes)
+- Achievements
+- Local client specific spawn points
+- Reloading
+- First person hand animations (for reloading etc.)
+- Survival gamemode (wave spawn bots/enemys)
+X Make a bots accuracy with weapon proportional to preference in scoring frenzy game modes
+X Change gravity origin in game
+X Projectile weapons (ex: grenades)
+X Weapon attachments
+X In-game map manipulator(maybe only entity)
+X Class weapons by type (ex: machinegun, shotgun, and rocket launcher are types not specific weapons)
+? Toggle Crouch/Zoom
+? Scoped overlay for sniper type weapons
+? Optical Zoom
+? Option to exit fullscreen at ui
+? Stationary Turrets (automatic and useable)
+? Classses (perks?/weapons)
