@@ -127,41 +127,32 @@ AddTeamScore
         (e.g. capture flag, kill obelisk, return skulls)
 ==============
 */
-void AddTeamScore(vec3_t origin, int team, int score) {
-	int			eventParm;
-	gentity_t	*te;
+  void AddTeamScore(vec3_t origin, int team, int score) {
+        int                     eventParm;
+        int                     otherTeam;
+        gentity_t       *te;
 
-	eventParm = -1;
+        if ( score == 0 ) {
+                return;
+        }
+ 
+        eventParm = -1;
+        otherTeam = OtherTeam( team );
 
-	if ( team == TEAM_RED ) {
-		if ( level.teamScores[ TEAM_RED ] + score == level.teamScores[ TEAM_BLUE ] ) {
-			//teams are tied sound
-			eventParm = GTS_TEAMS_ARE_TIED;
-		}
-		else if ( level.teamScores[ TEAM_RED ] <= level.teamScores[ TEAM_BLUE ] &&
-					level.teamScores[ TEAM_RED ] + score > level.teamScores[ TEAM_BLUE ]) {
-			// red took the lead sound
-			eventParm = GTS_REDTEAM_TOOK_LEAD;
-		}
-		else if ( score > 0 && g_gametype.integer != GT_TEAM && g_gametype.integer != GT_TEAM_FRENZY ) {
-			// red scored sound
-			eventParm = GTS_REDTEAM_SCORED;
-		}
-	}
-	else {
-		if ( level.teamScores[ TEAM_BLUE ] + score == level.teamScores[ TEAM_RED ] ) {
-			//teams are tied sound
-			eventParm = GTS_TEAMS_ARE_TIED;
-		}
-		else if ( level.teamScores[ TEAM_BLUE ] <= level.teamScores[ TEAM_RED ] &&
-					level.teamScores[ TEAM_BLUE ] + score > level.teamScores[ TEAM_RED ]) {
-			// blue took the lead sound
-			eventParm = GTS_BLUETEAM_TOOK_LEAD;
-		}
-		else if ( score > 0 && g_gametype.integer != GT_TEAM && g_gametype.integer != GT_TEAM_FRENZY ) {
-			// blue scored sound
-			eventParm = GTS_BLUETEAM_SCORED;
-		}
+        if ( level.teamScores[ team ] + score == level.teamScores[ otherTeam ] ) {
+                //teams are tied sound
+                eventParm = GTS_TEAMS_ARE_TIED;
+        } else if ( level.teamScores[ team ] >= level.teamScores[ otherTeam ] &&
+                                level.teamScores[ team ] + score < level.teamScores[ otherTeam ] ) {
+                // other team took the lead sound (negative score)
+                eventParm = ( otherTeam == TEAM_RED ) ? GTS_REDTEAM_TOOK_LEAD : GTS_BLUETEAM_TOOK_LEAD;
+        } else if ( level.teamScores[ team ] <= level.teamScores[ otherTeam ] &&
+                                level.teamScores[ team ] + score > level.teamScores[ otherTeam ] ) {
+                // this team took the lead sound
+                eventParm = ( team == TEAM_RED ) ? GTS_REDTEAM_TOOK_LEAD : GTS_BLUETEAM_TOOK_LEAD;
+        } else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
+                // team scored sound
+                eventParm = ( team == TEAM_RED ) ? GTS_REDTEAM_SCORED : GTS_BLUETEAM_SCORED;
 	}
 
 	if ( eventParm != -1 ) {

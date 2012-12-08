@@ -1,0 +1,119 @@
+Index: code/q3_ui/ui_startserver.c
+===================================================================
+--- code/q3_ui/ui_startserver.c	(revision 334)
++++ code/q3_ui/ui_startserver.c	(revision 336)
+@@ -886,7 +886,7 @@
+ 
+ 	// set player's team
+ 	if( dedicated == 0 && s_serveroptions.gametype >= GT_TEAM ) {
+-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait 5; team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
++		trap_Cmd_ExecuteText( EXEC_APPEND, va( "team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
+ 
+ 		for (n = 1; n < UI_MaxSplitView(); ++n) {
+ 			if (s_serveroptions.playerType[n].curvalue == PT_HUMAN) {
+Index: code/game/g_cmds.c
+===================================================================
+--- code/game/g_cmds.c	(revision 334)
++++ code/game/g_cmds.c	(revision 336)
+@@ -649,6 +649,11 @@
+ 	// get and distribute relevent paramters
+ 	ClientUserinfoChanged( clientNum );
+ 
++	// client sent an early team command, they haven't spawned yet.
++	if ( client->pers.connected != CON_CONNECTED ) {
++		return;
++	}
++
+ 	ClientBegin( clientNum );
+ }
+ 
+@@ -1724,7 +1729,7 @@
+ 	char	buf[MAX_TOKEN_CHARS];
+ 
+ 	ent = g_entities + clientNum;
+-	if (!ent->client || ent->client->pers.connected != CON_CONNECTED) {
++	if ( !ent->client ) {
+ 		return;		// not fully in game yet
+ 	}
+ 
+@@ -1752,6 +1757,15 @@
+ 		}
+ 	}
+ 
++	if ( ent->client->pers.connected != CON_CONNECTED ) {
++		// Allow local clients to use team command before game finishes starting up,
++		// so team can be set by UI when starting a local game (without trying to have a wait command delay them).
++		if (ent->client->pers.localClient && !level.intermissiontime && Q_stricmp (cmd, "team") == 0) {
++			Cmd_Team_f (ent);
++		}
++		return;
++	}
++
+ 	if (Q_stricmp (cmd, "say") == 0) {
+ 		Cmd_Say_f (ent, SAY_ALL, qfalse);
+ 		return;
+Index: code/game/g_team.c
+===================================================================
+--- code/game/g_team.c	(revision 334)
++++ code/game/g_team.c	(revision 336)
+@@ -129,40 +129,31 @@
+ */
+ void AddTeamScore(vec3_t origin, int team, int score) {
+ 	int			eventParm;
++	int			otherTeam;
+ 	gentity_t	*te;
+ 
++	if ( score == 0 ) {
++		return;
++	}
++
+ 	eventParm = -1;
++	otherTeam = OtherTeam( team );
+ 
+-	if ( team == TEAM_RED ) {
+-		if ( level.teamScores[ TEAM_RED ] + score == level.teamScores[ TEAM_BLUE ] ) {
+-			//teams are tied sound
+-			eventParm = GTS_TEAMS_ARE_TIED;
+-		}
+-		else if ( level.teamScores[ TEAM_RED ] <= level.teamScores[ TEAM_BLUE ] &&
+-					level.teamScores[ TEAM_RED ] + score > level.teamScores[ TEAM_BLUE ]) {
+-			// red took the lead sound
+-			eventParm = GTS_REDTEAM_TOOK_LEAD;
+-		}
+-		else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
+-			// red scored sound
+-			eventParm = GTS_REDTEAM_SCORED;
+-		}
++	if ( level.teamScores[ team ] + score == level.teamScores[ otherTeam ] ) {
++		//teams are tied sound
++		eventParm = GTS_TEAMS_ARE_TIED;
++	} else if ( level.teamScores[ team ] >= level.teamScores[ otherTeam ] &&
++				level.teamScores[ team ] + score < level.teamScores[ otherTeam ] ) {
++		// other team took the lead sound (negative score)
++		eventParm = ( otherTeam == TEAM_RED ) ? GTS_REDTEAM_TOOK_LEAD : GTS_BLUETEAM_TOOK_LEAD;
++	} else if ( level.teamScores[ team ] <= level.teamScores[ otherTeam ] &&
++				level.teamScores[ team ] + score > level.teamScores[ otherTeam ] ) {
++		// this team took the lead sound
++		eventParm = ( team == TEAM_RED ) ? GTS_REDTEAM_TOOK_LEAD : GTS_BLUETEAM_TOOK_LEAD;
++	} else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
++		// team scored sound
++		eventParm = ( team == TEAM_RED ) ? GTS_REDTEAM_SCORED : GTS_BLUETEAM_SCORED;
+ 	}
+-	else {
+-		if ( level.teamScores[ TEAM_BLUE ] + score == level.teamScores[ TEAM_RED ] ) {
+-			//teams are tied sound
+-			eventParm = GTS_TEAMS_ARE_TIED;
+-		}
+-		else if ( level.teamScores[ TEAM_BLUE ] <= level.teamScores[ TEAM_RED ] &&
+-					level.teamScores[ TEAM_BLUE ] + score > level.teamScores[ TEAM_RED ]) {
+-			// blue took the lead sound
+-			eventParm = GTS_BLUETEAM_TOOK_LEAD;
+-		}
+-		else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
+-			// blue scored sound
+-			eventParm = GTS_BLUETEAM_SCORED;
+-		}
+-	}
+ 
+ 	if ( eventParm != -1 ) {
+ 		te = G_TempEntity(origin, EV_GLOBAL_TEAM_SOUND );

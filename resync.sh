@@ -52,7 +52,7 @@ done
 #
 if [ "$OLD_REV" = 0 ]
 then
-	echo "No old revision set. Make a line in Makefile.local as SPEAR_REV = <current updated revision"
+	echo "No old revision set. Make a line in Makefile.local as SPEAR_REV = <current updated revision>"
 	error 1;
 fi
 
@@ -90,11 +90,11 @@ svn diff -r $OLD_REV:$NEW_REV > ../mecwerks/patches/diff_$OLD_REV-$NEW_REV.patch
 #
 # Patch if commandline was passed
 #
-if [ "$patch" = "1" ]
+if [ "$PATCH" = "1" ]
 then
 	#
-# Update Makefile.local
-#
+	# Update Makefile.local
+	#
 	cd ../mecwerks
 	sed -i 's/\(.*SPEAR_VER = $OLD_REV.*\)/SPEAR_REV = $NEW_REV/g' Makefile.local
 	echo "Makefile.local updated"

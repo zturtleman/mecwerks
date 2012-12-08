@@ -929,7 +929,7 @@ static void ServerOptions_Start( void ) {
 
 		for (n = 1; n < UI_MaxSplitView(); ++n) {
 			if (s_serveroptions.playerType[n].curvalue == PT_HUMAN) {
-				trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait 1; %s %s\n", Com_LocalClientCvarName(n, "team"), playerTeam_list[s_serveroptions.playerTeam[n].curvalue] ) );
+				trap_Cmd_ExecuteText( EXEC_APPEND, va( "%s %s\n", Com_LocalClientCvarName(n, "team"), playerTeam_list[s_serveroptions.playerTeam[n].curvalue] ) );
 			}
 		}
 	}
