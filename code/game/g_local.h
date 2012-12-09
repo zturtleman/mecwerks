@@ -256,7 +256,7 @@ typedef struct {
 	int			voteCount;			// to prevent people from constantly calling votes
 	int			teamVoteCount;		// to prevent people from constantly calling votes
 	qboolean	teamInfo;			// send team overlay updates?
-	int			iCurrentWeapon; 	// current weapon for this client
+	int			CurrentWeapon; 	// current weapon for this client
 } clientPersistant_t;
 
 //NT - client origin trails
@@ -974,5 +974,5 @@ void	trap_BotResetWeaponState(int weaponstate);
 int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);
 
 void LogExit( const char *string );
-void NextRail(gentity_t *ent, int next);
+void G_NextFireType(gentity_t *ent, int next);
 

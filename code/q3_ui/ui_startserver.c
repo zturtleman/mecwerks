@@ -130,7 +130,7 @@ static void UI_ServerOptionsMenu( qboolean multiplayer );
 =================
 GametypeBits
 =================
-*/
+*//*
 static int GametypeBits( char *string ) {
 	int		bits;
 	char	*p;
@@ -204,6 +204,7 @@ static int GametypeBits( char *string ) {
 
 	return bits;
 }
+*/
 
 
 /*
@@ -301,8 +302,8 @@ StartServer_GametypeEvent
 static void StartServer_GametypeEvent( void* ptr, int event ) {
 	int			i;
 	int			count;
-	int			gamebits;
-	int			matchbits;
+	//int			gamebits;
+	//int			matchbits;
 	const char	*info;
 
 	if( event != QM_ACTIVATED) {
@@ -311,22 +312,22 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 
 	count = UI_GetNumArenas();
 	s_startserver.nummaps = 0;
-	matchbits = 1 << gametype_remap[s_startserver.gametype.curvalue];
-	if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA || gametype_remap[s_startserver.gametype.curvalue] == GT_FRENZY || gametype_remap[s_startserver.gametype.curvalue] == GT_RARENA) {
-		matchbits |= ( 1 << GT_SINGLE_PLAYER );
-	}
+	//matchbits = 1 << gametype_remap[s_startserver.gametype.curvalue];
+	//if( gametype_remap[s_startserver.gametype.curvalue] == GT_FFA || gametype_remap[s_startserver.gametype.curvalue] == GT_FRENZY || gametype_remap[s_startserver.gametype.curvalue] == GT_RARENA) {
+	//	matchbits |= ( 1 << GT_SINGLE_PLAYER );
+	//}
 	
-	if ( gametype_remap[s_startserver.gametype.curvalue] == GT_TEAM_FRENZY ) {
-		matchbits |= ( 1 << GT_TEAM );
-	}
+	//if ( gametype_remap[s_startserver.gametype.curvalue] == GT_TEAM_FRENZY ) {
+	//	matchbits |= ( 1 << GT_TEAM );
+	//}
     
 	for( i = 0; i < count; i++ ) {
 		info = UI_GetArenaInfoByNumber( i );
 	
-		gamebits = GametypeBits( Info_ValueForKey( info, "type") );
-		if( !( gamebits & matchbits ) ) {
-			continue;
-		}
+		//gamebits = GametypeBits( Info_ValueForKey( info, "type") );
+		//if( !( gamebits & matchbits ) ) {
+		//	continue;
+		//}
 
 		s_startserver.maplist[ s_startserver.nummaps ] = i;
 		s_startserver.nummaps++;
@@ -797,7 +798,6 @@ static void ServerOptions_Start( void ) {
 	int		flaglimit;
 	int		pure;
 	int		skill;
-	int 		currentplayers;
 	int		n;
 	char	buf[64];
 	const char *info;

@@ -964,6 +964,53 @@ void FireWeapon( gentity_t *ent ) {
 	}
 }
 
+void G_NextFireType(gentity_t *ent, int next) {
+	gclient_t	*client = ent->client;
+	int weap;
+    
+	//move them to the next weapon
+	if ( next == 1 )
+		client->pers.CurrentWeapon++;
+	else if (next == 2 )
+		if ( client->pers.CurrentWeapon > 0 )
+			client->pers.CurrentWeapon--;
+    
+	// make the swap cleaner
+	ent->client->ps.weaponstate = WEAPON_DROPPING;
+	ent->client->ps.torsoAnim = ( ( ent->client->ps.torsoAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT )	| TORSO_DROP;
+	ent->client->ps.weaponTime = 500;
+    
+	//get the char for the next weapon
+	weap = g_wpranks.string[client->pers.CurrentWeapon];
+    
+	//find out what weapon they need
+	switch(weap) {
+        case '1':
+            client->ps.RailGun = 1;
+            break;
+            
+        case '2':
+            client->ps.RailGun = 2;
+            break;
+            
+        case '3':
+            client->ps.RailGun = 3;
+            break;
+            
+        default: //not a number, so this player wins
+            //let eveyone know this player has won
+            trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " wins.\n\"",client->pers.netname ) );
+            
+            //end the game, and let all the players know who won
+            LogExit( va("print \"%s wins.\n\"",client->pers.netname ));
+            return;
+	}
+    
+	//ent->client->ps.weaponstate = WEAPON_READY;
+    
+	//give them some feedback so the notice they have changed weapons
+	G_Sound( ent, CHAN_AUTO, G_SoundIndex("sound/weapons/change.wav"));
+}
 
 #ifdef MISSIONPACK
 

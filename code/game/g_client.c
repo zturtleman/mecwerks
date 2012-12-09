@@ -1052,7 +1052,7 @@ void ClientBegin( int clientNum ) {
 	client->pers.connected = CON_CONNECTED;
 	client->pers.enterTime = level.time;
 	client->pers.teamState.state = TEAM_BEGIN;
-	client->pers.iCurrentWeapon = 0;
+	client->pers.CurrentWeapon = 0;
     client->ps.RailGun = 0;
 
 	// save eflags around this, because changing teams will
@@ -1085,56 +1085,6 @@ void ClientBegin( int clientNum ) {
 
 	// count current clients and rank for scoreboard
 	CalculateRanks();
-}
-
-void NextRail(gentity_t *ent, int next) {
-	gclient_t	*client = ent->client;
-	int iWep;
-
-	//move them to the next weapon
-	if ( next == 1 ) {
-		client->pers.iCurrentWeapon++;
-	} else if (next == 2 ) {
-		if ( client->pers.iCurrentWeapon > 0 ) {
-			client->pers.iCurrentWeapon--;
-		}
-	}
-
-	// make the swap cleaner
-	ent->client->ps.weaponstate = WEAPON_DROPPING;
-	ent->client->ps.torsoAnim = ( ( ent->client->ps.torsoAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT )	| TORSO_DROP;
-	ent->client->ps.weaponTime = 500;
-
-	//get the char for the next weapon
-	iWep = g_wpranks.string[client->pers.iCurrentWeapon];
-
-	//find out what weapon they need
-	switch(iWep) {
-        case '1':
-            client->ps.RailGun = 1;
-            break;
-
-        case '2':
-            client->ps.RailGun = 2;
-            break;
-
-        case '3':
-            client->ps.RailGun = 3;
-            break;
-
-	default: //not a number, so this player wins
-		//let eveyone know this player has won
-		trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " wins.\n\"",client->pers.netname ) );
-
-		//end the game, and let all the players know who won
-		LogExit( va("print \"%s wins.\n\"",client->pers.netname ));
-		return;
-	}
-
-	//ent->client->ps.weaponstate = WEAPON_READY;
-
-	//give them some feedback so the notice they have changed weapons
-	G_Sound( ent, CHAN_AUTO, G_SoundIndex("sound/weapons/change.wav"));
 }
 
 /*
@@ -1269,7 +1219,7 @@ void ClientSpawn(gentity_t *ent) {
 	if ( g_gametype.integer == GT_RARENA ) {
         client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
         client->ps.ammo[WP_RAILGUN] = -1;
-		NextRail( ent, 0 );
+		G_NextFireType( ent, 0 );
 	} else {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
 		if ( g_gametype.integer == GT_TEAM ) {

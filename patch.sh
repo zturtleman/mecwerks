@@ -1,13 +1,21 @@
 #!/bin/bash
 
+USE=0
+FAIL=0
+
 for ARG in `echo $*`
 do
-	if [ "$ARG" = "" ]
+	if [ "$ARG" = "-alt" ]
 	then
-		echo "No patch file"
-		exit 1;
+		USE=1
 	fi
 done
 
 echo "Patching"
+if [ "$USE" = "1" ]
+then
+	patch -p1 < "$ARG"
+	exit 1
+fi
+
 patch -p0 < "$ARG"

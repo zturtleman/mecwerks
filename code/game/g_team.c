@@ -135,7 +135,7 @@ AddTeamScore
         if ( score == 0 )
             return;
  
-      if ( g_gametype.integer == GT_TEAM_FRENZY ) {
+      if ( g_gametype.integer != GT_TEAM_FRENZY ) {
           eventParm = -1;
           otherTeam = OtherTeam( team );
           
