@@ -1256,9 +1256,9 @@ const char *CG_GameTypeString(void) {
         	return "Scoring Frenzy";
 	} else if ( cgs.gametype == GT_TEAM_FRENZY ) {
 		return "Team Scoring Frenzy";
-	} else if ( cgs.gametype == GT_WPRANK ) {
-		return "Weapon Rank";
-    	} else if ( cgs.gametype == GT_TEAM ) {
+	} else if ( cgs.gametype == GT_RARENA ) {
+		return "Rail Factory";
+    } else if ( cgs.gametype == GT_TEAM ) {
 		return "Team Deathmatch";
 	} else if ( cgs.gametype == GT_CTF ) {
 		return "Capture the Flag";

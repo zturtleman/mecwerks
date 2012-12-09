@@ -248,8 +248,8 @@ void CG_DrawInformation( void ) {
 	case GT_TEAM_FRENZY:
 		s = "Team Scoring Frenzy";
 		break;
-	case GT_WPRANK:
-		s = "Weapon Rank";
+	case GT_RARENA:
+		s = "Rail Factory";
 		break;
 	case GT_SINGLE_PLAYER:
 		s = "Single Player";

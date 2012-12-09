@@ -233,9 +233,8 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 	}
 
 	// add the weapon
-	if ( g_gametype.integer != GT_WPRANK ) {
+	if ( g_gametype.integer != GT_RARENA )
 		other->client->ps.stats[STAT_WEAPONS] |= ( 1 << ent->item->giTag );
-	}
 
 	Add_Ammo( other, ent->item->giTag, quantity );
 

@@ -132,7 +132,7 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 			default:
 			case GT_FFA:
       			case GT_FRENZY:
-			case GT_WPRANK:
+			case GT_RARENA:
 			case GT_SINGLE_PLAYER:
 				if ( g_maxGameClients.integer > 0 && 
 					level.numNonSpectatorClients >= g_maxGameClients.integer ) {

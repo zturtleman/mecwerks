@@ -2522,7 +2522,7 @@ static void CG_DrawAmmoWarning( void ) {
 
 	CG_SetScreenPlacement(PLACE_CENTER, PLACE_TOP);
 	
-	if ( cgs.gametype != GT_WPRANK ) {
+	if ( cgs.gametype != GT_RARENA ) {
 		if ( cg.cur_lc->lowAmmoWarning == 2 ) {
 			s = "OUT OF AMMO";
 		} else {
@@ -2648,8 +2648,8 @@ static void CG_DrawWarmup( void ) {
         	    	s = "Scoring Frenzy";
 		} else if ( cgs.gametype == GT_TEAM_FRENZY ) {
 		    	s = "Team Scoring Frenzy";
-		} else if ( cgs.gametype == GT_WPRANK ) {
-		    	s = "Weapon Ranks";
+		} else if ( cgs.gametype == GT_RARENA ) {
+		    	s = "Rail Factory";
 		} else if ( cgs.gametype == GT_TEAM ) {
 			s = "Team Deathmatch";
 		} else if ( cgs.gametype == GT_CTF ) {

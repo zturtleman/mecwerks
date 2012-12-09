@@ -277,15 +277,9 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	spawn_t	*s;
 	gitem_t	*item;
 
-	if ( g_gametype.integer == GT_WPRANK) {
-		if ((Q_stricmp(ent->classname, "weapon_gauntlet")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_shotgun")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_grenadelauncher")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_rocketlauncher")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_lightning")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_railgun")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_plasmagun")==0) ||
-		    (Q_stricmp(ent->classname, "weapon_bfg")==0)) 
+	if ( g_gametype.integer == GT_RARENA) {
+		if ((Q_strncmp(ent->classname, "weapon_", 7)==0) ||
+            (Q_strncmp(ent->classname, "ammo_", 5)==0))
 			return qfalse;
 	}
 

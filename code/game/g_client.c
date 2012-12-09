@@ -702,8 +702,8 @@ ClientHandicap
 ============
 */
 float ClientHandicap( gclient_t *client ) {
-	char	userinfo[MAX_INFO_STRING];
-	float	handicap;
+	//char	userinfo[MAX_INFO_STRING];
+	//float	handicap;
 
 	//if (!client) {
 	//	return 1000;
@@ -1053,6 +1053,7 @@ void ClientBegin( int clientNum ) {
 	client->pers.enterTime = level.time;
 	client->pers.teamState.state = TEAM_BEGIN;
 	client->pers.iCurrentWeapon = 0;
+    client->ps.RailGun = 0;
 
 	// save eflags around this, because changing teams will
 	// cause this to happen with a valid entity, and we
@@ -1086,7 +1087,7 @@ void ClientBegin( int clientNum ) {
 	CalculateRanks();
 }
 
-void Ranked_NextWeapon(gentity_t *ent, int next) {
+void NextRail(gentity_t *ent, int next) {
 	gclient_t	*client = ent->client;
 	int iWep;
 
@@ -1102,73 +1103,28 @@ void Ranked_NextWeapon(gentity_t *ent, int next) {
 	// make the swap cleaner
 	ent->client->ps.weaponstate = WEAPON_DROPPING;
 	ent->client->ps.torsoAnim = ( ( ent->client->ps.torsoAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT )	| TORSO_DROP;
-	ent->client->ps.weaponTime += 8;
+	ent->client->ps.weaponTime = 500;
 
 	//get the char for the next weapon
 	iWep = g_wpranks.string[client->pers.iCurrentWeapon];
 
 	//find out what weapon they need
 	switch(iWep) {
-	case '1': //gauntlet
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_GAUNTLET );
-		client->ps.ammo[WP_GAUNTLET] = -1;
-		client->ps.weapon = WP_GAUNTLET;
-		break;
+        case '1':
+            client->ps.RailGun = 1;
+            break;
 
-	case '2': //maching	client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
-		client->ps.ammo[WP_MACHINEGUN] = 150;
-		client->ps.weapon = WP_MACHINEGUN;
-		break;
+        case '2':
+            client->ps.RailGun = 2;
+            break;
 
-	case '3': //shotgun
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_SHOTGUN );
-		client->ps.ammo[WP_SHOTGUN] = 100;
-		client->ps.weapon = WP_SHOTGUN;
-		break;
-
-	case '4': //gren
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_GRENADE_LAUNCHER );
-		client->ps.ammo[WP_GRENADE_LAUNCHER] = 100;
-		client->ps.weapon = WP_GRENADE_LAUNCHER;
-		break;
-
-	case '5': //rocket
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_ROCKET_LAUNCHER );
-		client->ps.ammo[WP_ROCKET_LAUNCHER] = 100;
-		client->ps.weapon = WP_ROCKET_LAUNCHER;
-		break;
-
-	case '6': //light
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_LIGHTNING );
-		client->ps.ammo[WP_LIGHTNING] = 300;
-		client->ps.weapon = WP_LIGHTNING;
-		break;
-
-	case '7': //rail
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
-		client->ps.ammo[WP_RAILGUN] = 100;
-		client->ps.weapon = WP_RAILGUN;
-		break;
-
-	case '8': //plasma
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_PLASMAGUN );
-		client->ps.ammo[WP_PLASMAGUN] = 300;
-		client->ps.weapon = WP_PLASMAGUN;
-		break;
-
-	case '9': //bfg
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_BFG );
-		client->ps.ammo[WP_BFG] = 150;
-		client->ps.weapon = WP_BFG;
-		break;
+        case '3':
+            client->ps.RailGun = 3;
+            break;
 
 	default: //not a number, so this player wins
 		//let eveyone know this player has won
 		trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " wins.\n\"",client->pers.netname ) );
-
-		//give them some feedback
-		G_Sound( ent, CHAN_AUTO, G_SoundIndex("sound/feedback/excellent.wav"));
 
 		//end the game, and let all the players know who won
 		LogExit( va("print \"%s wins.\n\"",client->pers.netname ));
@@ -1310,8 +1266,10 @@ void ClientSpawn(gentity_t *ent) {
 	client->ps.clientNum = index;
 
 
-	if ( g_gametype.integer == GT_WPRANK ) {
-		Ranked_NextWeapon( ent, 0 );
+	if ( g_gametype.integer == GT_RARENA ) {
+        client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
+        client->ps.ammo[WP_RAILGUN] = -1;
+		NextRail( ent, 0 );
 	} else {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
 		if ( g_gametype.integer == GT_TEAM ) {
@@ -1351,8 +1309,12 @@ void ClientSpawn(gentity_t *ent) {
 	if (!level.intermissiontime) {
 		if (ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 			G_KillBox(ent);
-			// force the base weapon up
-			client->ps.weapon = WP_MACHINEGUN;
+            // force the base weapon up
+			if ( g_gametype.integer == GT_RARENA ) {
+                client->ps.weapon = WP_RAILGUN;
+            } else {
+                client->ps.weapon = WP_MACHINEGUN;
+            }
 			client->ps.weaponstate = WEAPON_READY;
 			// fire the targets of the spawn point
 			G_UseTargets(spawnPoint, ent);
@@ -1682,90 +1644,7 @@ void G_TimeShiftAllClients( int time, gentity_t *skip ) {
  ===================
  G_UnTimeShiftClient
  
- Move a client back to where he was bvoid Ranked_NextWeapon(gentity_t *ent) {
-	gclient_t	*client = ent->client;
-	int iWep;
-
-	//move them to the next weapon
- 	client->pers.iCurrentWeapon++;
-
-	//get the char for the next weapon
-	iWep = g_wpranks.string[client->pers.iCurrentWeapon];
-
-	//find out what weapon they need
-	switch(iWep) {
-	case '1': //gauntlet
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_GAUNTLET );
-		client->ps.ammo[WP_GAUNTLET] = -1;
-		client->ps.weapon = WP_GAUNTLET;
-		break;
-
-	case '2': //machingun
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
-		client->ps.ammo[WP_MACHINEGUN] = 150;
-		client->ps.weapon = WP_MACHINEGUN;
-		break;
-
-	case '3': //shotgun
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_SHOTGUN );
-		client->ps.ammo[WP_SHOTGUN] = 100;
-		client->ps.weapon = WP_SHOTGUN;
-		break;
-
-	case '4': //gren
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_GRENADE_LAUNCHER );
-		client->ps.ammo[WP_GRENADE_LAUNCHER] = 100;
-		client->ps.weapon = WP_GRENADE_LAUNCHER;
-		break;
-
-	case '5': //rocket
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_ROCKET_LAUNCHER );
-		client->ps.ammo[WP_ROCKET_LAUNCHER] = 100;
-		client->ps.weapon = WP_ROCKET_LAUNCHER;
-		break;
-
-	case '6': //light
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_LIGHTNING );
-		client->ps.ammo[WP_LIGHTNING] = 300;
-		client->ps.weapon = WP_LIGHTNING;
-		break;
-
-	case '7': //rail
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
-		client->ps.ammo[WP_RAILGUN] = 100;
-		client->ps.weapon = WP_RAILGUN;
-		break;
-
-	case '8': //plasma
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_PLASMAGUN );
-		client->ps.ammo[WP_PLASMAGUN] = 300;
-		client->ps.weapon = WP_PLASMAGUN;
-		break;
-
-	case '9': //bfg
-		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_BFG );
-		client->ps.ammo[WP_BFG] = 150;
-		client->ps.weapon = WP_BFG;
-		break;
-
-	default: //not a number, so this player wins
-		//let eveyone know this player has won
-		trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " wins.\n\"",client->pers.netname ) );
-
-		//give them some feedback
-		G_Sound( ent, CHAN_AUTO, G_SoundIndex("sound/feedback/excellent.wav"));
-
-		//end the game, and let all the players know who won
-		LogExit( va("print \"%s wins.\n\"",client->pers.netname ));
-		return;
-	}
-
-	//make the weapon ready
-	client->ps.weaponstate = WEAPON_READY;
-
-	//give them some feedback so the notice they have changed weapons
-	G_Sound( ent, CHAN_AUTO, G_SoundIndex("sound/weapons/change.wav"));
-}efore the time shift
+ Move a client back to where he was before the time shift
  ===================
  */
 void G_UnTimeShiftClient( gentity_t *ent ) {

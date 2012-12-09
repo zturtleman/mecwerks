@@ -516,7 +516,7 @@ void CG_CheckGameSounds( void ) {
 	}
 
 	// fraglimit warnings
-	if ( cgs.fraglimit > 0 && cgs.gametype < GT_CTF && cgs.gametype != GT_FRENZY && cgs.gametype != GT_TEAM_FRENZY && cgs.gametype != GT_WPRANK ) {
+	if ( cgs.fraglimit > 0 && cgs.gametype < GT_CTF && cgs.gametype != GT_FRENZY && cgs.gametype != GT_TEAM_FRENZY && cgs.gametype != GT_RARENA ) {
 		highScore = cgs.scores1;
 
 		if (cgs.gametype == GT_TEAM && cgs.scores2 > highScore) {

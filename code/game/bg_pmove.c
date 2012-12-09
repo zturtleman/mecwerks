@@ -1643,10 +1643,10 @@ static void PM_Weapon( void ) {
 	}
 
 	// take an ammo away if not infinite
-	if ( pm->ps->ammo[ pm->ps->weapon ] != -1 ) {
-		pm->ps->ammo[ pm->ps->weapon ]--;
-	}
-
+    if ( pm->ps->ammo[ pm->ps->weapon ] != -1 ) {
+        pm->ps->ammo[ pm->ps->weapon ]--;
+    }
+    
 	// fire weapon
 	PM_AddEvent( EV_FIRE_WEAPON );
 
@@ -1674,7 +1674,12 @@ static void PM_Weapon( void ) {
 		addTime = 100;
 		break;
 	case WP_RAILGUN:
-		addTime = 1500;
+        if ( pm->ps->RailGun == 1 )
+            addTime = 500;
+        else if ( pm->ps->RailGun == 2 )
+            addTime = 200;
+        else
+            addTime = 1500;
 		break;
 	case WP_BFG:
 		addTime = 200;

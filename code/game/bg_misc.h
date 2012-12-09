@@ -107,9 +107,9 @@ Suite 120, Rockville, Maryland 20850 USA.
 
 typedef enum {
 	GT_FFA,			// free for all
-    	GT_FRENZY,   	      	// scoring frenzy
+    GT_FRENZY,   	      	// scoring frenzy
 	GT_TOURNAMENT,		// one on one tournament
-	GT_WPRANK,		// weapon rank game mode
+	GT_RARENA,      // weapon rank game mode
 	GT_SINGLE_PLAYER,	// single player ffa
 
 	//-- team games go after this --
@@ -181,7 +181,7 @@ typedef enum {
 typedef struct {
 	// state (in / out)
 	playerState_t	*ps;
-
+    
 	// command (in)
 	usercmd_t	cmd;
 	int			tracemask;			// collide against these types of surfaces
