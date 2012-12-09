@@ -1,4 +1,4 @@
-SPEAR_REV = 334
+SPEAR_REV=341
 
 CLIENTBIN=mecwerks
 SERVERBIN=mecwerks-server

@@ -1,0 +1,352 @@
+Index: make-macosx-ub.sh
+===================================================================
+--- make-macosx-ub.sh	(revision 336)
++++ make-macosx-ub.sh	(revision 341)
+@@ -33,6 +33,16 @@
+ 	build/release-darwin-ppc/$MPACKDIR/gameppc.dylib
+ 	build/release-darwin-i386/$MPACKDIR/gamei386.dylib
+ "
++RENDER_OBJ="
++	build/release-darwin-ppc/renderer_opengl1_smp_ppc.dylib
++	build/release-darwin-i386/renderer_opengl1_smp_i386.dylib
++	build/release-darwin-ppc/renderer_opengl1_ppc.dylib
++	build/release-darwin-i386/renderer_opengl1_i386.dylib
++	build/release-darwin-ppc/renderer_rend2_smp_ppc.dylib
++	build/release-darwin-i386/renderer_rend2_smp_i386.dylib
++	build/release-darwin-ppc/renderer_rend2_ppc.dylib
++	build/release-darwin-i386/renderer_rend2_i386.dylib
++"
+ 
+ cd `dirname $0`
+ if [ ! -f Makefile ]; then
+@@ -175,6 +185,7 @@
+ 
+ lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY $BIN_OBJ
+ lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN $BIN_DEDOBJ
++cp $RENDER_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/
+ cp $BASE_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR/
+ cp $MPACK_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$MPACKDIR/
+ cp code/libs/macosx/*.dylib $DESTDIR/$APPBUNDLE/Contents/MacOS/
+Index: misc/setup/doit
+===================================================================
+--- misc/setup/doit	(revision 336)
++++ misc/setup/doit	(revision 341)
+@@ -72,6 +72,8 @@
+ 	mkdir $dst/baseq3 $dst/demoq3 $dst/missionpack
+ 	install -m 755 $topdir/build/release-linux-$arch/ioquake3.$arch $dst/ioquake3.$arch
+ 	install -m 755 $topdir/build/release-linux-$arch/ioq3ded.$arch $dst/ioq3ded.$arch
++	install -m 755 $topdir/build/release-linux-$arch/renderer_opengl1_$arch.so $dst/renderer_opengl1_$arch.so
++	install -m 755 $topdir/build/release-linux-$arch/renderer_rend2_$arch.so $dst/renderer_rend2_$arch.so
+ 	install -m 644 $topdir/build/release-linux-$arch/baseq3/*.so $dst/baseq3
+ 	install -m 644 $topdir/build/release-linux-$arch/missionpack/*.so $dst/missionpack
+ 	for i in cgame qagame ui; do
+Index: misc/nsis/ioquake3.nsi.in
+===================================================================
+--- misc/nsis/ioquake3.nsi.in	(revision 336)
++++ misc/nsis/ioquake3.nsi.in	(revision 341)
+@@ -103,6 +103,7 @@
+   File "../../build/release-mingw32-x86/${CLIENT}"
+ !ifdef USE_RENDERER_DLOPEN
+   File "../../build/release-mingw32-x86/renderer_opengl1_x86.dll"
++  File "../../build/release-mingw32-x86/renderer_rend2_x86.dll"
+ !endif
+ 
+   File "../../COPYING.txt"
+@@ -189,6 +190,7 @@
+   Delete $INSTDIR\${SERVER}
+ !ifdef USE_RENDERER_DLOPEN
+   Delete $INSTDIR\renderer_opengl1_x86.dll
++  Delete $INSTDIR\renderer_rend2_x86.dll
+ !endif
+ 
+   Delete $INSTDIR\COPYING.txt
+Index: code/renderer/tr_flares.c
+===================================================================
+--- code/renderer/tr_flares.c	(revision 336)
++++ code/renderer/tr_flares.c	(revision 341)
+@@ -361,7 +361,7 @@
+ 	VectorScale(f->color, f->drawIntensity * intensity, color);
+ 
+ // Calculations for fogging
+-	if(tr.world && f->fogNum < tr.world->numfogs)
++	if(f->fogNum > 0 && tr.world && f->fogNum < tr.world->numfogs)
+ 	{
+ 		tess.numVertexes = 1;
+ 		VectorCopy(f->origin, tess.xyz[0]);
+Index: code/renderer/tr_world.c
+===================================================================
+--- code/renderer/tr_world.c	(revision 336)
++++ code/renderer/tr_world.c	(revision 341)
+@@ -70,8 +70,9 @@
+ 		}
+ 		break;
+ 
++	case SF_FLARE:
+ 	default:
+-		return qtrue;
++		return qfalse;
+ 	}
+ 
+ 	// get generic surface
+@@ -480,7 +481,7 @@
+ 					return;                     // culled
+ 				}
+ 				if ( r == 1 ) {
+-					planeBits &= ~8;            // all descendants will also be in front
++					planeBits &= ~16;            // all descendants will also be in front
+ 				}
+ 			}
+ 
+Index: code/rend2/tr_flares.c
+===================================================================
+--- code/rend2/tr_flares.c	(revision 336)
++++ code/rend2/tr_flares.c	(revision 341)
+@@ -361,14 +361,14 @@
+ 	VectorScale(f->color, f->drawIntensity * intensity, color);
+ 
+ // Calculations for fogging
+-	if(tr.world && f->fogNum < tr.world->numfogs)
++	if(f->fogNum > 0 && tr.world && f->fogNum < tr.world->numfogs)
+ 	{
+ 		tess.numVertexes = 1;
+ 		VectorCopy(f->origin, tess.xyz[0]);
+ 		tess.fogNum = f->fogNum;
+ 	
+ 		RB_CalcModulateColorsByFog(fogFactors);
+-		
++
+ 		// We don't need to render the flare if colors are 0 anyways.
+ 		if(!(fogFactors[0] || fogFactors[1] || fogFactors[2]))
+ 			return;
+Index: code/rend2/tr_bsp.c
+===================================================================
+--- code/rend2/tr_bsp.c	(revision 336)
++++ code/rend2/tr_bsp.c	(revision 341)
+@@ -2598,6 +2598,17 @@
+ 			if ( (unsigned)out->originalBrushNumber >= brushesCount ) {
+ 				ri.Error( ERR_DROP, "fog brushNumber out of range" );
+ 			}
++
++			// find which bsp submodel the fog volume belongs to
++			for ( j = 0; j < s_worldData.numBModels; j++ )
++			{
++				if ( out->originalBrushNumber >= s_worldData.bmodels[ j ].firstBrush &&
++					 out->originalBrushNumber < ( s_worldData.bmodels[ j ].firstBrush + s_worldData.bmodels[ j ].numBrushes ) ) {
++					out->modelNum = j;
++					break;
++				}
++			}
++
+ 			brush = brushes + out->originalBrushNumber;
+ 
+ 			firstSide = LittleLong( brush->firstSide );
+Index: code/rend2/tr_shade.c
+===================================================================
+--- code/rend2/tr_shade.c	(revision 336)
++++ code/rend2/tr_shade.c	(revision 341)
+@@ -1211,7 +1211,7 @@
+ 	{
+ 		int index = 0;
+ 
+-		if (deformGen |= DGEN_NONE)
++		if (deformGen != DGEN_NONE)
+ 			index |= FOGDEF_USE_DEFORM_VERTEXES;
+ 
+ 		if (glState.vertexAttribsInterpolation)
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 336)
++++ code/cgame/cg_draw.c	(revision 341)
+@@ -2365,7 +2365,23 @@
+ 	CG_DrawSmallString( 0, 90, s, 1.0F );
+ }
+ 
++/*
++=============
++CG_AnyScoreboardShowing
++=============
++*/
++qboolean CG_AnyScoreboardShowing( void ) {
++	int i;
+ 
++	for ( i = 0; i < CG_MaxSplitView(); i++ ) {
++		if ( cg.snap->lcIndex[i] != -1 && cg.localClients[i].scoreBoardShowing ) {
++			return qtrue;
++		}
++	}
++
++	return qfalse;
++}
++
+ static qboolean CG_DrawScoreboard( void ) {
+ #ifdef MISSIONPACK_HUD
+ 	static qboolean firstTime[MAX_SPLITVIEW] = {qtrue, qtrue, qtrue, qtrue};
+@@ -2376,7 +2392,6 @@
+ 		menuScoreboard->window.flags &= ~WINDOW_FORCED;
+ 	}
+ 	if (cg_paused.integer) {
+-		cg.deferredPlayerLoading = 0;
+ 		if (cg.cur_lc) {
+ 			firstTime[cg.cur_localClientNum] = qtrue;
+ 		}
+@@ -2385,7 +2400,6 @@
+ 
+ 	// should never happen in Team Arena
+ 	if (cgs.gametype == GT_SINGLE_PLAYER && cg.cur_lc && cg.cur_lc->predictedPlayerState.pm_type == PM_INTERMISSION ) {
+-		cg.deferredPlayerLoading = 0;
+ 		firstTime[cg.cur_localClientNum] = qtrue;
+ 		return qfalse;
+ 	}
+@@ -2400,7 +2414,6 @@
+ 	} else {
+ 		if ( !CG_FadeColor( cg.cur_lc->scoreFadeTime, FADE_TIME ) ) {
+ 			// next time scoreboard comes up, don't print killer
+-			cg.deferredPlayerLoading = 0;
+ 			cg.cur_lc->killerName[0] = 0;
+ 			firstTime[cg.cur_localClientNum] = qtrue;
+ 			return qfalse;
+@@ -2426,11 +2439,6 @@
+ 		Menu_Paint(menuScoreboard, qtrue);
+ 	}
+ 
+-	// load any models that have been deferred
+-	if ( ++cg.deferredPlayerLoading > 10 ) {
+-		CG_LoadDeferredPlayers();
+-	}
+-
+ 	return qtrue;
+ #else
+ 	return CG_DrawOldScoreboard();
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 336)
++++ code/cgame/cg_local.h	(revision 341)
+@@ -1412,6 +1412,7 @@
+ qboolean CG_YourTeamHasFlag( void );
+ qboolean CG_OtherTeamHasFlag( void );
+ qhandle_t CG_StatusHandle(int task);
++qboolean CG_AnyScoreboardShowing( void );
+ 
+ 
+ 
+Index: code/cgame/cg_consolecmds.c
+===================================================================
+--- code/cgame/cg_consolecmds.c	(revision 336)
++++ code/cgame/cg_consolecmds.c	(revision 341)
+@@ -95,23 +95,6 @@
+ 
+ /*
+ =============
+-CG_AnyScoreboardShowing
+-=============
+-*/
+-static qboolean CG_AnyScoreboardShowing(void) {
+-	int i;
+-
+-	for (i = 0; i < CG_MaxSplitView(); i++) {
+-		if (cg.snap->lcIndex[i] != -1 && cg.localClients[i].scoreBoardShowing) {
+-			return qtrue;
+-		}
+-	}
+-
+-	return qfalse;
+-}
+-
+-/*
+-=============
+ CG_ScoresDown
+ =============
+ */
+Index: code/cgame/cg_view.c
+===================================================================
+--- code/cgame/cg_view.c	(revision 336)
++++ code/cgame/cg_view.c	(revision 341)
+@@ -1139,6 +1139,13 @@
+ 		CG_DrawActive( stereoView );
+ 	}
+ 
++	// load any models that have been deferred if a scoreboard is shown
++	if ( !CG_AnyScoreboardShowing() ) {
++		cg.deferredPlayerLoading = 0;
++	} else if ( ++cg.deferredPlayerLoading > 10 ) {
++		CG_LoadDeferredPlayers();
++	}
++
+ 	if (cg.numViewports != 1) {
+ 		// Setup single viewport
+ 		cg.numViewports = 1;
+Index: code/cgame/cg_scoreboard.c
+===================================================================
+--- code/cgame/cg_scoreboard.c	(revision 336)
++++ code/cgame/cg_scoreboard.c	(revision 341)
+@@ -294,12 +294,10 @@
+ 
+ 	// don't draw amuthing if the menu or console is up
+ 	if ( cg_paused.integer ) {
+-		cg.deferredPlayerLoading = 0;
+ 		return qfalse;
+ 	}
+ 
+ 	if ( cgs.gametype == GT_SINGLE_PLAYER && cg.cur_lc && cg.cur_lc->predictedPlayerState.pm_type == PM_INTERMISSION ) {
+-		cg.deferredPlayerLoading = 0;
+ 		return qfalse;
+ 	}
+ 
+@@ -317,7 +315,6 @@
+ 		
+ 		if ( !fadeColor ) {
+ 			// next time scoreboard comes up, don't print killer
+-			cg.deferredPlayerLoading = 0;
+ 			cg.cur_lc->killerName[0] = 0;
+ 			return qfalse;
+ 		}
+@@ -433,11 +430,6 @@
+ 		}
+ 	}
+ 
+-	// load any models that have been deferred
+-	if ( ++cg.deferredPlayerLoading > 10 ) {
+-		CG_LoadDeferredPlayers();
+-	}
+-
+ 	return qtrue;
+ }
+ 
+Index: Makefile
+===================================================================
+--- Makefile	(revision 336)
++++ Makefile	(revision 341)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2372
++IOQ3_REVISION = 2377
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 
+Index: make-macosx.sh
+===================================================================
+--- make-macosx.sh	(revision 336)
++++ make-macosx.sh	(revision 341)
+@@ -8,7 +8,6 @@
+ DESTDIR=build/release-darwin-x86_64
+ BASEDIR=baseq3
+ MPACKDIR=missionpack
+-RENDERDIR=build/release-darwin-x86_64
+ 
+ BIN_OBJ="
+ 	build/release-darwin-x86_64/spearmint.x86_64
+@@ -26,10 +25,11 @@
+ 	build/release-darwin-x86_64/$MPACKDIR/uix86_64.dylib
+ 	build/release-darwin-x86_64/$MPACKDIR/gamex86_64.dylib
+ "
+-
+ RENDER_OBJ="
+ 	build/release-darwin-x86_64/renderer_opengl1_smp_x86_64.dylib
+ 	build/release-darwin-x86_64/renderer_opengl1_x86_64.dylib
++	build/release-darwin-x86_64/renderer_rend2_smp_x86_64.dylib
++	build/release-darwin-x86_64/renderer_rend2_x86_64.dylib
+ "
+ 
+ cd `dirname $0`
