@@ -10,17 +10,6 @@
 |									|
 \-----------------------------------------------------------------------/
 
-$ Vehicles
-$ Random generated weapon
-! Replace weapon models
-! Get logo drawn/digitized
-! New intro
-! Rework UI
-! Locational damage
-! Headshots (award?)
-! At least 4 bots (different chat files/characteristics)
-! At least 4 standard player models
-! Replace base sounds
 ! Every gamemode should have two maps that it can be played on (maps can be shared between gamemodes)
 - Achievements
 - Local client specific spawn points
