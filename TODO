@@ -20,7 +20,6 @@ $ Random generated weapon
 ! Headshots (award?)
 ! At least 4 bots (different chat files/characteristics)
 ! At least 4 standard player models
-! Replace base textures
 ! Replace base sounds
 ! Every gamemode should have two maps that it can be played on (maps can be shared between gamemodes)
 - Achievements
@@ -40,3 +39,11 @@ X Class weapons by type (ex: machinegun, shotgun, and rocket launcher are types 
 ? Option to exit fullscreen at ui
 ? Stationary Turrets (automatic and useable)
 ? Classses (perks?/weapons)
+
+
+/-------------------------------\
+|				|
+|   These things are finished	|
+|				|
+\-------------------------------/
+Replace base textures - ( Using XCSV replacement textures )
