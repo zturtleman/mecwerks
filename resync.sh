@@ -25,7 +25,7 @@ do
         then
                                         echo ""
                 echo "This script auto updates code to syncronize with the spearmint code"
-                echo "A patch is put in diffs/diff_<oldrev:<newrev>.patch"
+                echo "A patch is put in patches/diff_<oldrev:<newrev>.patch"
                 echo ""
                 echo ""
                 echo "  OPTIONS"
@@ -34,7 +34,6 @@ do
                 echo ""
                 echo "    -patch       apply patch after created"
                 exit 1
-                exit 1;
         fi
 
 	#
@@ -52,8 +51,8 @@ done
 #
 if [ "$OLD_REV" = 0 ]
 then
-	echo "No old revision set. Make a line in Makefile.local as SPEAR_REV = <current updated revision>"
-	error 1;
+	echo "No old revision set. Check REVISION"
+	error 1
 fi
 
 #
@@ -71,14 +70,16 @@ NEW_REV=`svn log -rHEAD | grep "^r[0-9]" | cut -f1 -d' ' | cut -c 2-`
 #
 if [ "$OLD_REV" = "$NEW_REV" ]
 then
-	echo "Revision Already Current"
-	exit 1;
+	echo "Revision Already Newest"
+	exit 1
 fi
 
 #
 # Update spearmint code
 #
 svn update > checkout.log
+
+svn log -rHEAD > ../mecwerks/commitlog
 
 #
 # Make the patch
@@ -97,7 +98,7 @@ then
 	#
 	cd ../mecwerks
 	echo "SPEAR_REV = $NEW_REV" > $OLDCFG
-	echo "Makefile.local updated"
+	echo "REVISION updated"
 
 	echo "Patching"
 	patch -p0 < patches/diff_$OLD_REV-$NEW_REV.patch
