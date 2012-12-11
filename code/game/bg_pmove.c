@@ -1636,16 +1636,22 @@ static void PM_Weapon( void ) {
 	pm->ps->weaponstate = WEAPON_FIRING;
 
 	// check for out of ammo
-	if ( ! pm->ps->ammo[ pm->ps->weapon ] ) {
+	if ( !pm->ps->clipammo[ pm->ps->weapon ] ) {
+		PM_AddEvent( EV_NOAMMO );
+                pm->ps->weaponTime += 500;
+		return;
+	}
+/*
+	if ( !pm->ps->ammo[ pm->ps->weapon ] && !pm->ps->clipammo[ pm->ps->weapon ] ) {
 		PM_AddEvent( EV_NOAMMO );
 		pm->ps->weaponTime += 500;
 		return;
 	}
-
+*/
 	// take an ammo away if not infinite
-    if ( pm->ps->ammo[ pm->ps->weapon ] != -1 ) {
-        pm->ps->ammo[ pm->ps->weapon ]--;
-    }
+    	if ( pm->ps->clipammo[ pm->ps->weapon ] != -1 ) {
+        	pm->ps->clipammo[ pm->ps->weapon ]--;
+    	}
     
 	// fire weapon
 	PM_AddEvent( EV_FIRE_WEAPON );
@@ -1876,7 +1882,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// set the firing flag for continuous beam weapons
 	if ( !(pm->ps->pm_flags & PMF_RESPAWNED) && pm->ps->pm_type != PM_INTERMISSION && pm->ps->pm_type != PM_NOCLIP
-		&& ( pm->cmd.buttons & BUTTON_ATTACK ) && pm->ps->ammo[ pm->ps->weapon ] ) {
+		&& ( pm->cmd.buttons & BUTTON_ATTACK ) && pm->ps->clipammo[ pm->ps->weapon ] ) {
 		pm->ps->eFlags |= EF_FIRING;
 	} else {
 		pm->ps->eFlags &= ~EF_FIRING;

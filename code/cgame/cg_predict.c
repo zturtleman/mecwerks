@@ -396,6 +396,7 @@ static void CG_TouchItem( centity_t *cent ) {
 	cent->miscTime = cg.time;
 
 	// if it's a weapon, give them some predicted ammo so the autoswitch will work
+	// MEC: NOTE: May work fine with clipammo
 	if ( item->giType == IT_WEAPON ) {
 		cg.cur_lc->predictedPlayerState.stats[ STAT_WEAPONS ] |= 1 << item->giTag;
 		if ( !cg.cur_lc->predictedPlayerState.ammo[ item->giTag ] ) {

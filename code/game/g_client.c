@@ -1217,20 +1217,25 @@ void ClientSpawn(gentity_t *ent) {
 
 
 	if ( g_gametype.integer == GT_RARENA ) {
-        client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
-        client->ps.ammo[WP_RAILGUN] = -1;
+        	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
+        	client->ps.ammo[WP_RAILGUN] = -1;
+		client->ps.clipammo[WP_RAILGUN] = -1;
 		G_NextFireType( ent, 0 );
 	} else {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
 		if ( g_gametype.integer == GT_TEAM ) {
 			client->ps.ammo[WP_MACHINEGUN] = 50;
+			client->ps.clipammo[WP_MACHINEGUN] = 50;
 		} else {
 			client->ps.ammo[WP_MACHINEGUN] = 100;
+			client->ps.clipammo[WP_MACHINEGUN] = 100;
 		}
 
 		client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
 		client->ps.ammo[WP_GAUNTLET] = -1;
+		client->ps.clipammo[WP_GAUNTLET] = -1;
 		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
+		client->ps.clipammo[WP_GRAPPLING_HOOK] = -1;
 	}
 
 	// health will count down towards max_health

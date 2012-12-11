@@ -1515,7 +1515,7 @@ void CG_DrawWeaponSelect( void ) {
 		}
 
 		// no ammo cross on top
-		if ( !cg.cur_ps->ammo[ i ] ) {
+		if ( !cg.cur_ps->ammo[ i ] && !cg.cur_ps->clipammo[ i ] ) {
 			CG_DrawPic( x, y, 32, 32, cgs.media.noammoShader );
 		}
 
@@ -1542,7 +1542,7 @@ CG_WeaponSelectable
 ===============
 */
 static qboolean CG_WeaponSelectable( playerState_t *ps, int i ) {
-	if ( !ps->ammo[i] ) {
+	if ( !ps->ammo[i] && !ps->clipammo[i] ) {
 		return qfalse;
 	}
 	if ( ! (ps->stats[ STAT_WEAPONS ] & ( 1 << i ) ) ) {

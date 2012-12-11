@@ -63,10 +63,10 @@ void CG_CheckAmmo( void ) {
 #ifdef MISSIONPACK
 		case WP_PROX_LAUNCHER:
 #endif
-			total += cg.cur_ps->ammo[i] * 1000;
+			total += ( cg.cur_ps->ammo[i] * 1000 ) + ( cg.cur_ps->clipammo[i] * 1000  ) ;
 			break;
 		default:
-			total += cg.cur_ps->ammo[i] * 200;
+			total += ( cg.cur_ps->ammo[i] * 200 ) + ( cg.cur_ps->clipammo[i] * 200  );
 			break;
 		}
 		if ( total >= 5000 ) {

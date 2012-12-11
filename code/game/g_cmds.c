@@ -109,7 +109,33 @@ void Cmd_Score_f( gentity_t *ent ) {
 	DeathmatchScoreboardMessage( ent );
 }
 
+/*
+==================
+Cmd_Reload
+==================
+*/
+void Cmd_Reload( gentity_t *ent )	{
+	int weapon = ent->client->ps.weapon;
+	int amt = ClipAmmoAmount( weapon );
 
+	if (ent->client->ps.clipammo[weapon] >= ClipAmmoAmount(weapon)) return;
+
+	ent->client->ps.weaponstate = WEAPON_DROPPING;
+	ent->client->ps.torsoAnim = ((ent->client->ps.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | TORSO_DROP;
+	ent->client->ps.weaponTime += 1000;
+
+	if (ent->client->ps.ammo[weapon] == 0) return;
+	
+	if (ent->client->ps.clipammo[weapon] > 0)
+		amt -= ent->client->ps.clipammo[weapon];
+
+	if (ent->client->ps.ammo[weapon] < amt)
+		amt = ent->client->ps.ammo[weapon];
+
+	ent->client->ps.ammo[weapon] -= amt;
+
+	ent->client->ps.clipammo[weapon] += amt;
+}
 
 /*
 ==================
@@ -278,6 +304,7 @@ void Cmd_Give_f (gentity_t *ent)
 	{
 		for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
 			ent->client->ps.ammo[i] = 999;
+			ent->client->ps.clipammo[i] = 999;
 		}
 		if (!give_all)
 			return;
@@ -1876,6 +1903,8 @@ void ClientCommand( int clientNum ) {
 		Cmd_SetViewpos_f( ent );
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
+	else if (Q_stricmp (cmd, "reload") == 0)
+		Cmd_Reload( ent );
 	else
 		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", buf ) );
 }

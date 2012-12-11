@@ -291,6 +291,18 @@ static void CG_DrawPlayerAmmoValue(rectDef_t *rect, float scale, vec4_t color, q
 				CG_Text_Paint(rect->x + (rect->w - value) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle);
 			}
 		}
+		value = ps->clipammo[cent->currentState.weapon];
+                if ( value > -1 ) {
+                        if (shader) {
+                    trap_R_SetColor( color );
+                                CG_DrawPic(rect->x, rect->y, rect->w, rect->h, shader);
+                          trap_R_SetColor( NULL );
+                        } else {
+                                Com_sprintf (num, sizeof(num), "%i", value);
+                                value = CG_Text_Width(num, scale, 0);
+                                CG_Text_Paint(rect->x + (rect->w - value) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle);
+                        }
+                }
 	}
 
 }

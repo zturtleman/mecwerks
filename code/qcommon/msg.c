@@ -1243,6 +1243,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				statsbits;
 	int				persistantbits;
 	int				ammobits;
+	int				clipammobits;
 	int				powerupbits;
 	int				numFields;
 	netField_t		*field;
@@ -1325,6 +1326,12 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			ammobits |= 1<<i;
 		}
 	}
+	clipammobits = 0;
+        for (i=0 ; i<MAX_WEAPONS ; i++) {
+                if (to->clipammo[i] != from->clipammo[i]) {
+                        clipammobits |= 1<<i;
+                }
+        }
 	powerupbits = 0;
 	for (i=0 ; i<MAX_POWERUPS ; i++) {
 		if (to->powerups[i] != from->powerups[i]) {
@@ -1332,7 +1339,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		}
 	}
 
-	if (!statsbits && !persistantbits && !ammobits && !powerupbits) {
+	if (!statsbits && !persistantbits && !ammobits && !clipammobits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
 		return;
@@ -1371,6 +1378,15 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}
 
+	if ( clipammobits ) {
+                MSG_WriteBits( msg, 1, 1 );     // changed
+                MSG_WriteBits( msg, clipammobits, MAX_WEAPONS );
+                for (i=0 ; i<MAX_WEAPONS ; i++)
+                        if (clipammobits & (1<<i) )
+                                MSG_WriteShort (msg, to->clipammo[i]);
+        } else {
+                MSG_WriteBits( msg, 0, 1 );     // no change
+        }
 
 	if ( powerupbits ) {
 		MSG_WriteBits( msg, 1, 1 );	// changed
@@ -1505,6 +1521,17 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 				}
 			}
 		}
+
+		// parse clipammo
+                if ( MSG_ReadBits( msg, 1 ) ) {
+                        LOG("PS_CLIPAMMO");
+                        bits = MSG_ReadBits (msg, MAX_WEAPONS);
+                        for (i=0 ; i<MAX_WEAPONS ; i++) {
+                                if (bits & (1<<i) ) {
+                                        to->clipammo[i] = MSG_ReadShort(msg);
+                                }
+                        }
+                }
 
 		// parse powerups
 		if ( MSG_ReadBits( msg, 1 ) ) {

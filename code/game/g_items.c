@@ -182,12 +182,27 @@ int Pickup_Holdable( gentity_t *ent, gentity_t *other ) {
 
 //======================================================================
 
-void Add_Ammo (gentity_t *ent, int weapon, int count)
+void Add_Ammo (gentity_t *ent, int weapon, int count, int clipcount)
 {
 	ent->client->ps.ammo[weapon] += count;
-	if ( ent->client->ps.ammo[weapon] > 200 ) {
+
+	if ( clipcount != -1 )
+		ent->client->ps.clipammo[weapon] += clipcount;
+
+	if ( ent->client->ps.ammo[weapon] > 200 )
 		ent->client->ps.ammo[weapon] = 200;
-	}
+}
+
+int ClipAmmoAmount ( int w ) {
+	if ( w == WP_MACHINEGUN ) return 40;
+	else if ( w == WP_SHOTGUN ) return 10;
+	else if ( w == WP_GRENADE_LAUNCHER ) return 10;
+	else if ( w == WP_ROCKET_LAUNCHER ) return 10;
+	else if ( w == WP_LIGHTNING ) return 100;
+	else if ( w == WP_RAILGUN ) return 10;
+	else if ( w == WP_PLASMAGUN ) return 50;
+	else if ( w == WP_BFG ) return 20;
+	else return 15;
 }
 
 int Pickup_Ammo (gentity_t *ent, gentity_t *other)
@@ -200,7 +215,7 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 		quantity = ent->item->quantity;
 	}
 
-	Add_Ammo (other, ent->item->giTag, quantity);
+	Add_Ammo (other, ent->item->giTag, quantity * 2, -1);
 
 	return RESPAWN_AMMO;
 }
@@ -233,18 +248,18 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 	}
 
 	// add the weapon
-	if ( g_gametype.integer != GT_RARENA )
-		other->client->ps.stats[STAT_WEAPONS] |= ( 1 << ent->item->giTag );
+	other->client->ps.stats[STAT_WEAPONS] |= ( 1 << ent->item->giTag );
 
-	Add_Ammo( other, ent->item->giTag, quantity );
+	Add_Ammo( other, ent->item->giTag, quantity * 2, quantity );
 
-	if (ent->item->giTag == WP_GRAPPLING_HOOK)
+	if (ent->item->giTag == WP_GRAPPLING_HOOK) {
 		other->client->ps.ammo[ent->item->giTag] = -1; // unlimited ammo
+		other->client->ps.clipammo[ent->item->giTag] = -1;
+	}
 
 	// team deathmatch has slow weapon respawns
-	if ( g_gametype.integer == GT_TEAM ) {
+	if ( g_gametype.integer == GT_TEAM )
 		return g_weaponTeamRespawn.integer;
-	}
 
 	return g_weaponRespawn.integer;
 }
