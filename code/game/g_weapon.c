@@ -989,7 +989,7 @@ void G_NextFireType(gentity_t *ent, int next) {
 			break;
 
 		if ( weap != '1' && weap != '2' && weap != '3' ) {
-			weap = g_wpranks.string[client->pers.CurrentWeapon+i]; // skip to the next number
+			weap = '3'; // put to 3
 			continue;
 		} else {
 			break;
