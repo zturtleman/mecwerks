@@ -10,7 +10,7 @@ PATCH=0
 #
 # Makefile.local is used to get current revision number 
 #
-OLDCFG=Makefile.local
+OLDCFG=REVISION
 OLD_REV=`grep "$SPEAR_REV =" "$OLDCFG" | cut -f3 -d' '`
 
 #
@@ -96,7 +96,7 @@ then
 	# Update Makefile.local
 	#
 	cd ../mecwerks
-	sed -ie 's/\(.*SPEAR_REV = $OLD_REV.*\)/SPEAR_REV = $NEW_REV/g' Makefile.local
+	echo "SPEAR_REV = $NEW_REV" > $OLDCFG
 	echo "Makefile.local updated"
 
 	echo "Patching"

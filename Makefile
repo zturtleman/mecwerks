@@ -104,11 +104,11 @@ VERSION=1.36
 endif
 
 ifndef CLIENTBIN
-CLIENTBIN=spearmint
+CLIENTBIN=mecwerks
 endif
 
 ifndef SERVERBIN
-SERVERBIN=spearmint-server
+SERVERBIN=mecwerks-server
 endif
 
 ifndef BASEGAME
