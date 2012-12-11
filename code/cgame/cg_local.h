@@ -1287,7 +1287,14 @@ void CG_SetScoreSelection(void *menu);
 score_t *CG_GetSelectedScore( void );
 void CG_BuildSpectatorString( void );
 
-
+//WarZone
+#define NUM_WEAPS NUM_MAX_WEAPON-1
+extern  int cg_weaponsCount;
+extern  int weaponOrder[NUM_WEAPS];
+extern  int weaponRawOrder[NUM_WEAPS];
+int RateWeapon (int weapon);
+int NextWeapon (int curr);
+int PrevWeapon (int curr);
 //
 // cg_view.c
 //

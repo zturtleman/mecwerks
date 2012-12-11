@@ -1463,78 +1463,79 @@ WEAPON SELECTION
 CG_DrawWeaponSelect
 ===================
 */
-void CG_DrawWeaponSelect( void ) {
-	int		i;
-	int		bits;
-	int		count;
-	int		x, y, w;
-	char	*name;
-	float	*color;
+    void CG_DrawWeaponSelect( void ) {
+     int  i;
+     int  bits;
+     int  count;
+     int  weap;
+     int  x, y, w;
+     char *name;
+     float *color;
 
-	CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
+     // don't display if dead
+     if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+       return;
+     }
 
-	// don't display if dead
-	if ( cg.cur_lc->predictedPlayerState.stats[STAT_HEALTH] < 10 ) {
-		return;
-	}
+     color = CG_FadeColor( cg.weaponSelectTime, WEAPON_SELECT_TIME );
+     if ( !color ) {
+       return;
+     }
+     trap_R_SetColor( color );
 
-	color = CG_FadeColor( cg.cur_lc->weaponSelectTime, WEAPON_SELECT_TIME );
-	if ( !color ) {
-		return;
-	}
-	trap_R_SetColor( color );
+     // showing weapon select clears pickup item display, but not the blend blob
+     cg.itemPickupTime = 0;
 
-	// showing weapon select clears pickup item display, but not the blend blob
-	cg.cur_lc->itemPickupTime = 0;
+     // count the number of weapons owned
+     bits = cg.snap->ps.stats[ STAT_WEAPONS ];
+     count = 0;
+     for ( i = 1 ; i < NUM_WEAPS ; i++ ) { //WarZone
+       if ( bits & ( 1 << i ) ) {
+         count++;
+       }
+     }
 
-	// count the number of weapons owned
-	bits = cg.cur_ps->stats[ STAT_WEAPONS ];
-	count = 0;
-	for ( i = 1 ; i < MAX_WEAPONS ; i++ ) {
-		if ( bits & ( 1 << i ) ) {
-			count++;
-		}
-	}
+     x = 320 - count * 20;
+     y = 380;
 
-	x = 320 - count * 20;
-	y = 380;
+     weap = weaponRawOrder[NUM_WEAPS - 1]; //WarZone -- select last weapon
+     for ( i = 0 ; i < NUM_WEAPS ; i++ ) { //WarZone
+       weap = NextWeapon( weap );
 
-	for ( i = 1 ; i < MAX_WEAPONS ; i++ ) {
-		if ( !( bits & ( 1 << i ) ) ) {
-			continue;
-		}
+       if ( !( bits & ( 1 << weap ) ) ) {
+         continue;
+       }
 
-		CG_RegisterWeapon( i );
+       CG_RegisterWeapon( weap );
 
-		// draw weapon icon
-		CG_DrawPic( x, y, 32, 32, cg_weapons[i].weaponIcon );
+       // draw weapon icon
+       CG_DrawPic( x, y, 32, 32, cg_weapons[weap].weaponIcon );
 
-		// draw selection marker
-		if ( i == cg.cur_lc->weaponSelect ) {
-			CG_DrawPic( x-4, y-4, 40, 40, cgs.media.selectShader );
-		}
+       // draw selection marker
+       if ( weap == cg.weaponSelect ) {
+         CG_DrawPic( x-4, y-4, 40, 40, cgs.media.selectShader );
+       }
 
-		// no ammo cross on top
-		if ( !cg.cur_ps->ammo[ i ] && !cg.cur_ps->clipammo[ i ] ) {
-			CG_DrawPic( x, y, 32, 32, cgs.media.noammoShader );
-		}
+       // no ammo cross on top
+       if ( !cg.snap->ps.ammo[ weap ] ) {
+         CG_DrawPic( x, y, 32, 32, cgs.media.noammoShader );
+       }
 
-		x += 40;
-	}
+       x += 40;
+     }
 
-	// draw the selected name
-	if ( cg_weapons[ cg.cur_lc->weaponSelect ].item ) {
-		name = cg_weapons[ cg.cur_lc->weaponSelect ].item->pickup_name;
-		if ( name ) {
-			w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
-			x = ( SCREEN_WIDTH - w ) / 2;
-			CG_DrawBigStringColor(x, y - 22, name, color);
-		}
-	}
+     // draw the selected name
+     if ( cg_weapons[ cg.weaponSelect ].item ) {
+       name = cg_weapons[ cg.weaponSelect ].item->pickup_name;
+       if ( name ) {
+         w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
+         x = ( SCREEN_WIDTH - w ) / 2;
+         CG_DrawBigStringColor(x, y - 22, name, color);
+       }
+     }
 
-	trap_R_SetColor( NULL );
-}
-
+     trap_R_SetColor( NULL );
+    }
 
 /*
 ===============
