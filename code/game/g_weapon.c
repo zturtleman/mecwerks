@@ -38,6 +38,7 @@ static	vec3_t	forward, right, up;
 static	vec3_t	muzzle;
 
 #define NUM_NAILSHOTS 15
+#define MAX_WPRANKS 18
 
 /*
 ================
@@ -966,7 +967,7 @@ void FireWeapon( gentity_t *ent ) {
 
 void G_NextFireType(gentity_t *ent, int next) {
 	gclient_t	*client = ent->client;
-	int weap;
+	int	weap, i;
     
 	//move them to the next weapon
 	if ( next == 1 )
@@ -982,6 +983,18 @@ void G_NextFireType(gentity_t *ent, int next) {
     
 	//get the char for the next weapon
 	weap = g_wpranks.string[client->pers.CurrentWeapon];
+	
+	for ( i=0; i<MAX_WPRANKS; i++ ) {
+		if ( !weap )
+			break;
+
+		if ( weap != '1' && weap != '2' && weap != '3' ) {
+			weap = g_wpranks.string[client->pers.CurrentWeapon+i]; // skip to the next number
+			continue;
+		} else {
+			break;
+		}
+	}
     
 	//find out what weapon they need
 	switch(weap) {
