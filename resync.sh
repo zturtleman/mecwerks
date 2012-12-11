@@ -96,7 +96,7 @@ then
 	# Update Makefile.local
 	#
 	cd ../mecwerks
-	sed -ie 's/\(.*SPEAR_VER=$OLD_REV.*\)/SPEAR_REV=$NEW_REV/g' Makefile.local
+	sed -ie 's/\(.*SPEAR_VER = $OLD_REV.*\)/SPEAR_REV = $NEW_REV/g' Makefile.local
 	echo "Makefile.local updated"
 
 	echo "Patching"

@@ -261,13 +261,13 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
 
 	AxisClear( re->axis );
  
-	if (cg_oldRail.integer)
-	{
+	//if (cg_oldRail.integer)
+	//{
 		// nudge down a bit so it isn't exactly in center
-		re->origin[2] -= 8;
-		re->oldorigin[2] -= 8;
-		return;
-	}
+		//re->origin[2] -= 8;
+		//re->oldorigin[2] -= 8;
+		//return;
+	//}
 
 	VectorCopy (start, move);
 	VectorSubtract (end, start, vec);
