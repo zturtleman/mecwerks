@@ -1225,10 +1225,10 @@ void ClientSpawn(gentity_t *ent) {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
 		if ( g_gametype.integer == GT_TEAM ) {
 			client->ps.ammo[WP_MACHINEGUN] = 50;
-			client->ps.clipammo[WP_MACHINEGUN] = 50;
+			client->ps.clipammo[WP_MACHINEGUN] = ClipAmmoAmount( WP_MACHINEGUN );
 		} else {
 			client->ps.ammo[WP_MACHINEGUN] = 100;
-			client->ps.clipammo[WP_MACHINEGUN] = 100;
+			client->ps.clipammo[WP_MACHINEGUN] = ClipAmmoAmount( WP_MACHINEGUN );
 		}
 
 		client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );

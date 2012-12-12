@@ -194,7 +194,7 @@ void Add_Ammo (gentity_t *ent, int weapon, int count, int clipcount)
 }
 
 int ClipAmmoAmount ( int w ) {
-	if ( w == WP_MACHINEGUN ) return 40;
+	if ( w == WP_MACHINEGUN ) return 50;
 	else if ( w == WP_SHOTGUN ) return 10;
 	else if ( w == WP_GRENADE_LAUNCHER ) return 10;
 	else if ( w == WP_ROCKET_LAUNCHER ) return 10;
