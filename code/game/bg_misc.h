@@ -559,7 +559,7 @@ typedef struct animation_s {
 #define	ANIM_TOGGLEBIT		128
 
 
-#define DEFAULT_CLIENT_NAME		"UnnamedPlayer"
+#define DEFAULT_CLIENT_NAME		"Player"
 #define DEFAULT_CLIENT_COLOR1	4
 #define DEFAULT_CLIENT_COLOR2	5
 
