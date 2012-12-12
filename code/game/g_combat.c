@@ -832,6 +832,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	int			asave;
 	int			knockback;
 	int			max;
+	int			okaytoknock = 1;
 #ifdef MISSIONPACK
 	vec3_t		bouncedir, impactpoint;
 #endif
@@ -911,33 +912,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		knockback = 0;
 	}
 
-	// figure momentum add, even if the damage won't be taken
-	if ( knockback && targ->client ) {
-		vec3_t	kvel;
-		float	mass;
-
-		mass = 200;
-
-		VectorScale (dir, g_knockback.value * (float)knockback / mass, kvel);
-		VectorAdd (targ->client->ps.velocity, kvel, targ->client->ps.velocity);
-
-		// set the timer so that the other client can't cancel
-		// out the movement immediately
-		if ( !targ->client->ps.pm_time ) {
-			int		t;
-
-			t = knockback * 2;
-			if ( t < 50 ) {
-				t = 50;
-			}
-			if ( t > 200 ) {
-				t = 200;
-			}
-			targ->client->ps.pm_time = t;
-			targ->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
-		}
-	}
-
 	// check for completely getting out of the damage
 	if ( !(dflags & DAMAGE_NO_PROTECTION) ) {
 
@@ -949,23 +923,27 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		if ( targ != attacker && OnSameTeam (targ, attacker)  ) {
 #endif
 			if ( !g_friendlyFire.integer ) {
-				return;
+				okaytoknock = 0;
+				goto knockknock;
 			}
 		}
 #ifdef MISSIONPACK
 		if (mod == MOD_PROXIMITY_MINE) {
 			if (inflictor && inflictor->parent && OnSameTeam(targ, inflictor->parent)) {
-				return;
+				okaytoknock = 0;
+				goto knockknock;
 			}
 			if (targ == attacker) {
-				return;
+				okaytoknock = 0;
+				goto knockknock;
 			}
 		}
 #endif
 
 		// check for godmode
 		if ( targ->flags & FL_GODMODE ) {
-			return;
+			okaytoknock = 0;
+			goto knockknock;
 		}
 	}
 
@@ -974,7 +952,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( client && client->ps.powerups[PW_BATTLESUIT] ) {
 		G_AddEvent( targ, EV_POWERUP_BATTLESUIT, 0 );
 		if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
-			return;
+			okaytoknock = 0;
+			goto knockknock;
 		}
 		damage *= 0.5;
 	}
@@ -983,7 +962,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( attacker->client && client
 			&& targ != attacker && targ->health > 9
 			&& targ->s.eType != ET_MISSILE
-			&& targ->s.eType != ET_GENERAL) {
+			&& targ->s.eType != ET_GENERAL
+			&& okaytoknock == 1) {
 		if ( OnSameTeam( targ, attacker ) ) {
 			attacker->client->ps.persistant[PERS_HITS]--;
 		} else {
@@ -993,19 +973,51 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 
 	// always give half damage if hurting self
-	// calculated after knockback, so rocket jumping works
-	if ( targ == attacker) {
-		damage *= 0.5;
-	}
+        // calculated after knockback, so rocket jumping works
+        if ( targ == attacker) {
+                damage *= 0.5;
+        }
 
-	if ( damage < 10 ) {
-		damage = 10;
-	}
-	take = damage;
+        if ( damage < 10 ) {
+                damage = 10;
+        }
+        take = damage;
 
 	// save some from armor
 	asave = CheckArmor (targ, take, dflags);
 	take -= asave;
+
+	knockknock: 
+	// figure momentum add, even if the damage won't be taken
+        if ( knockback && targ->client && (targ->health > take) ) {
+                vec3_t  kvel;
+                float   mass;
+
+                mass = 200;
+
+                VectorScale (dir, g_knockback.value * (float)knockback / mass, kvel);
+                VectorAdd (targ->client->ps.velocity, kvel, targ->client->ps.velocity);
+
+                // set the timer so that the other client can't cancel
+                // out the movement immediately
+                if ( !targ->client->ps.pm_time ) {
+                        int             t;
+
+                        t = knockback * 2;
+                        if ( t < 50 ) {
+                                t = 50;
+                        }
+                        if ( t > 200 ) {
+                                t = 200;
+                        }
+                        targ->client->ps.pm_time = t;
+                        targ->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
+                }
+        }
+
+	if ( okaytoknock == 0 ) {
+		return;
+	}
 
 	if ( g_debugDamage.integer ) {
 		G_Printf( "%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->s.number,
