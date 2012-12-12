@@ -202,8 +202,6 @@ vmCvar_t	cg_oldPlasma;
 vmCvar_t	cg_trueLightning;
 vmCvar_t	cg_atmosphericEffects;
 vmCvar_t	cg_teamDmLeadAnnouncements;
-vmCvar_t 	cg_weaponOrder[MAX_SPLITVIEW]; //WarZone
-int 		cg_weaponsCount = -1; //WarZone
 
 #ifdef MISSIONPACK
 vmCvar_t 	cg_redTeamName;
@@ -301,10 +299,6 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_teamChatHeight, "cg_teamChatHeight", "0", CVAR_ARCHIVE  },
 	{ &cg_forceModel, "cg_forceModel", "0", CVAR_ARCHIVE  },
 	{ &cg_predictItems, "cg_predictItems", "1", CVAR_ARCHIVE },
-	{ &cg_weaponOrder[0], "weaponOrder", "1/2/3/4/5/6/7/8/9", CVAR_ARCHIVE }, //WarZone
-	{ &cg_weaponOrder[1], "2weaponOrder", "1/2/3/4/5/6/7/8/9", CVAR_ARCHIVE }, //WarZone
-	{ &cg_weaponOrder[2], "3weaponOrder", "1/2/3/4/5/6/7/8/9", CVAR_ARCHIVE }, //WarZone
-	{ &cg_weaponOrder[4], "4weaponOrder", "1/2/3/4/5/6/7/8/9", CVAR_ARCHIVE }, //WarZone
 #ifdef MISSIONPACK
 	{ &cg_deferPlayers, "cg_deferPlayers", "0", CVAR_ARCHIVE },
 #else
@@ -366,135 +360,6 @@ static cvarTable_t cvarTable[] = {
 };
 
 static int  cvarTableSize = ARRAY_LEN( cvarTable );
-
-//<WarZone>
-int weaponOrder[NUM_WEAPS];
-int weaponRawOrder[NUM_WEAPS];
-
-int NextWeapon (int curr)
-{
-  int i;
-  int w = -1;
-
-  for (i = 0; i < NUM_WEAPS; i++)
-  {
-    if (weaponRawOrder[i] == curr)
-    {
-      w = i;
-      break;
-    }
-  }
-
-  if (w == -1)
-    return curr; //shouldn't happen
-
-  return weaponRawOrder[(w + 1) % NUM_WEAPS];
-}
-
-int PrevWeapon (int curr)
-{
-  int i;
-  int w = -1;
-
-  for (i = 0; i < NUM_WEAPS; i++)
-  {
-    if (weaponRawOrder[i] == curr)
-    {
-      w = i;
-      break;
-    }
-  }
-
-  if (w == -1)
-    return curr; //shouldn't happen
-
-  return weaponRawOrder[w - 1 >= 0 ? w - 1 : NUM_WEAPS - 1];
-}
-
-int RateWeapon (int weapon)
-{
-  weapon--;
-
-  if (weapon > 8 || weapon < 0)
-    return 0; //bad weapon
-
-  return weaponOrder[weapon];
-}
-
-int contains(int *list, int size, int number)
-{
-  int i;
-
-  for (i = 0; i < size; i++)
-    if (list[i] == number) return 1;
-
-  return 0;
-}
-
-void UpdateWeaponOrder (void)
-{
-  char *order = cg_weaponOrder.string;
-  char weapon[3];
-  int i, start;
-  int tempOrder[NUM_WEAPS];
-  int weapUsed[NUM_WEAPS];
-  int temp;
-
-  weapon[1] = '\0';
-  memset(tempOrder, 0, sizeof(tempOrder));
-  memset(weapUsed, 0, sizeof(weapUsed));
-
-  i = 0;
-  while (order != NULL && *order != '\0' && i < NUM_WEAPS)
-  {
-    weapon[0] = *order;
-    order++;
-
-    if (*order != '\\' && *order != '/') //typo fixed 2/10/00
-    {
-      weapon[1] = *order;
-      weapon[2] = '\0';
-      order++;
-    } else {
-      weapon[1] = '\0';
-    }
-
-    if (*order != '\0')
-      order++;
-
-    temp = atoi( weapon );
-    if (temp < 1 || temp > NUM_WEAPS)
-    {
-      CG_Printf( "Error: %i is out of range. Ignoring..\n", temp );
-    }
-    else if ( contains( tempOrder, sizeof(tempOrder)/sizeof(tempOrder[0]), temp ) )
-    {
-      CG_Printf( "Error: %s (%i) already in list. Ignoring..\n", (BG_FindItemForWeapon( temp ))->pickup_name, temp );
-    } else {
-      tempOrder[i] = temp;
-      weapUsed[temp - 1] = 1;
-      i++;
-    }
-  }
-
-  //error checking..
-  start = 0;
-  for (i = 0; i < NUM_WEAPS; i++)
-  {
-    if (weapUsed[i])
-      continue;
-    CG_Printf( "Error: %s (%i) not in list. Adding it to front of the list..\n", (BG_FindItemForWeapon( i + 1 ))->pickup_name, i + 1 );
-    weaponRawOrder[start++] = i + 1;
-  }
-  //build the raw order list
-  for (i = start; i < NUM_WEAPS; i++)
-    weaponRawOrder[i] = tempOrder[i - start];
-
-  //built the remaping table
-  for (i = 0; i < NUM_WEAPS; i++)
-    weaponOrder[weaponRawOrder[i] - 1] = i + 1;
-
-} 
 
 /*
 =================
@@ -576,14 +441,6 @@ void CG_UpdateCvars( void ) {
 		} else {
 			trap_Cvar_Set( "teamoverlay", "0" );
 		}
-	}
-
-	//WarZone
-	for ( i = -1; i < MAX_SPLITVEIW-1; i++ ) {
- 		if ( cg_weaponsCount != cg_weaponOrder[i].modificationCount ) {
-    			UpdateWeaponOrder();
-    			cg_weaponsCount = cg_weaponOrder[i].modificationCount;
-  		}
 	}
 
 #ifdef MISSIONPACK
