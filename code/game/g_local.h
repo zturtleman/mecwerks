@@ -306,6 +306,8 @@ struct gclient_s {
 	//
 	int			lastkilled_client;	// last client that this client killed
 	int			lasthurt_client;	// last client that damaged this client
+	gentity_t		*lasthurt_player;	// last player that damaged this client
+	int			lasthurt_time;		// last time that this client was damaged
 	int			lasthurt_mod;		// type of damage the client did
 
 	// timers

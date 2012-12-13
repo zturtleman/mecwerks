@@ -115,7 +115,7 @@ void TossClientItems( gentity_t *self ) {
 	}
 
 	// drop all the powerups if not in teamplay
-	if ( g_gametype.integer != GT_TEAM ) {
+	if ( g_gametype.integer != GT_TEAM || g_gametype.integer != GT_TEAM_FRENZY ) {
 		angle = 45;
 		for ( i = 1 ; i < PW_NUM_POWERUPS ; i++ ) {
 			if ( self->client->ps.powerups[ i ] > level.time ) {
@@ -526,10 +526,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
         	    		G_NextFireType(attacker, 2);
 		} else {
 			if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY )
-                AddScore( attacker, self->r.currentOrigin, 1 );
+                		AddScore( attacker, self->r.currentOrigin, 1 );
             
 			if ( g_gametype.integer == GT_RARENA )
-                G_NextFireType(attacker, 1);
+                		G_NextFireType(attacker, 1);
             
 			if( meansOfDeath == MOD_GAUNTLET ) {
 				
@@ -560,8 +560,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 		}
 	} else {
-        	if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY )
-            		AddScore( self, self->r.currentOrigin, -1 );
+        	if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY ) {
+            		if ( level.time - self->client->lasthurt_time <= 4500 ) {
+				AddScore( self->client->lasthurt_player, self->r.currentOrigin, 1 );
+			} else {
+				AddScore( self, self->r.currentOrigin, -1 );
+			}
+		}
         	
     		if ( g_gametype.integer == GT_RARENA )
     			G_NextFireType(attacker, 2);
@@ -1057,6 +1062,11 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if (targ->client) {
 		// set the last client who damaged the target
 		targ->client->lasthurt_client = attacker->s.number;
+		if ( attacker->client ) {
+			targ->client->lasthurt_time = level.time;
+			targ->client->lasthurt_player = attacker; // this is so we can see who we should give the kill 
+								  // to if player is knocked off the map without dying
+		}
 		targ->client->lasthurt_mod = mod;
 	}
 
