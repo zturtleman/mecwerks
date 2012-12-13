@@ -561,7 +561,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 	} else {
         	if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY ) {
-            		if ( level.time - self->client->lasthurt_time <= 4500 ) {
+            		if ( level.time - self->client->lasthurt_time <= 4500 && self->client->lasthurt_player != self) {
 				AddScore( self->client->lasthurt_player, self->r.currentOrigin, 1 );
 			} else {
 				AddScore( self, self->r.currentOrigin, -1 );

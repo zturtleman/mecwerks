@@ -203,7 +203,7 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 		quantity = ent->item->quantity;
 	}
 
-	Add_Ammo (other, ent->item->giTag, quantity * 2, -1);
+	Add_Ammo (other, ent->item->giTag, quantity, -1);
 
 	return RESPAWN_AMMO;
 }
@@ -213,6 +213,7 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 
 int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 	int		quantity;
+	int		quantity2;
 
 	if ( ent->count < 0 ) {
 		quantity = 0; // None for you, sir!
@@ -222,6 +223,8 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 		} else {
 			quantity = ent->item->quantity;
 		}
+
+		quantity2 = quantity; // store this
 
 		// dropped items and teamplay weapons always have full ammo
 		if ( ! (ent->flags & FL_DROPPED_ITEM) && g_gametype.integer != GT_TEAM ) {
@@ -237,8 +240,16 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 
 	// add the weapon
 	other->client->ps.stats[STAT_WEAPONS] |= ( 1 << ent->item->giTag );
-
-	Add_Ammo( other, ent->item->giTag, quantity * 2, quantity );
+	
+	if ( other->client->ps.clipammo[ent->item->giTag] != 0 ) {
+		Add_Ammo( other, ent->item->giTag, quantity, 0 ); // don't add ammo to the clip unless empty
+	} else {
+		if ( other->client->ps.ammo[ent->item->giTag] != 0 ) {
+			Add_Ammo( other, ent->item->giTag, 0, quantity2  );
+		} else {
+			Add_Ammo( other, ent->item->giTag, quantity, quantity2  );
+		}
+	}
 
 	if (ent->item->giTag == WP_GRAPPLING_HOOK) {
 		other->client->ps.ammo[ent->item->giTag] = -1; // unlimited ammo
