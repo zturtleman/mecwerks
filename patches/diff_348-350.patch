@@ -1,0 +1,335 @@
+Index: code/q3_ui/ui_local.h
+===================================================================
+--- code/q3_ui/ui_local.h	(revision 348)
++++ code/q3_ui/ui_local.h	(revision 350)
+@@ -665,6 +665,10 @@
+ void			trap_GetGlconfig( glconfig_t *glconfig );
+ void			trap_UpdateScreen( void );
+ int				trap_MemoryRemaining( void );
++void			trap_GetVoipTimes( int *times );
++float			trap_GetVoipGainClient( int client );
++qboolean		trap_GetVoipMuteClient( int client );
++qboolean		trap_GetVoipMuteAll( void );
+ 
+ void			trap_GetClientState( uiClientState_t *state );
+ int				trap_GetConfigString( int index, char* buff, int buffsize );
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 348)
++++ code/cgame/cg_syscalls.asm	(revision 350)
+@@ -60,6 +60,10 @@
+ equ	trap_GetGlconfig					-102
+ equ trap_MemoryRemaining				-103
+ equ	trap_UpdateScreen					-104
++equ	trap_GetVoipTimes					-105
++equ	trap_GetVoipGainClient				-106
++equ	trap_GetVoipMuteClient				-107
++equ	trap_GetVoipMuteAll					-108
+ 
+ equ	trap_GetGameState					-151
+ equ	trap_GetCurrentSnapshotNumber		-152
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 348)
++++ code/cgame/cg_syscalls.c	(revision 350)
+@@ -417,6 +417,24 @@
+ 	syscall( CG_GETGLCONFIG, glconfig );
+ }
+ 
++void trap_GetVoipTimes( int *times ) {
++	syscall( CG_GET_VOIP_TIMES, times );
++}
++
++float trap_GetVoipGainClient( int client ) {
++	floatint_t fi;
++	fi.i = syscall( CG_GET_VOIP_GAIN, client );
++	return fi.f;
++}
++
++qboolean trap_GetVoipMuteClient( int client ) {
++	return syscall( CG_GET_VOIP_MUTE_CLIENT, client);
++}
++
++qboolean trap_GetVoipMuteAll( void ) {
++	return syscall(	CG_GET_VOIP_MUTE_ALL );
++}
++
+ void		trap_GetGameState( gameState_t *gamestate ) {
+ 	syscall( CG_GETGAMESTATE, gamestate );
+ }
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 348)
++++ code/cgame/cg_local.h	(revision 350)
+@@ -1651,6 +1651,10 @@
+ // force a screen update, only used during gamestate load
+ void		trap_UpdateScreen( void );
+ int			trap_MemoryRemaining( void );
++void		trap_GetVoipTimes( int *times );
++float		trap_GetVoipGainClient( int client );
++qboolean	trap_GetVoipMuteClient( int client );
++qboolean	trap_GetVoipMuteAll( void );
+ 
+ 
+ // The glconfig_t will not change during the life of a cgame.
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 348)
++++ code/cgame/cg_public.h	(revision 350)
+@@ -134,6 +134,10 @@
+ 	CG_GETGLCONFIG,
+ 	CG_MEMORY_REMAINING,
+ 	CG_UPDATESCREEN,
++	CG_GET_VOIP_TIMES,
++	CG_GET_VOIP_GAIN,
++	CG_GET_VOIP_MUTE_CLIENT,
++	CG_GET_VOIP_MUTE_ALL,
+ 
+ 	// these are not available in ui
+ 	CG_GETGAMESTATE = 150,
+Index: code/ui/ui_public.h
+===================================================================
+--- code/ui/ui_public.h	(revision 348)
++++ code/ui/ui_public.h	(revision 350)
+@@ -97,6 +97,10 @@
+ 	UI_GETGLCONFIG,
+ 	UI_MEMORY_REMAINING,
+ 	UI_UPDATESCREEN,
++	UI_GET_VOIP_TIMES,
++	UI_GET_VOIP_GAIN,
++	UI_GET_VOIP_MUTE_CLIENT,
++	UI_GET_VOIP_MUTE_ALL,
+ 
+ 	// not available in cgame
+ 	UI_GETCLIENTSTATE = 150,
+Index: code/ui/ui_syscalls.asm
+===================================================================
+--- code/ui/ui_syscalls.asm	(revision 348)
++++ code/ui/ui_syscalls.asm	(revision 350)
+@@ -60,6 +60,10 @@
+ equ	trap_GetGlconfig					-102
+ equ trap_MemoryRemaining				-103
+ equ	trap_UpdateScreen					-104
++equ	trap_GetVoipTimes					-105
++equ	trap_GetVoipGainClient				-106
++equ	trap_GetVoipMuteClient				-107
++equ	trap_GetVoipMuteAll					-108
+ 
+ equ	trap_GetClientState					-151
+ equ	trap_GetConfigString				-152
+Index: code/ui/ui_syscalls.c
+===================================================================
+--- code/ui/ui_syscalls.c	(revision 348)
++++ code/ui/ui_syscalls.c	(revision 350)
+@@ -314,6 +314,24 @@
+ 	syscall( UI_GETGLCONFIG, glconfig );
+ }
+ 
++void trap_GetVoipTimes( int *times ) {
++	syscall( UI_GET_VOIP_TIMES, times );
++}
++
++float trap_GetVoipGainClient( int client ) {
++	floatint_t fi;
++	fi.i = syscall( UI_GET_VOIP_GAIN, client );
++	return fi.f;
++}
++
++qboolean trap_GetVoipMuteClient( int client ) {
++	return syscall( UI_GET_VOIP_MUTE_CLIENT, client);
++}
++
++qboolean trap_GetVoipMuteAll( void ) {
++	return syscall(	UI_GET_VOIP_MUTE_ALL );
++}
++
+ void trap_GetClientState( uiClientState_t *state ) {
+ 	syscall( UI_GETCLIENTSTATE, state );
+ }
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 348)
++++ code/ui/ui_local.h	(revision 350)
+@@ -916,6 +916,10 @@
+ void			trap_GetGlconfig( glconfig_t *glconfig );
+ void			trap_UpdateScreen( void );
+ int				trap_MemoryRemaining( void );
++void			trap_GetVoipTimes( int *times );
++float			trap_GetVoipGainClient( int client );
++qboolean		trap_GetVoipMuteClient( int client );
++qboolean		trap_GetVoipMuteAll( void );
+ 
+ void			trap_GetClientState( uiClientState_t *state );
+ int				trap_GetConfigString( int index, char* buff, int buffsize );
+Index: code/client/client.h
+===================================================================
+--- code/client/client.h	(revision 348)
++++ code/client/client.h	(revision 350)
+@@ -269,6 +269,7 @@
+ 	int voipIncomingSequence[MAX_CLIENTS];
+ 	float voipGain[MAX_CLIENTS];
+ 	qboolean voipIgnore[MAX_CLIENTS];
++	int voipLastPacketTime[MAX_CLIENTS];
+ 	qboolean voipMuteAll;
+ 
+ 	// outgoing data...
+@@ -532,6 +533,10 @@
+ 
+ #ifdef USE_VOIP
+ void CL_Voip_f( void );
++void CL_GetVoipTimes( int *times );
++float CL_GetVoipGain( int clientNum );
++qboolean CL_GetVoipMuteClient( int clientNum );
++qboolean CL_GetVoipMuteAll( void );
+ #endif
+ 
+ void CL_SystemInfoChanged( void );
+Index: code/client/cl_parse.c
+===================================================================
+--- code/client/cl_parse.c	(revision 348)
++++ code/client/cl_parse.c	(revision 350)
+@@ -902,6 +902,7 @@
+ 		CL_PlayVoip(sender, written, (const byte *) decoded, flags);
+ 
+ 	clc.voipIncomingSequence[sender] = sequence + frames;
++	clc.voipLastPacketTime[sender] = cl.serverTime;
+ }
+ #endif
+ 
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 348)
++++ code/client/cl_main.c	(revision 350)
+@@ -567,6 +567,52 @@
+ 		clc.voipPower = 0.0f;  // force this value so it doesn't linger.
+ 	}
+ }
++
++// Cgame and UI access functions for VoIP information
++void CL_GetVoipTimes( int *times ) {
++	if ( !times )
++		return;
++
++	// make sure server is running
++	if ( clc.state != CA_ACTIVE ) {
++		memset( times, 0, sizeof ( clc.voipLastPacketTime ) );
++		return;
++	}
++
++	memcpy( times, clc.voipLastPacketTime, sizeof ( clc.voipLastPacketTime ) );
++}
++
++float CL_GetVoipGain( int clientNum ) {
++	if ( clientNum < 0  || clientNum >= ARRAY_LEN( clc.voipGain ) ) {
++		return 0.0f;
++	}
++
++	// make sure server is running
++	if ( clc.state != CA_ACTIVE )
++		return 0.0f;
++
++	return clc.voipGain[clientNum];
++}
++
++qboolean CL_GetVoipMuteClient( int clientNum ) {
++	if ( clientNum < 0  || clientNum >= ARRAY_LEN( clc.voipIgnore ) ) {
++		return qfalse;
++	}
++
++	// make sure server is running
++	if ( clc.state != CA_ACTIVE )
++		return qfalse;
++
++	return clc.voipIgnore[clientNum];
++}
++
++qboolean CL_GetVoipMuteAll( void ) {
++	// make sure server is running
++	if ( clc.state != CA_ACTIVE )
++		return qfalse;
++
++	return clc.voipMuteAll;
++}
+ #endif
+ 
+ /*
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 348)
++++ code/client/cl_cgame.c	(revision 350)
+@@ -715,6 +715,29 @@
+ 	case CG_GETGLCONFIG:
+ 		CL_GetGlconfig( VMA(1) );
+ 		return 0;
++	case CG_GET_VOIP_TIMES:
++#ifdef USE_VOIP
++		CL_GetVoipTimes( VMA(1) );
++#endif
++		return 0;
++	case CG_GET_VOIP_GAIN:
++#ifdef USE_VOIP
++		return FloatAsInt( CL_GetVoipGain( args[1] ) );
++#else
++		return 0;
++#endif
++	case CG_GET_VOIP_MUTE_CLIENT:
++#ifdef USE_VOIP
++		return CL_GetVoipMuteClient( args[1] );
++#else
++		return 0;
++#endif
++	case CG_GET_VOIP_MUTE_ALL:
++#ifdef USE_VOIP
++		return CL_GetVoipMuteAll();
++#else
++		return 0;
++#endif
+ 	case CG_GETGAMESTATE:
+ 		CL_GetGameState( VMA(1) );
+ 		return 0;
+@@ -1081,6 +1104,7 @@
+ 			clc.speexDecoder[i] = speex_decoder_init(&speex_nb_mode);
+ 			clc.voipIgnore[i] = qfalse;
+ 			clc.voipGain[i] = 1.0f;
++			clc.voipLastPacketTime[i] = 0;
+ 		}
+ 		clc.speexInitialized = qtrue;
+ 		clc.voipMuteAll = qfalse;
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 348)
++++ code/client/cl_ui.c	(revision 350)
+@@ -968,6 +968,33 @@
+ 	case UI_GETCONFIGSTRING:
+ 		return GetConfigString( args[1], VMA(2), args[3] );
+ 
++	case UI_GET_VOIP_TIMES:
++#ifdef USE_VOIP
++		CL_GetVoipTimes( VMA(1) );
++#endif
++		return 0;
++
++	case UI_GET_VOIP_GAIN:
++#ifdef USE_VOIP
++		return FloatAsInt( CL_GetVoipGain( args[1] ) );
++#else
++		return 0;
++#endif
++
++	case UI_GET_VOIP_MUTE_CLIENT:
++#ifdef USE_VOIP
++		return CL_GetVoipMuteClient( args[1] );
++#else
++		return 0;
++#endif
++
++	case UI_GET_VOIP_MUTE_ALL:
++#ifdef USE_VOIP
++		return CL_GetVoipMuteAll();
++#else
++		return 0;
++#endif
++
+ 	case UI_LAN_LOADCACHEDSERVERS:
+ 		LAN_LoadCachedServers();
+ 		return 0;
