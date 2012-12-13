@@ -965,6 +965,18 @@ void FireWeapon( gentity_t *ent ) {
 	}
 }
 
+int ClipAmmoAmount ( int w ) {
+        if ( w == WP_MACHINEGUN ) return 50;
+        else if ( w == WP_SHOTGUN ) return 10;
+        else if ( w == WP_GRENADE_LAUNCHER ) return 10;
+        else if ( w == WP_ROCKET_LAUNCHER ) return 10;
+        else if ( w == WP_LIGHTNING ) return 100;
+        else if ( w == WP_RAILGUN ) return 10;
+        else if ( w == WP_PLASMAGUN ) return 50;
+        else if ( w == WP_BFG ) return 20;
+        else return 15;
+}
+
 void G_NextFireType(gentity_t *ent, int next) {
 	gclient_t	*client = ent->client;
 	int	weap, i;

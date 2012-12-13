@@ -1244,6 +1244,8 @@ typedef struct playerState_s {
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
 	int			ammo[MAX_WEAPONS];
 	int			clipammo[MAX_WEAPONS];
+	int			lastreload[MAX_WEAPONS]; // this is so we can reverse a reload if weapon chamged before reload is done
+	int			lrweapon;		 // there may be a better way to do this but hopefully it works
 
     	int         		RailGun; // for rail factory
 

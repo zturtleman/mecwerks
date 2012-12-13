@@ -1467,6 +1467,64 @@ static void PM_WaterEvents( void ) {		// FIXME?
 	}
 }
 
+/*
+===================
+PM_ClipAmmoAmount
+===================
+*/
+int PM_ClipAmmoAmount ( int w ) {
+        if ( w == WP_MACHINEGUN ) return 50;
+        else if ( w == WP_SHOTGUN ) return 10;
+        else if ( w == WP_GRENADE_LAUNCHER ) return 10;
+        else if ( w == WP_ROCKET_LAUNCHER ) return 10;
+        else if ( w == WP_LIGHTNING ) return 100;
+        else if ( w == WP_RAILGUN ) return 10;
+        else if ( w == WP_PLASMAGUN ) return 50;
+        else if ( w == WP_BFG ) return 20;
+        else return 15;
+}
+
+/*
+==================
+PM_Reload
+==================
+*/
+void PM_Reload( pmove_t *pm, qboolean reverse ) {
+        int weapon = pm->ps->weapon;
+        int amt = PM_ClipAmmoAmount( weapon );
+
+        if ( 0 ) {//reverse ) {
+                if ( !pm->ps->lrweapon || !pm->ps->lastreload[weapon] ) return;
+
+                weapon = pm->ps->lrweapon;
+                amt = pm->ps->lastreload[weapon];
+
+                pm->ps->ammo[weapon] += amt;
+
+                pm->ps->clipammo[weapon] -= amt;
+        } else {
+                if (pm->ps->clipammo[weapon] >= PM_ClipAmmoAmount(weapon)) return;
+
+                pm->ps->weaponstate = WEAPON_RELOADING;
+                PM_StartTorsoAnim( TORSO_DROP );
+                pm->ps->weaponTime += 1000;
+
+                if (pm->ps->ammo[weapon] == 0) return;
+
+                if (pm->ps->clipammo[weapon] > 0)
+                        amt -= pm->ps->clipammo[weapon];
+
+                if (pm->ps->ammo[weapon] < amt)
+                        amt = pm->ps->ammo[weapon];
+
+                pm->ps->ammo[weapon] -= amt;
+
+                pm->ps->clipammo[weapon] += amt;
+
+                pm->ps->lrweapon = weapon;
+                pm->ps->lastreload[weapon] = amt;
+        }
+}
 
 /*
 ===============
@@ -1481,11 +1539,15 @@ static void PM_BeginWeaponChange( int weapon ) {
 	if ( !( pm->ps->stats[STAT_WEAPONS] & ( 1 << weapon ) ) ) {
 		return;
 	}
-	
+
+	if ( pm->ps->weaponstate == WEAPON_RELOADING ) {
+		PM_Reload( pm, qtrue );
+	}
+
 	if ( pm->ps->weaponstate == WEAPON_DROPPING ) {
 		return;
 	}
-
+	
 	PM_AddEvent( EV_CHANGE_WEAPON );
 	pm->ps->weaponstate = WEAPON_DROPPING;
 	pm->ps->weaponTime += 200;
@@ -1509,7 +1571,7 @@ static void PM_FinishWeaponChange( void ) {
 	if ( !( pm->ps->stats[STAT_WEAPONS] & ( 1 << weapon ) ) ) {
 		weapon = WP_NONE;
 	}
-
+	
 	pm->ps->weapon = weapon;
 	pm->ps->weaponstate = WEAPON_RAISING;
 	pm->ps->weaponTime += 250;
@@ -1533,7 +1595,6 @@ static void PM_TorsoAnimation( void ) {
 		return;
 	}
 }
-
 
 /*
 ==============
@@ -1639,6 +1700,9 @@ static void PM_Weapon( void ) {
 	if ( !pm->ps->clipammo[ pm->ps->weapon ] ) {
 		PM_AddEvent( EV_NOAMMO );
                 pm->ps->weaponTime += 500;
+		if ( pm->ps->ammo[ pm->ps->weapon ] ) {
+			PM_Reload( pm, qfalse );
+		}
 		return;
 	}
 /*

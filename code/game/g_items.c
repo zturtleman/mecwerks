@@ -193,18 +193,6 @@ void Add_Ammo (gentity_t *ent, int weapon, int count, int clipcount)
 		ent->client->ps.ammo[weapon] = 200;
 }
 
-int ClipAmmoAmount ( int w ) {
-	if ( w == WP_MACHINEGUN ) return 50;
-	else if ( w == WP_SHOTGUN ) return 10;
-	else if ( w == WP_GRENADE_LAUNCHER ) return 10;
-	else if ( w == WP_ROCKET_LAUNCHER ) return 10;
-	else if ( w == WP_LIGHTNING ) return 100;
-	else if ( w == WP_RAILGUN ) return 10;
-	else if ( w == WP_PLASMAGUN ) return 50;
-	else if ( w == WP_BFG ) return 20;
-	else return 15;
-}
-
 int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 {
 	int		quantity;

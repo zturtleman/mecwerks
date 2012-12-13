@@ -114,13 +114,15 @@ void Cmd_Score_f( gentity_t *ent ) {
 Cmd_Reload
 ==================
 */
-void Cmd_Reload( gentity_t *ent )	{
+void Cmd_Reload( gentity_t *ent ) {
 	int weapon = ent->client->ps.weapon;
 	int amt = ClipAmmoAmount( weapon );
 
 	if (ent->client->ps.clipammo[weapon] >= ClipAmmoAmount(weapon)) return;
 
-	ent->client->ps.weaponstate = WEAPON_DROPPING;
+	if (ent->client->ps.weaponstate == WEAPON_RELOADING) return;
+
+	ent->client->ps.weaponstate = WEAPON_RELOADING;
 	ent->client->ps.torsoAnim = ((ent->client->ps.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | TORSO_DROP;
 	ent->client->ps.weaponTime += 1000;
 

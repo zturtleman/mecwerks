@@ -1244,6 +1244,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				persistantbits;
 	int				ammobits;
 	int				clipammobits;
+	int				lastreloadbits;
 	int				powerupbits;
 	int				numFields;
 	netField_t		*field;
@@ -1326,6 +1327,12 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			ammobits |= 1<<i;
 		}
 	}
+	lastreloadbits = 0;
+        for (i=0 ; i<MAX_WEAPONS ; i++) {
+                if (to->lastreload[i] != from->lastreload[i]) {
+                        lastreloadbits |= 1<<i;
+                }
+        }
 	clipammobits = 0;
         for (i=0 ; i<MAX_WEAPONS ; i++) {
                 if (to->clipammo[i] != from->clipammo[i]) {
@@ -1339,7 +1346,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		}
 	}
 
-	if (!statsbits && !persistantbits && !ammobits && !clipammobits && !powerupbits) {
+	if (!statsbits && !persistantbits && !ammobits && !clipammobits && !lastreloadbits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
 		return;
@@ -1384,6 +1391,16 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
                 for (i=0 ; i<MAX_WEAPONS ; i++)
                         if (clipammobits & (1<<i) )
                                 MSG_WriteShort (msg, to->clipammo[i]);
+        } else {
+                MSG_WriteBits( msg, 0, 1 );     // no change
+        }
+
+	if ( lastreloadbits ) {
+                MSG_WriteBits( msg, 1, 1 );     // changed
+                MSG_WriteBits( msg, lastreloadbits, MAX_WEAPONS );
+                for (i=0 ; i<MAX_WEAPONS ; i++)
+                        if (lastreloadbits & (1<<i) )
+                                MSG_WriteShort (msg, to->lastreload[i]);
         } else {
                 MSG_WriteBits( msg, 0, 1 );     // no change
         }
@@ -1529,6 +1546,17 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
                         for (i=0 ; i<MAX_WEAPONS ; i++) {
                                 if (bits & (1<<i) ) {
                                         to->clipammo[i] = MSG_ReadShort(msg);
+                                }
+                        }
+                }
+
+		// parse lastreload
+                if ( MSG_ReadBits( msg, 1 ) ) {
+                        LOG("PS_LASTRELOAD");
+                        bits = MSG_ReadBits (msg, MAX_WEAPONS);
+                        for (i=0 ; i<MAX_WEAPONS ; i++) {
+                                if (bits & (1<<i) ) {
+                                        to->lastreload[i] = MSG_ReadShort(msg);
                                 }
                         }
                 }
