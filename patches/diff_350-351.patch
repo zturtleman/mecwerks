@@ -1,0 +1,367 @@
+Index: code/q3_ui/ui_local.h
+===================================================================
+--- code/q3_ui/ui_local.h	(revision 350)
++++ code/q3_ui/ui_local.h	(revision 351)
+@@ -666,6 +666,7 @@
+ void			trap_UpdateScreen( void );
+ int				trap_MemoryRemaining( void );
+ void			trap_GetVoipTimes( int *times );
++float			trap_GetVoipPowerClient( int client );
+ float			trap_GetVoipGainClient( int client );
+ qboolean		trap_GetVoipMuteClient( int client );
+ qboolean		trap_GetVoipMuteAll( void );
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 350)
++++ code/cgame/cg_syscalls.asm	(revision 351)
+@@ -61,9 +61,10 @@
+ equ trap_MemoryRemaining				-103
+ equ	trap_UpdateScreen					-104
+ equ	trap_GetVoipTimes					-105
+-equ	trap_GetVoipGainClient				-106
+-equ	trap_GetVoipMuteClient				-107
+-equ	trap_GetVoipMuteAll					-108
++equ	trap_GetVoipPowerClient				-106
++equ	trap_GetVoipGainClient				-107
++equ	trap_GetVoipMuteClient				-108
++equ	trap_GetVoipMuteAll					-109
+ 
+ equ	trap_GetGameState					-151
+ equ	trap_GetCurrentSnapshotNumber		-152
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 350)
++++ code/cgame/cg_syscalls.c	(revision 351)
+@@ -421,6 +421,12 @@
+ 	syscall( CG_GET_VOIP_TIMES, times );
+ }
+ 
++float trap_GetVoipPowerClient( int client ) {
++	floatint_t fi;
++	fi.i = syscall( CG_GET_VOIP_POWER, client );
++	return fi.f;
++}
++
+ float trap_GetVoipGainClient( int client ) {
+ 	floatint_t fi;
+ 	fi.i = syscall( CG_GET_VOIP_GAIN, client );
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 350)
++++ code/cgame/cg_local.h	(revision 351)
+@@ -1652,6 +1652,7 @@
+ void		trap_UpdateScreen( void );
+ int			trap_MemoryRemaining( void );
+ void		trap_GetVoipTimes( int *times );
++float		trap_GetVoipPowerClient( int client );
+ float		trap_GetVoipGainClient( int client );
+ qboolean	trap_GetVoipMuteClient( int client );
+ qboolean	trap_GetVoipMuteAll( void );
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 350)
++++ code/cgame/cg_public.h	(revision 351)
+@@ -135,6 +135,7 @@
+ 	CG_MEMORY_REMAINING,
+ 	CG_UPDATESCREEN,
+ 	CG_GET_VOIP_TIMES,
++	CG_GET_VOIP_POWER,
+ 	CG_GET_VOIP_GAIN,
+ 	CG_GET_VOIP_MUTE_CLIENT,
+ 	CG_GET_VOIP_MUTE_ALL,
+Index: code/ui/ui_public.h
+===================================================================
+--- code/ui/ui_public.h	(revision 350)
++++ code/ui/ui_public.h	(revision 351)
+@@ -98,6 +98,7 @@
+ 	UI_MEMORY_REMAINING,
+ 	UI_UPDATESCREEN,
+ 	UI_GET_VOIP_TIMES,
++	UI_GET_VOIP_POWER,
+ 	UI_GET_VOIP_GAIN,
+ 	UI_GET_VOIP_MUTE_CLIENT,
+ 	UI_GET_VOIP_MUTE_ALL,
+Index: code/ui/ui_syscalls.asm
+===================================================================
+--- code/ui/ui_syscalls.asm	(revision 350)
++++ code/ui/ui_syscalls.asm	(revision 351)
+@@ -61,9 +61,10 @@
+ equ trap_MemoryRemaining				-103
+ equ	trap_UpdateScreen					-104
+ equ	trap_GetVoipTimes					-105
+-equ	trap_GetVoipGainClient				-106
+-equ	trap_GetVoipMuteClient				-107
+-equ	trap_GetVoipMuteAll					-108
++equ	trap_GetVoipPowerClient				-106
++equ	trap_GetVoipGainClient				-107
++equ	trap_GetVoipMuteClient				-108
++equ	trap_GetVoipMuteAll					-109
+ 
+ equ	trap_GetClientState					-151
+ equ	trap_GetConfigString				-152
+Index: code/ui/ui_syscalls.c
+===================================================================
+--- code/ui/ui_syscalls.c	(revision 350)
++++ code/ui/ui_syscalls.c	(revision 351)
+@@ -318,6 +318,12 @@
+ 	syscall( UI_GET_VOIP_TIMES, times );
+ }
+ 
++float trap_GetVoipPowerClient( int client ) {
++	floatint_t fi;
++	fi.i = syscall( UI_GET_VOIP_POWER, client );
++	return fi.f;
++}
++
+ float trap_GetVoipGainClient( int client ) {
+ 	floatint_t fi;
+ 	fi.i = syscall( UI_GET_VOIP_GAIN, client );
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 350)
++++ code/ui/ui_local.h	(revision 351)
+@@ -917,6 +917,7 @@
+ void			trap_UpdateScreen( void );
+ int				trap_MemoryRemaining( void );
+ void			trap_GetVoipTimes( int *times );
++float			trap_GetVoipPowerClient( int client );
+ float			trap_GetVoipGainClient( int client );
+ qboolean		trap_GetVoipMuteClient( int client );
+ qboolean		trap_GetVoipMuteAll( void );
+Index: code/client/cl_input.c
+===================================================================
+--- code/client/cl_input.c	(revision 350)
++++ code/client/cl_input.c	(revision 351)
+@@ -1050,6 +1050,7 @@
+ 				MSG_WriteLong (&fakemsg, clc.voipOutgoingSequence);
+ 				MSG_WriteByte (&fakemsg, clc.voipOutgoingDataFrames);
+ 				MSG_WriteShort (&fakemsg, clc.voipOutgoingDataSize );
++				MSG_WriteBits (&fakemsg, clc.voipFlags, VOIP_FLAGCNT);
+ 				MSG_WriteData (&fakemsg, clc.voipOutgoingData, voipSize);
+ 				MSG_WriteByte (&fakemsg, svc_EOF);
+ 				CL_WriteDemoMessage (&fakemsg, 0);
+Index: code/client/client.h
+===================================================================
+--- code/client/client.h	(revision 350)
++++ code/client/client.h	(revision 351)
+@@ -270,6 +270,7 @@
+ 	float voipGain[MAX_CLIENTS];
+ 	qboolean voipIgnore[MAX_CLIENTS];
+ 	int voipLastPacketTime[MAX_CLIENTS];
++	float voipPower[MAX_CLIENTS];
+ 	qboolean voipMuteAll;
+ 
+ 	// outgoing data...
+@@ -285,7 +286,6 @@
+ 	int voipOutgoingSequence;
+ 	byte voipOutgoingGeneration;
+ 	byte voipOutgoingData[1024];
+-	float voipPower;
+ #endif
+ 
+ #ifdef LEGACY_PROTOCOL
+@@ -534,6 +534,7 @@
+ #ifdef USE_VOIP
+ void CL_Voip_f( void );
+ void CL_GetVoipTimes( int *times );
++float CL_GetVoipPower( int clientNum );
+ float CL_GetVoipGain( int clientNum );
+ qboolean CL_GetVoipMuteClient( int clientNum );
+ qboolean CL_GetVoipMuteAll( void );
+Index: code/client/cl_scrn.c
+===================================================================
+--- code/client/cl_scrn.c	(revision 350)
++++ code/client/cl_scrn.c	(revision 351)
+@@ -378,8 +378,10 @@
+ 		return;  // playing back a demo.
+ 	else if (!cl_voip->integer)
+ 		return;  // client has VoIP support disabled.
++	else if (clc.clientNums[0] == -1)
++		return;
+ 
+-	limit = (int) (clc.voipPower * 10.0f);
++	limit = (int) (clc.voipPower[clc.clientNums[0]] * 10.0f);
+ 	if (limit > 10)
+ 		limit = 10;
+ 
+Index: code/client/cl_parse.c
+===================================================================
+--- code/client/cl_parse.c	(revision 350)
++++ code/client/cl_parse.c	(revision 351)
+@@ -787,7 +787,8 @@
+ 	char encoded[1024];
+ 	int seqdiff = sequence - clc.voipIncomingSequence[sender];
+ 	int written = 0;
+-	int i;
++	float voipPower = 0.0f;
++	int i, j;
+ 
+ 	Com_DPrintf("VoIP: %d-byte packet from client %d\n", packetsize, sender);
+ 
+@@ -892,6 +893,15 @@
+ 		if (decio != NULL) { fwrite(decoded+written, clc.speexFrameSize*2, 1, decio); fflush(decio); }
+ 		#endif
+ 
++		const int16_t *sampptr = (const int16_t *)decoded + written;
++
++		// calculate the "power" of this packet...
++		for (j = 0; j < clc.speexFrameSize; j++) {
++			const float flsamp = (float) sampptr[j];
++			const float s = fabs(flsamp);
++			voipPower += s * s;
++		}
++
+ 		written += clc.speexFrameSize;
+ 	}
+ 
+@@ -901,6 +911,10 @@
+ 	if(written > 0)
+ 		CL_PlayVoip(sender, written, (const byte *) decoded, flags);
+ 
++	clc.voipPower[sender] = (voipPower / (32768.0f * 32768.0f *
++			                 ((float) (clc.speexFrameSize * i)))) *
++			                 100.0f;
++
+ 	clc.voipIncomingSequence[sender] = sequence + frames;
+ 	clc.voipLastPacketTime[sender] = cl.serverTime;
+ }
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 350)
++++ code/client/cl_main.c	(revision 351)
+@@ -313,7 +313,7 @@
+ 	clc.voipOutgoingGeneration++;
+ 	if (clc.voipOutgoingGeneration <= 0)
+ 		clc.voipOutgoingGeneration = 1;
+-	clc.voipPower = 0.0f;
++	clc.voipPower[clc.clientNums[0]] = 0.0f;
+ 	clc.voipOutgoingSequence = 0;
+ }
+ 
+@@ -453,6 +453,8 @@
+ 			dontCapture = qtrue;  // client has VoIP support disabled.
+ 		else if ( audioMult == 0.0f )
+ 			dontCapture = qtrue;  // basically silenced incoming audio.
++		else if ( clc.clientNums[0] == -1 )
++			dontCapture = qtrue;
+ 
+ 		cl_voipSend->modified = qfalse;
+ 
+@@ -511,10 +513,14 @@
+ 
+ 				// check the "power" of this packet...
+ 				for (i = 0; i < clc.speexFrameSize; i++) {
+-					const float flsamp = (float) sampptr[i];
+-					const float s = fabs(flsamp);
++					float flsamp = (float) sampptr[i];
++					float s;
++
++					sampptr[i] = (int16_t) ((flsamp) * audioMult);
++
++					flsamp = (float) sampptr[i];
++					s = fabs(flsamp);
+ 					voipPower += s * s;
+-					sampptr[i] = (int16_t) ((flsamp) * audioMult);
+ 				}
+ 
+ 				// encode raw audio samples into Speex data...
+@@ -534,18 +540,18 @@
+ 				speexFrames++;
+ 			}
+ 
+-			clc.voipPower = (voipPower / (32768.0f * 32768.0f *
++			clc.voipPower[clc.clientNums[0]] = (voipPower / (32768.0f * 32768.0f *
+ 			                 ((float) (clc.speexFrameSize * speexFrames)))) *
+ 			                 100.0f;
+ 
+-			if ((useVad) && (clc.voipPower < cl_voipVADThreshold->value)) {
++			if ((useVad) && (clc.voipPower[clc.clientNums[0]] < cl_voipVADThreshold->value)) {
+ 				CL_VoipNewGeneration();  // no "talk" for at least 1/4 second.
+ 			} else {
+ 				clc.voipOutgoingDataSize = wpos;
+ 				clc.voipOutgoingDataFrames = speexFrames;
+ 
+ 				Com_DPrintf("VoIP: Send %d frames, %d bytes, %f power\n",
+-				            speexFrames, wpos, clc.voipPower);
++				            speexFrames, wpos, clc.voipPower[clc.clientNums[0]]);
+ 
+ 				#if 0
+ 				static FILE *encio = NULL;
+@@ -564,8 +570,10 @@
+ 	if (finalFrame) {
+ 		S_StopCapture();
+ 		S_MasterGain(1.0f);
+-		clc.voipPower = 0.0f;  // force this value so it doesn't linger.
++		clc.voipPower[clc.clientNums[0]] = 0.0f;  // force this value so it doesn't linger.
+ 	}
++
++	clc.voipLastPacketTime[clc.clientNums[0]] = cl.serverTime;
+ }
+ 
+ // Cgame and UI access functions for VoIP information
+@@ -582,6 +590,22 @@
+ 	memcpy( times, clc.voipLastPacketTime, sizeof ( clc.voipLastPacketTime ) );
+ }
+ 
++float CL_GetVoipPower( int clientNum ) {
++	if ( clientNum < 0  || clientNum >= ARRAY_LEN( clc.voipPower ) ) {
++		return 0.0f;
++	}
++
++	// make sure server is running
++	if ( clc.state != CA_ACTIVE )
++		return 0.0f;
++
++	// clc.voipPower is always the power of the last voip snapshot, never cleared.
++	if ( !clc.voipLastPacketTime[clientNum] || clc.voipLastPacketTime[clientNum] < cl.serverTime - 250 )
++		return 0.0f;
++
++	return clc.voipPower[clientNum];
++}
++
+ float CL_GetVoipGain( int clientNum ) {
+ 	if ( clientNum < 0  || clientNum >= ARRAY_LEN( clc.voipGain ) ) {
+ 		return 0.0f;
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 350)
++++ code/client/cl_cgame.c	(revision 351)
+@@ -720,6 +720,12 @@
+ 		CL_GetVoipTimes( VMA(1) );
+ #endif
+ 		return 0;
++	case CG_GET_VOIP_POWER:
++#ifdef USE_VOIP
++		return FloatAsInt( CL_GetVoipPower( args[1] ) );
++#else
++		return 0;
++#endif
+ 	case CG_GET_VOIP_GAIN:
+ #ifdef USE_VOIP
+ 		return FloatAsInt( CL_GetVoipGain( args[1] ) );
+@@ -1105,6 +1111,7 @@
+ 			clc.voipIgnore[i] = qfalse;
+ 			clc.voipGain[i] = 1.0f;
+ 			clc.voipLastPacketTime[i] = 0;
++			clc.voipPower[i] = 0.0f;
+ 		}
+ 		clc.speexInitialized = qtrue;
+ 		clc.voipMuteAll = qfalse;
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 350)
++++ code/client/cl_ui.c	(revision 351)
+@@ -974,6 +974,13 @@
+ #endif
+ 		return 0;
+ 
++	case UI_GET_VOIP_POWER:
++#ifdef USE_VOIP
++		return FloatAsInt( CL_GetVoipPower( args[1] ) );
++#else
++		return 0;
++#endif
++
+ 	case UI_GET_VOIP_GAIN:
+ #ifdef USE_VOIP
+ 		return FloatAsInt( CL_GetVoipGain( args[1] ) );
