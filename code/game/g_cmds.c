@@ -116,7 +116,7 @@ Cmd_Reload
 */
 void Cmd_Reload( gentity_t *ent ) {
 	int weapon = ent->client->ps.weapon;
-	int amt = ClipAmmoAmount( weapon );
+	int amt = G_ClipAmmoAmount( weapon );
 
 	if (ent->client->ps.clipammo[weapon] >= ClipAmmoAmount(weapon)) return;
 
@@ -124,7 +124,7 @@ void Cmd_Reload( gentity_t *ent ) {
 
 	ent->client->ps.weaponstate = WEAPON_RELOADING;
 	ent->client->ps.torsoAnim = ((ent->client->ps.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | TORSO_DROP;
-	ent->client->ps.weaponTime += 1000;
+	ent->client->ps.weaponTime += G_ReloadTime( weapon );
 
 	if (ent->client->ps.ammo[weapon] == 0) return;
 	

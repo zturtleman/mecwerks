@@ -965,7 +965,12 @@ void FireWeapon( gentity_t *ent ) {
 	}
 }
 
-int ClipAmmoAmount ( int w ) {
+/*
+=================
+G_ClipAmmoAmount
+=================
+*/
+int G_ClipAmmoAmount ( int w ) {
         if ( w == WP_MACHINEGUN ) return 50;
         else if ( w == WP_SHOTGUN ) return 10;
         else if ( w == WP_GRENADE_LAUNCHER ) return 10;
@@ -975,6 +980,23 @@ int ClipAmmoAmount ( int w ) {
         else if ( w == WP_PLASMAGUN ) return 50;
         else if ( w == WP_BFG ) return 20;
         else return 15;
+}
+
+/*
+==================
+G_ReloadTime
+==================
+*/
+int G_ReloadTime ( int w ) {
+        if ( w == WP_MACHINEGUN ) return 800;
+        else if ( w == WP_SHOTGUN ) return 900;
+        else if ( w == WP_GRENADE_LAUNCHER ) return 1200;
+        else if ( w == WP_ROCKET_LAUNCHER ) return 1000;
+        else if ( w == WP_LIGHTNING ) return 900;
+        else if ( w == WP_RAILGUN ) return 1300;
+        else if ( w == WP_PLASMAGUN ) return 750;
+        else if ( w == WP_BFG ) return 950;
+        else return 1000;
 }
 
 void G_NextFireType(gentity_t *ent, int next) {

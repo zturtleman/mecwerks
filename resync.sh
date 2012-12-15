@@ -35,7 +35,10 @@ do
                 echo "    -patch       apply patch after created"
                 exit 1
         fi
-
+	
+	#
+	# Check other arguements
+	#
 	if [ "$ARG" == "-newrev" ] || [ "$ARG" == "-oldrev" ] || [ "$ARG" == "-patch" ]
 	then
 		NEXT_ARG="$ARG"
@@ -90,27 +93,42 @@ then
 	exit 1
 fi
 
+#
+# Make sure we have a new revision to sync to
+#
 if [ "$NEW_REV" = "" ]
 then
 	echo "No New Revision Set"
 	exit 1
 fi
+
 #
 # Update spearmint code
 #
 svn update > checkout.log
 
+#
+# If there's a commitlog there move it to a temp file
+#
 if [ -f ../mecwerks/commitlog ]
 then
 	mv ../mecwerks/commitlog ../mecwerks/tmpcommit
 	echo "Found old commit log and moved it to tmpcommit"
 fi
 
+#
+# Add logs to commit log
+#
 for (( i = $OLD_REV; i <= $NEW_REV; i++ ))
 do
 	svn log -r$i >> ../mecwerks/commitlog
 	echo "Added commit log message for revision $i to commitlog"
 done
+
+#
+# Clean up the commit log
+#
+grep -v - ../mecwerks/commitlog
 
 #
 # Make the patch
@@ -125,7 +143,7 @@ svn diff -r $OLD_REV:$NEW_REV > ../mecwerks/patches/diff_$OLD_REV-$NEW_REV.patch
 if [ "$PATCH" = "1" ]
 then
 	#
-	# Update Makefile.local
+	# Update REVISION
 	#
 	cd ../mecwerks
 	echo "SPEAR_REV = $NEW_REV" > $OLDCFG

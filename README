@@ -618,9 +618,10 @@ Building with MinGW for pre Windows XP
 ------------------------------------------------------------- Contributing -----
 
 Please send all patches to bugzilla (https://bugzilla.icculus.org), for
-join the mailing list (http://groups.google.com/group/spearmint-engine) and
-submit your patch there.  The best case scenario is that you submit your patch 
-to bugzilla, and then post the URL to the mailing list.
+join the mailing list (http://groups.google.com/group/spearmint-engine, Mecwerks 
+itslef does not have a mailng list, if you would like to cintact me email me at
+mecwerks@gmail.com) and submit your patch there.  The best case scenario is that 
+you submit your patch to bugzilla, and then post the URL to the mailing list.
 
 The focus for ioq3 is to develop a stable base suitable for further development
 and provide players with the same Quake 3 experience they've had for years. As

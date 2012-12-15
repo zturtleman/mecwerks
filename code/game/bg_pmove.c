@@ -1486,6 +1486,23 @@ int PM_ClipAmmoAmount ( int w ) {
 
 /*
 ==================
+PM_ReloadTime
+==================
+*/
+int PM_ReloadTime ( int w ) {
+        if ( w == WP_MACHINEGUN ) return 800;
+        else if ( w == WP_SHOTGUN ) return 900;
+        else if ( w == WP_GRENADE_LAUNCHER ) return 1200;
+        else if ( w == WP_ROCKET_LAUNCHER ) return 1000;
+        else if ( w == WP_LIGHTNING ) return 900;
+        else if ( w == WP_RAILGUN ) return 1300;
+        else if ( w == WP_PLASMAGUN ) return 750;
+        else if ( w == WP_BFG ) return 950;
+        else return 1000;
+}
+
+/*
+==================
 PM_Reload
 ==================
 */
@@ -1493,7 +1510,7 @@ void PM_Reload( pmove_t *pm, qboolean reverse ) {
         int weapon = pm->ps->weapon;
         int amt = PM_ClipAmmoAmount( weapon );
 
-        if ( 0 ) {//reverse ) {
+        if ( reverse ) {
                 if ( !pm->ps->lrweapon || !pm->ps->lastreload[weapon] ) return;
 
                 weapon = pm->ps->lrweapon;
@@ -1507,7 +1524,7 @@ void PM_Reload( pmove_t *pm, qboolean reverse ) {
 
                 pm->ps->weaponstate = WEAPON_RELOADING;
                 PM_StartTorsoAnim( TORSO_DROP );
-                pm->ps->weaponTime += 1000;
+                pm->ps->weaponTime += PM_ReloadTime( weapon );
 
                 if (pm->ps->ammo[weapon] == 0) return;
 
