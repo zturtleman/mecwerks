@@ -1225,10 +1225,10 @@ void ClientSpawn(gentity_t *ent) {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
 		if ( g_gametype.integer == GT_TEAM ) {
 			client->ps.ammo[WP_MACHINEGUN] = 50;
-			client->ps.clipammo[WP_MACHINEGUN] = ClipAmmoAmount( WP_MACHINEGUN );
+			client->ps.clipammo[WP_MACHINEGUN] = G_ClipAmmoAmount( WP_MACHINEGUN );
 		} else {
 			client->ps.ammo[WP_MACHINEGUN] = 100;
-			client->ps.clipammo[WP_MACHINEGUN] = ClipAmmoAmount( WP_MACHINEGUN );
+			client->ps.clipammo[WP_MACHINEGUN] = G_ClipAmmoAmount( WP_MACHINEGUN );
 		}
 
 		client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
@@ -1264,12 +1264,12 @@ void ClientSpawn(gentity_t *ent) {
 	if (!level.intermissiontime) {
 		if (ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 			G_KillBox(ent);
-            // force the base weapon up
+            		// force the base weapon up
 			if ( g_gametype.integer == GT_RARENA ) {
-                client->ps.weapon = WP_RAILGUN;
-            } else {
-                client->ps.weapon = WP_MACHINEGUN;
-            }
+                		client->ps.weapon = WP_RAILGUN;
+            		} else {
+               	 		client->ps.weapon = WP_MACHINEGUN;
+            		}
 			client->ps.weaponstate = WEAPON_READY;
 			// fire the targets of the spawn point
 			G_UseTargets(spawnPoint, ent);

@@ -1512,7 +1512,9 @@ void PM_Reload( pmove_t *pm, qboolean reverse ) {
 
         if ( reverse ) {
                 if ( !pm->ps->lrweapon || !pm->ps->lastreload[weapon] ) return;
-
+		
+		pm->ps->weaponTime -= pm->ps->weaponTime;
+	
                 weapon = pm->ps->lrweapon;
                 amt = pm->ps->lastreload[weapon];
 
@@ -1557,10 +1559,10 @@ static void PM_BeginWeaponChange( int weapon ) {
 		return;
 	}
 
-	if ( pm->ps->weaponstate == WEAPON_RELOADING ) {
-		PM_Reload( pm, qtrue );
-	}
-
+	if ( weapon != WP_NONE && pm->ps->weaponstate == WEAPON_RELOADING ) {
+                PM_Reload( pm, qtrue );
+        }
+	
 	if ( pm->ps->weaponstate == WEAPON_DROPPING ) {
 		return;
 	}
@@ -1715,10 +1717,11 @@ static void PM_Weapon( void ) {
 
 	// check for out of ammo
 	if ( !pm->ps->clipammo[ pm->ps->weapon ] ) {
-		PM_AddEvent( EV_NOAMMO );
-                pm->ps->weaponTime += 500;
 		if ( pm->ps->ammo[ pm->ps->weapon ] ) {
 			PM_Reload( pm, qfalse );
+		} else {
+			PM_AddEvent( EV_NOAMMO );
+			pm->ps->weaponTime += 200;
 		}
 		return;
 	}

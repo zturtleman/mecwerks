@@ -118,7 +118,7 @@ void Cmd_Reload( gentity_t *ent ) {
 	int weapon = ent->client->ps.weapon;
 	int amt = G_ClipAmmoAmount( weapon );
 
-	if (ent->client->ps.clipammo[weapon] >= ClipAmmoAmount(weapon)) return;
+	if (ent->client->ps.clipammo[weapon] >= G_ClipAmmoAmount( weapon )) return;
 
 	if (ent->client->ps.weaponstate == WEAPON_RELOADING) return;
 
@@ -137,6 +137,7 @@ void Cmd_Reload( gentity_t *ent ) {
 	ent->client->ps.ammo[weapon] -= amt;
 
 	ent->client->ps.clipammo[weapon] += amt;
+	ent->client->ps.lrweapon = weapon;
 }
 
 /*

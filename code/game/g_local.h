@@ -477,7 +477,6 @@ void Think_Weapon (gentity_t *ent);
 int ArmorIndex (gentity_t *ent);
 void Add_Ammo (gentity_t *ent, int weapon, int count, int clipcount);
 void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace);
-int ClipAmmoAmount ( int w );
 
 void ClearRegisteredItems( void );
 void RegisterItem( gitem_t *item );
@@ -585,6 +584,8 @@ void SnapVectorTowards( vec3_t v, vec3_t to );
 qboolean CheckGauntletAttack( gentity_t *ent );
 void Weapon_HookFree (gentity_t *ent);
 void Weapon_HookThink (gentity_t *ent);
+int G_ClipAmmoAmount ( int w );
+int G_ReloadTime ( int w );
 
 //
 // g_client.c
