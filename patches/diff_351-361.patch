@@ -1,0 +1,808 @@
+Index: voip-readme.txt
+===================================================================
+--- voip-readme.txt	(revision 351)
++++ voip-readme.txt	(revision 361)
+@@ -1,29 +1,27 @@
+-ioquake3 VoIP support documentation.
+-Last updated 6/25/2008 by Ryan C. Gordon.
++Spearmint VoIP support documentation.
++Updated 6/25/2008 by Ryan C. Gordon.
++Updated for Spearmint 12/14/2012 by Zack Middleton.
+ 
+-There are two ways to use VoIP in ioquake3. You can either use Mumble as an
+- external program, for which ioq3 now supplies some basic hooks, or you can
++There are two ways to use VoIP in Spearmint. You can either use Mumble as an
++ external program, for which Spearmint now supplies some basic hooks, or you can
+  use the new built-in VoIP support.
+ 
+-Mumble is here: http://mumble.sourceforge.net/  ... ioquake3 can supply it
++Mumble is here: http://mumble.sourceforge.net/  ... Spearmint can supply it
+  with your in-game position, but everything else is whatever features Mumble
+- offers outside of the game. To use it, start Mumble before you start ioq3,
++ offers outside of the game. To use it, start Mumble before you start Spearmint,
+  and run the game with +set cl_useMumble 1. This should work on at least
+  Linux, Mac OS X, and Windows, and probably other platforms Mumble supports
+  in the future.
+ 
+-The built-in stuff offers tighter in-game integration, works on any platform
+- that ioquake3 supports, and doesn't require anything more than a recent build
+- of the game. The rest of this document is concerned with the built-in VoIP
+- support.
++The built-in stuff offers tighter in-game integration and works on any platform
++ that Spearmint supports. The rest of this document is concerned with the
++ built-in VoIP support.
+ 
+ 
+ Quick start for servers:
+-    - run a recent build of ioquake3.
+     - Make sure your network settings are set to broadband.
+ 
+ Quick start for clients:
+-    - run a recent build of ioquake3.
+     - Make sure your network settings are set to broadband.
+     - +set s_useOpenAL 1
+     - \bind q "+voiprecord"
+@@ -46,8 +44,9 @@
+              get bits from the microphone. This means you won't transmit, but
+              you can still hear other people.
+ 
+-cl_voipSendTarget: a string: "all" to broadcast to everyone, "none" to send
+-                   to no one, "attacker" to send to the last person that hit
++cl_voipSendTarget: a string: "all" to broadcast to everyone, "team" to broadcast
++                   to everyone on your team, "none" to send to no one,
++                   "attacker" to send to the last person that hit
+                    you, "crosshair" to send to the people currently in your
+                    crosshair, "spatial" to talk to all people in hearing
+                    range or a comma-separated list of client numbers, like
+@@ -57,8 +56,8 @@
+                    This is reset to "spatial" when connecting to a new server.
+                    Presumably mods will manage this cvar, not people, but
+                    keybind could be useful for the general cases. To send to
+-                   just your team, or the opposing team, or a buddy list, you
+-                   have to set a list of numbers.
++                   just the opposing team, or a buddy list, you have to set a
++                   list of numbers.
+ 
+ cl_voipUseVAD: set to "1" to automatically send audio when the game thinks you
+                are talking, "0" (the default) to require the user to manually
+@@ -92,19 +91,25 @@
+                           ABSOLUTELY want to make your speakers quiet when you
+                           record, if the microphone might pick it up!
+ 
+-cl_voipShowMeter: Set to "1" (the default) to show a volume meter as you are
+-                  recording from the microphone, so you can see how well the
+-                  game can "hear" you. Set to "0" to disable the display of
+-                  the meter.
+-
+ cl_voipCaptureMult: Multiply recorded audio by this value after denoising.
+                     Defaults to 2.0 to _double_ the volume of your voice.
+                     This is to make you more audible if denoising eats away
+                     too much data. Set this to 1.0 to get no change, less to
+                     be quieter.
+ 
++cg_voipShowMeter: Set to "1" (the default) to show a volume meter as you are
++                  recording from the microphone, so you can see how well the
++                  game can "hear" you. Set to "0" to disable the display of
++                  the meter.
+ 
++cg_voipShowCrosshairMeter: Set to "1" (the default) to show a volume meter for
++                  clients when you point your crosshair at them. Set to "0" to
++                  disable the display of the meter.
+ 
++    The cg_* variables are part of cgame, mods may opt to change or remove them.
++
++
++
+ Console commands:
+ 
+ voip ignore <clientnum>
+@@ -160,17 +165,8 @@
+  they will just need to set cvars and run console commands for choosing
+  voice targets and ignoring people, etc.
+ 
+-This requires patched builds to be useful, but remains network compatible with
+- legacy quake3 clients and servers. Clients and servers both report in their
+- info strings whether they support VoIP, and won't send VoIP data to those not
+- reporting support. If a stray VoIP packet makes it to a legacy build, it will
+- be ignored without incident.
+-
+ VoIP packets are saved in demo files! You will be able to playback what you
+- heard and what you said on VoIP-compatible clients. Legacy clients can also
+- play demo files with VoIP packets in them, but just won't play the voice
+- track. For VoIP-supported builds, it's nice to have a record of the
+- trash-talk.
++ heard and what you said on VoIP-compatible clients.
+ 
+ Data is processed using the Speex narrowband codec, and is cross-platform.
+  Bigendian and littleendian systems can speak to each other, as can 32 and
+@@ -193,8 +189,9 @@
+  your network settings lower than "Cable/xDSL/LAN", just in case.
+ 
+ The initial VoIP work was done by Ryan C. Gordon <icculus@icculus.org>, and
+- he can be contacted with technical questions, if the ioq3 mailing list or
+- forums aren't helpful.
++ he can be contacted with technical questions, if the Spearmint mailing list
++ isn't helpful. Please note that Ryan's work was done for ioquake3, not
++ Spearmint.
+ 
+ // end of voip-README.txt ...
+ 
+Index: README
+===================================================================
+--- README	(revision 351)
++++ README	(revision 361)
+@@ -297,8 +297,11 @@
+                                       distances, requires cheats to be enabled
+ 
+ 
+-  cg_teamDmLeadAnnouncements        - set to 0 to disable the team lead change
+-                                      announcements in Team Deathmatch.
++  cg_atmosphericEffects             - 0.0 to 1.0 scales the amount of rain and
++                                      snow. set to 0 to disable rain/snow.
++  cg_teamDmLeadAnnouncements        - Set to 0 to disable the team lead change
++                                      announcements in Team Deathmatch (quake3
++                                      1.32 had no lead announcements in TDM).
+ 
+ 
+ New commands
+@@ -615,7 +618,7 @@
+ ------------------------------------------------------------- Contributing -----
+ 
+ Please submit all patches to the issue tracker (http://ioq3ztm.googlecode.com),
+-or join the mailing list (edit: Spearmint doesn't have a mailing list yet) and 
++or join the mailing list (http://groups.google.com/group/spearmint-engine) and 
+ submit your patch there.  The best case scenario is that you submit your patch 
+ to the issue tracker, and then post the URL to the mailing list.
+ 
+Index: code/q3_ui/ui_local.h
+===================================================================
+--- code/q3_ui/ui_local.h	(revision 351)
++++ code/q3_ui/ui_local.h	(revision 361)
+@@ -665,10 +665,10 @@
+ void			trap_GetGlconfig( glconfig_t *glconfig );
+ void			trap_UpdateScreen( void );
+ int				trap_MemoryRemaining( void );
+-void			trap_GetVoipTimes( int *times );
+-float			trap_GetVoipPowerClient( int client );
+-float			trap_GetVoipGainClient( int client );
+-qboolean		trap_GetVoipMuteClient( int client );
++int				trap_GetVoipTime( int clientNum );
++float			trap_GetVoipPower( int clientNum );
++float			trap_GetVoipGain( int clientNum );
++qboolean		trap_GetVoipMute( int clientNum );
+ qboolean		trap_GetVoipMuteAll( void );
+ 
+ void			trap_GetClientState( uiClientState_t *state );
+Index: code/server/sv_client.c
+===================================================================
+--- code/server/sv_client.c	(revision 351)
++++ code/server/sv_client.c	(revision 361)
+@@ -1892,6 +1892,8 @@
+ 			continue;  // not in the game yet, don't send to this guy.
+ 		else if (i == sender)
+ 			continue;  // don't send voice packet back to original author.
++		else if (client->mainClient != NULL)
++			continue;  // don't send voice packet to splitscreen clients
+ 		else if (!client->hasVoip)
+ 			continue;  // no VoIP support, or unsupported protocol
+ 		else if (client->muteAllVoip)
+@@ -2032,15 +2034,19 @@
+ 		}
+ 	} while ( 1 );
+ 
++	// read optional voip data
++	if ( c == clc_voip ) {
++#ifdef USE_VOIP
++		SV_UserVoip( cl, msg );
++		c = MSG_ReadByte( msg );
++#endif
++	}
++
+ 	// read the usercmd_t
+ 	if ( c == clc_move ) {
+ 		SV_UserMove( cl, msg, qtrue, cl );
+ 	} else if ( c == clc_moveNoDelta ) {
+ 		SV_UserMove( cl, msg, qfalse, cl );
+-	} else if ( c == clc_voip ) {
+-#ifdef USE_VOIP
+-		SV_UserVoip( cl, msg );
+-#endif
+ 	} else if ( c != clc_EOF ) {
+ 		Com_Printf( "WARNING: bad command byte for client %i\n", (int) (cl - svs.clients) );
+ 	}
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 351)
++++ code/cgame/cg_syscalls.asm	(revision 361)
+@@ -60,10 +60,10 @@
+ equ	trap_GetGlconfig					-102
+ equ trap_MemoryRemaining				-103
+ equ	trap_UpdateScreen					-104
+-equ	trap_GetVoipTimes					-105
+-equ	trap_GetVoipPowerClient				-106
+-equ	trap_GetVoipGainClient				-107
+-equ	trap_GetVoipMuteClient				-108
++equ	trap_GetVoipTime					-105
++equ	trap_GetVoipPower					-106
++equ	trap_GetVoipGain					-107
++equ	trap_GetVoipMute					-108
+ equ	trap_GetVoipMuteAll					-109
+ 
+ equ	trap_GetGameState					-151
+Index: code/cgame/cg_playerstate.c
+===================================================================
+--- code/cgame/cg_playerstate.c	(revision 351)
++++ code/cgame/cg_playerstate.c	(revision 361)
+@@ -478,6 +478,11 @@
+ void CG_CheckGameSounds( void ) {
+ 	int		highScore;
+ 
++	// if we are going into the intermission, don't start any voices
++	if ( cg.intermissionStarted ) {
++		return;
++	}
++
+ 	// lead changes
+ 	switch ( cg.bestLeadChange ) {
+ 		case LEAD_TAKEN:
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 351)
++++ code/cgame/cg_syscalls.c	(revision 361)
+@@ -417,24 +417,24 @@
+ 	syscall( CG_GETGLCONFIG, glconfig );
+ }
+ 
+-void trap_GetVoipTimes( int *times ) {
+-	syscall( CG_GET_VOIP_TIMES, times );
++int trap_GetVoipTime( int clientNum ) {
++	return syscall( CG_GET_VOIP_TIME, clientNum );
+ }
+ 
+-float trap_GetVoipPowerClient( int client ) {
++float trap_GetVoipPower( int clientNum ) {
+ 	floatint_t fi;
+-	fi.i = syscall( CG_GET_VOIP_POWER, client );
++	fi.i = syscall( CG_GET_VOIP_POWER, clientNum );
+ 	return fi.f;
+ }
+ 
+-float trap_GetVoipGainClient( int client ) {
++float trap_GetVoipGain( int clientNum ) {
+ 	floatint_t fi;
+-	fi.i = syscall( CG_GET_VOIP_GAIN, client );
++	fi.i = syscall( CG_GET_VOIP_GAIN, clientNum );
+ 	return fi.f;
+ }
+ 
+-qboolean trap_GetVoipMuteClient( int client ) {
+-	return syscall( CG_GET_VOIP_MUTE_CLIENT, client);
++qboolean trap_GetVoipMute( int clientNum ) {
++	return syscall( CG_GET_VOIP_MUTE_CLIENT, clientNum );
+ }
+ 
+ qboolean trap_GetVoipMuteAll( void ) {
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 351)
++++ code/cgame/cg_draw.c	(revision 361)
+@@ -1814,6 +1814,56 @@
+ /*
+ ===============================================================================
+ 
++VOIP METER
++
++===============================================================================
++*/
++
++/*
++==============
++CG_DrawVoipMeter
++==============
++*/
++void CG_DrawVoipMeter( void ) {
++	char	buffer[16];
++	char	string[256];
++	int		limit, i;
++	int		voipTime;
++	float	voipPower;
++
++	if ( !cg_voipShowMeter.integer ) {
++		return; // player doesn't want to show meter at all.
++	}
++
++	voipTime = trap_GetVoipTime( cg.cur_lc->clientNum );
++
++	// check if voip was used in the last 1/4 second
++	if ( !voipTime || voipTime < cg.time - 250 ) {
++		return;
++	}
++
++	CG_SetScreenPlacement( PLACE_CENTER, PLACE_TOP );
++
++	voipPower = trap_GetVoipPower( cg.cur_lc->clientNum );
++
++	limit = (int) (voipPower * 10.0f);
++	if (limit > 10)
++		limit = 10;
++
++	for (i = 0; i < limit; i++)
++		buffer[i] = '*';
++	while (i < 10)
++		buffer[i++] = ' ';
++	buffer[i] = '\0';
++
++	Com_sprintf( string, sizeof ( string ), "VoIP: [%s]", buffer );
++	CG_DrawStringExt( 320 - strlen( string ) * TINYCHAR_WIDTH / 2, 10, string, colorWhite, qfalse, qtrue, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
++}
++
++
++/*
++===============================================================================
++
+ CENTER PRINTING
+ 
+ ===============================================================================
+@@ -2271,6 +2321,32 @@
+ 	CG_DrawBigString( 320 - w / 2, 170, name, color[3] * 0.5f );
+ #endif
+ 	trap_R_SetColor( NULL );
++
++	if ( cg_voipShowCrosshairMeter.integer )
++	{
++		float voipPower = trap_GetVoipPower( cg.cur_lc->crosshairClientNum );
++		int voipTime = trap_GetVoipTime( cg.cur_lc->crosshairClientNum );
++
++		if ( voipPower > 0 && voipTime > 0 && voipTime >= cg.time - 250 ) {
++			int limit, i;
++			char string[256];
++			char buffer[16];
++
++			limit = (int) (voipPower * 10.0f);
++			if (limit > 10)
++				limit = 10;
++
++			for (i = 0; i < limit; i++)
++				buffer[i] = '*';
++			while (i < 10)
++				buffer[i++] = ' ';
++			buffer[i] = '\0';
++
++			Com_sprintf( string, sizeof ( string ), "VoIP: [%s]", buffer );
++			w = CG_DrawStrlen( string ) * BIGCHAR_WIDTH;
++			CG_DrawBigString( 320 - w / 2, 170 + BIGCHAR_HEIGHT * 1.5f, string, color[3] * 0.5f );
++		}
++	}
+ }
+ 
+ 
+@@ -2837,6 +2913,8 @@
+ 
+ 	CG_DrawLagometer();
+ 
++	CG_DrawVoipMeter();
++
+ #ifdef MISSIONPACK
+ 	if (!cg_paused.integer) {
+ 		CG_DrawUpperRight(stereoFrame);
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 351)
++++ code/cgame/cg_local.h	(revision 361)
+@@ -1242,6 +1242,8 @@
+ extern	vmCvar_t		cg_trueLightning;
+ extern	vmCvar_t		cg_atmosphericEffects;
+ extern	vmCvar_t		cg_teamDmLeadAnnouncements;
++extern	vmCvar_t		cg_voipShowMeter;
++extern	vmCvar_t		cg_voipShowCrosshairMeter;
+ #ifdef MISSIONPACK
+ extern	vmCvar_t		cg_redTeamName;
+ extern	vmCvar_t		cg_blueTeamName;
+@@ -1651,10 +1653,10 @@
+ // force a screen update, only used during gamestate load
+ void		trap_UpdateScreen( void );
+ int			trap_MemoryRemaining( void );
+-void		trap_GetVoipTimes( int *times );
+-float		trap_GetVoipPowerClient( int client );
+-float		trap_GetVoipGainClient( int client );
+-qboolean	trap_GetVoipMuteClient( int client );
++int			trap_GetVoipTime( int clientNum );
++float		trap_GetVoipPower( int clientNum );
++float		trap_GetVoipGain( int clientNum );
++qboolean	trap_GetVoipMute( int clientNum );
+ qboolean	trap_GetVoipMuteAll( void );
+ 
+ 
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 351)
++++ code/cgame/cg_public.h	(revision 361)
+@@ -134,7 +134,7 @@
+ 	CG_GETGLCONFIG,
+ 	CG_MEMORY_REMAINING,
+ 	CG_UPDATESCREEN,
+-	CG_GET_VOIP_TIMES,
++	CG_GET_VOIP_TIME,
+ 	CG_GET_VOIP_POWER,
+ 	CG_GET_VOIP_GAIN,
+ 	CG_GET_VOIP_MUTE_CLIENT,
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 351)
++++ code/cgame/cg_main.c	(revision 361)
+@@ -205,6 +205,8 @@
+ vmCvar_t	cg_trueLightning;
+ vmCvar_t	cg_atmosphericEffects;
+ vmCvar_t	cg_teamDmLeadAnnouncements;
++vmCvar_t	cg_voipShowMeter;
++vmCvar_t	cg_voipShowCrosshairMeter;
+ 
+ #ifdef MISSIONPACK
+ vmCvar_t 	cg_redTeamName;
+@@ -358,7 +360,9 @@
+ 	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
+ 	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
+ 	{ &cg_atmosphericEffects, "cg_atmosphericEffects", "1", CVAR_ARCHIVE },
+-	{ &cg_teamDmLeadAnnouncements, "cg_teamDmLeadAnnouncements", "1", CVAR_ARCHIVE }
++	{ &cg_teamDmLeadAnnouncements, "cg_teamDmLeadAnnouncements", "1", CVAR_ARCHIVE },
++	{ &cg_voipShowMeter, "cg_voipShowMeter", "1", CVAR_ARCHIVE },
++	{ &cg_voipShowCrosshairMeter, "cg_voipShowCrosshairMeter", "1", CVAR_ARCHIVE },
+ //	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE }
+ };
+ 
+Index: code/ui/ui_public.h
+===================================================================
+--- code/ui/ui_public.h	(revision 351)
++++ code/ui/ui_public.h	(revision 361)
+@@ -97,7 +97,7 @@
+ 	UI_GETGLCONFIG,
+ 	UI_MEMORY_REMAINING,
+ 	UI_UPDATESCREEN,
+-	UI_GET_VOIP_TIMES,
++	UI_GET_VOIP_TIME,
+ 	UI_GET_VOIP_POWER,
+ 	UI_GET_VOIP_GAIN,
+ 	UI_GET_VOIP_MUTE_CLIENT,
+Index: code/ui/ui_syscalls.asm
+===================================================================
+--- code/ui/ui_syscalls.asm	(revision 351)
++++ code/ui/ui_syscalls.asm	(revision 361)
+@@ -60,10 +60,10 @@
+ equ	trap_GetGlconfig					-102
+ equ trap_MemoryRemaining				-103
+ equ	trap_UpdateScreen					-104
+-equ	trap_GetVoipTimes					-105
+-equ	trap_GetVoipPowerClient				-106
+-equ	trap_GetVoipGainClient				-107
+-equ	trap_GetVoipMuteClient				-108
++equ	trap_GetVoipTime					-105
++equ	trap_GetVoipPower					-106
++equ	trap_GetVoipGain					-107
++equ	trap_GetVoipMute					-108
+ equ	trap_GetVoipMuteAll					-109
+ 
+ equ	trap_GetClientState					-151
+Index: code/ui/ui_syscalls.c
+===================================================================
+--- code/ui/ui_syscalls.c	(revision 351)
++++ code/ui/ui_syscalls.c	(revision 361)
+@@ -314,24 +314,24 @@
+ 	syscall( UI_GETGLCONFIG, glconfig );
+ }
+ 
+-void trap_GetVoipTimes( int *times ) {
+-	syscall( UI_GET_VOIP_TIMES, times );
++int trap_GetVoipTime( int clientNum ) {
++	return syscall( UI_GET_VOIP_TIME, clientNum );
+ }
+ 
+-float trap_GetVoipPowerClient( int client ) {
++float trap_GetVoipPower( int clientNum ) {
+ 	floatint_t fi;
+-	fi.i = syscall( UI_GET_VOIP_POWER, client );
++	fi.i = syscall( UI_GET_VOIP_POWER, clientNum );
+ 	return fi.f;
+ }
+ 
+-float trap_GetVoipGainClient( int client ) {
++float trap_GetVoipGain( int clientNum ) {
+ 	floatint_t fi;
+-	fi.i = syscall( UI_GET_VOIP_GAIN, client );
++	fi.i = syscall( UI_GET_VOIP_GAIN, clientNum );
+ 	return fi.f;
+ }
+ 
+-qboolean trap_GetVoipMuteClient( int client ) {
+-	return syscall( UI_GET_VOIP_MUTE_CLIENT, client);
++qboolean trap_GetVoipMute( int clientNum ) {
++	return syscall( UI_GET_VOIP_MUTE_CLIENT, clientNum );
+ }
+ 
+ qboolean trap_GetVoipMuteAll( void ) {
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 351)
++++ code/ui/ui_local.h	(revision 361)
+@@ -916,10 +916,10 @@
+ void			trap_GetGlconfig( glconfig_t *glconfig );
+ void			trap_UpdateScreen( void );
+ int				trap_MemoryRemaining( void );
+-void			trap_GetVoipTimes( int *times );
+-float			trap_GetVoipPowerClient( int client );
+-float			trap_GetVoipGainClient( int client );
+-qboolean		trap_GetVoipMuteClient( int client );
++int				trap_GetVoipTime( int clientNum );
++float			trap_GetVoipPower( int clientNum );
++float			trap_GetVoipGain( int clientNum );
++qboolean		trap_GetVoipMute( int clientNum );
+ qboolean		trap_GetVoipMuteAll( void );
+ 
+ void			trap_GetClientState( uiClientState_t *state );
+Index: code/client/client.h
+===================================================================
+--- code/client/client.h	(revision 351)
++++ code/client/client.h	(revision 361)
+@@ -461,7 +461,6 @@
+ extern	cvar_t	*cl_voipSendTarget;
+ extern	cvar_t	*cl_voipGainDuringCapture;
+ extern	cvar_t	*cl_voipCaptureMult;
+-extern	cvar_t	*cl_voipShowMeter;
+ extern	cvar_t	*cl_voip;
+ #endif
+ 
+@@ -533,7 +532,7 @@
+ 
+ #ifdef USE_VOIP
+ void CL_Voip_f( void );
+-void CL_GetVoipTimes( int *times );
++int CL_GetVoipTime( int clientNum );
+ float CL_GetVoipPower( int clientNum );
+ float CL_GetVoipGain( int clientNum );
+ qboolean CL_GetVoipMuteClient( int clientNum );
+Index: code/client/cl_scrn.c
+===================================================================
+--- code/client/cl_scrn.c	(revision 351)
++++ code/client/cl_scrn.c	(revision 361)
+@@ -355,50 +355,8 @@
+ }
+ 
+ 
+-#ifdef USE_VOIP
+-/*
+-=================
+-SCR_DrawVoipMeter
+-=================
+-*/
+-void SCR_DrawVoipMeter( void ) {
+-	char	buffer[16];
+-	char	string[256];
+-	int limit, i;
+ 
+-	if (!cl_voipShowMeter->integer)
+-		return;  // player doesn't want to show meter at all.
+-	else if (!cl_voipSend->integer)
+-		return;  // not recording at the moment.
+-	else if (clc.state != CA_ACTIVE)
+-		return;  // not connected to a server.
+-	else if (!clc.voipEnabled)
+-		return;  // server doesn't support VoIP.
+-	else if (clc.demoplaying)
+-		return;  // playing back a demo.
+-	else if (!cl_voip->integer)
+-		return;  // client has VoIP support disabled.
+-	else if (clc.clientNums[0] == -1)
+-		return;
+ 
+-	limit = (int) (clc.voipPower[clc.clientNums[0]] * 10.0f);
+-	if (limit > 10)
+-		limit = 10;
+-
+-	for (i = 0; i < limit; i++)
+-		buffer[i] = '*';
+-	while (i < 10)
+-		buffer[i++] = ' ';
+-	buffer[i] = '\0';
+-
+-	sprintf( string, "VoIP: [%s]", buffer );
+-	SCR_DrawStringExt( 320 - strlen( string ) * 4, 10, 8, string, g_color_table[7], qtrue, qfalse );
+-}
+-#endif
+-
+-
+-
+-
+ /*
+ ===============================================================================
+ 
+@@ -537,9 +495,6 @@
+ 			// always supply STEREO_CENTER as vieworg offset is now done by the engine.
+ 			CL_CGameRendering(stereoFrame);
+ 			SCR_DrawDemoRecording();
+-#ifdef USE_VOIP
+-			SCR_DrawVoipMeter();
+-#endif
+ 			break;
+ 		}
+ 	}
+Index: code/client/cl_parse.c
+===================================================================
+--- code/client/cl_parse.c	(revision 351)
++++ code/client/cl_parse.c	(revision 361)
+@@ -843,7 +843,7 @@
+ 		// reset the bits just in case.
+ 		speex_bits_reset(&clc.speexDecoderBits[sender]);
+ 		seqdiff = 0;
+-	} else if (seqdiff > 100) { // more than 2 seconds of audio dropped?
++	} else if (seqdiff * clc.speexFrameSize * 2 >= sizeof (decoded)) { // dropped more than we can handle?
+ 		// just start over.
+ 		Com_DPrintf("VoIP: Dropped way too many (%d) frames from client #%d\n",
+ 		            seqdiff, sender);
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 351)
++++ code/client/cl_main.c	(revision 361)
+@@ -51,7 +51,6 @@
+ cvar_t	*cl_voipSendTarget;
+ cvar_t	*cl_voipGainDuringCapture;
+ cvar_t	*cl_voipCaptureMult;
+-cvar_t	*cl_voipShowMeter;
+ cvar_t	*cl_voip;
+ #endif
+ 
+@@ -128,6 +127,8 @@
+ 
+ cvar_t	*cl_consoleKeys;
+ 
++cvar_t	*cl_rate;
++
+ clientActive_t		cl;
+ clientConnection_t	clc;
+ clientStatic_t		cls;
+@@ -427,6 +428,22 @@
+ 		return;
+ #endif
+ 
++	// If your data rate is too low, you'll get Connection Interrupted warnings
++	//  when VoIP packets arrive, even if you have a broadband connection.
++	//  This might work on rates lower than 25000, but for safety's sake, we'll
++	//  just demand it. Who doesn't have at least a DSL line now, anyhow? If
++	//  you don't, you don't need VoIP.  :)
++	if (cl_voip->modified || cl_rate->modified) {
++		if ((cl_voip->integer) && (cl_rate->integer < 25000)) {
++			Com_Printf(S_COLOR_YELLOW "Your network rate is too slow for VoIP.\n");
++			Com_Printf("Set 'Data Rate' to 'LAN/Cable/xDSL' in 'Setup/System/Network'.\n");
++			Com_Printf("Until then, VoIP is disabled.\n");
++			Cvar_Set("cl_voip", "0");
++		}
++		cl_voip->modified = qfalse;
++		cl_rate->modified = qfalse;
++	}
++
+ 	if (!clc.speexInitialized)
+ 		return;  // just in case this gets called at a bad time.
+ 
+@@ -553,6 +570,8 @@
+ 				Com_DPrintf("VoIP: Send %d frames, %d bytes, %f power\n",
+ 				            speexFrames, wpos, clc.voipPower[clc.clientNums[0]]);
+ 
++				clc.voipLastPacketTime[clc.clientNums[0]] = cl.serverTime;
++
+ 				#if 0
+ 				static FILE *encio = NULL;
+ 				if (encio == NULL) encio = fopen("voip-outgoing-encoded.bin", "wb");
+@@ -572,22 +591,20 @@
+ 		S_MasterGain(1.0f);
+ 		clc.voipPower[clc.clientNums[0]] = 0.0f;  // force this value so it doesn't linger.
+ 	}
+-
+-	clc.voipLastPacketTime[clc.clientNums[0]] = cl.serverTime;
+ }
+ 
+ // Cgame and UI access functions for VoIP information
+-void CL_GetVoipTimes( int *times ) {
+-	if ( !times )
+-		return;
++int CL_GetVoipTime( int clientNum ) {
++	if ( clientNum < 0  || clientNum >= ARRAY_LEN( clc.voipPower ) ) {
++		return 0.0f;
++	}
+ 
+ 	// make sure server is running
+ 	if ( clc.state != CA_ACTIVE ) {
+-		memset( times, 0, sizeof ( clc.voipLastPacketTime ) );
+-		return;
++		return 0;
+ 	}
+ 
+-	memcpy( times, clc.voipLastPacketTime, sizeof ( clc.voipLastPacketTime ) );
++	return clc.voipLastPacketTime[clientNum];
+ }
+ 
+ float CL_GetVoipPower( int clientNum ) {
+@@ -3651,7 +3668,7 @@
+ 	Cvar_Get ("cl_localClients", "1", 0 );
+ 
+ 	// userinfo
+-	Cvar_Get ("rate", "25000", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
++	cl_rate = Cvar_Get ("rate", "25000", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
+ 	Cvar_Get ("snaps", "20", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
+ 	Cvar_Get ("cl_anonymous", "0", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
+ 	Cvar_Get ("password", "", CVAR_USERINFO_ALL);
+@@ -3668,23 +3685,10 @@
+ 	cl_voipCaptureMult = Cvar_Get ("cl_voipCaptureMult", "2.0", CVAR_ARCHIVE);
+ 	cl_voipUseVAD = Cvar_Get ("cl_voipUseVAD", "0", CVAR_ARCHIVE);
+ 	cl_voipVADThreshold = Cvar_Get ("cl_voipVADThreshold", "0.25", CVAR_ARCHIVE);
+-	cl_voipShowMeter = Cvar_Get ("cl_voipShowMeter", "1", CVAR_ARCHIVE);
+ 
+ 	// This is a protocol version number.
+-	cl_voip = Cvar_Get ("cl_voip", "1", CVAR_USERINFO | CVAR_ARCHIVE | CVAR_LATCH);
++	cl_voip = Cvar_Get ("cl_voip", "1", CVAR_USERINFO | CVAR_ARCHIVE);
+ 	Cvar_CheckRange( cl_voip, 0, 1, qtrue );
+-
+-	// If your data rate is too low, you'll get Connection Interrupted warnings
+-	//  when VoIP packets arrive, even if you have a broadband connection.
+-	//  This might work on rates lower than 25000, but for safety's sake, we'll
+-	//  just demand it. Who doesn't have at least a DSL line now, anyhow? If
+-	//  you don't, you don't need VoIP.  :)
+-	if ((cl_voip->integer) && (Cvar_VariableIntegerValue("rate") < 25000)) {
+-		Com_Printf(S_COLOR_YELLOW "Your network rate is too slow for VoIP.\n");
+-		Com_Printf("Set 'Data Rate' to 'LAN/Cable/xDSL' in 'Setup/System/Network' and restart.\n");
+-		Com_Printf("Until then, VoIP is disabled.\n");
+-		Cvar_Set("cl_voip", "0");
+-	}
+ #endif
+ 
+ 	//
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 351)
++++ code/client/cl_cgame.c	(revision 361)
+@@ -715,11 +715,12 @@
+ 	case CG_GETGLCONFIG:
+ 		CL_GetGlconfig( VMA(1) );
+ 		return 0;
+-	case CG_GET_VOIP_TIMES:
++	case CG_GET_VOIP_TIME:
+ #ifdef USE_VOIP
+-		CL_GetVoipTimes( VMA(1) );
++		return CL_GetVoipTime( args[1] );
++#else
++		return 0;
+ #endif
+-		return 0;
+ 	case CG_GET_VOIP_POWER:
+ #ifdef USE_VOIP
+ 		return FloatAsInt( CL_GetVoipPower( args[1] ) );
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 351)
++++ code/client/cl_ui.c	(revision 361)
+@@ -968,11 +968,12 @@
+ 	case UI_GETCONFIGSTRING:
+ 		return GetConfigString( args[1], VMA(2), args[3] );
+ 
+-	case UI_GET_VOIP_TIMES:
++	case UI_GET_VOIP_TIME:
+ #ifdef USE_VOIP
+-		CL_GetVoipTimes( VMA(1) );
++		return CL_GetVoipTime( args[1] );
++#else
++		return 0;
+ #endif
+-		return 0;
+ 
+ 	case UI_GET_VOIP_POWER:
+ #ifdef USE_VOIP
+Index: Makefile
+===================================================================
+--- Makefile	(revision 351)
++++ Makefile	(revision 361)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2378
++IOQ3_REVISION = 2381
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 

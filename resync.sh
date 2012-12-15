@@ -36,14 +36,27 @@ do
                 exit 1
         fi
 
-	#
-	# See if we apply patch or just create it
-	#
-	if [ "$ARG" = "-patch" ]
+	if [ "$ARG" == "-newrev" ] || [ "$ARG" == "-oldrev" ] || [ "$ARG" == "-patch" ]
 	then
-		PATCH=1
-		break
+		NEXT_ARG="$ARG"
 	fi
+
+	case "$NEXT_ARG" in
+		-newrev)
+			NEW_REV="$ARG"
+			;;
+		-oldrev)
+			OLD_REV="$ARG"
+			;;
+		-patch)
+			PATCH=1
+			;;
+		*)
+			echo "Unkown arguement '$ARG'"
+			exit 1
+			;;
+	esac
+	NEXT_ARG=""
 done
 
 #
@@ -63,7 +76,10 @@ cd ../spear
 #
 # Set new revision to compare with
 #
-NEW_REV=`svn log -rHEAD | grep "^r[0-9]" | cut -f1 -d' ' | cut -c 2-`
+if [ "$NEW_REV" = "0" ]
+then
+	NEW_REV=`svn log -rHEAD | grep "^r[0-9]" | cut -f1 -d' ' | cut -c 2-`
+fi
 
 #
 # Make sure we aren't comparing same revision
@@ -74,12 +90,27 @@ then
 	exit 1
 fi
 
+if [ "$NEW_REV" = "" ]
+then
+	echo "No New Revision Set"
+	exit 1
+fi
 #
 # Update spearmint code
 #
 svn update > checkout.log
 
-svn log -rHEAD > ../mecwerks/commitlog
+if [ -f ../mecwerks/commitlog ]
+then
+	mv ../mecwerks/commitlog ../mecwerks/tmpcommit
+	echo "Found old commit log and moved it to tmpcommit"
+fi
+
+for (( i = $OLD_REV; i <= $NEW_REV; i++ ))
+do
+	svn log -r$i >> ../mecwerks/commitlog
+	echo "Added commit log message for revision $i to commitlog"
+done
 
 #
 # Make the patch

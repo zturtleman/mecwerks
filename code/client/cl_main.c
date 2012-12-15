@@ -51,7 +51,6 @@ cvar_t	*cl_voipSend;
 cvar_t	*cl_voipSendTarget;
 cvar_t	*cl_voipGainDuringCapture;
 cvar_t	*cl_voipCaptureMult;
-cvar_t	*cl_voipShowMeter;
 cvar_t	*cl_voip;
 #endif
 
@@ -127,6 +126,8 @@ cvar_t	*cl_lanForcePackets;
 cvar_t	*cl_guidServerUniq;
 
 cvar_t	*cl_consoleKeys;
+
+cvar_t	*cl_rate;
 
 clientActive_t		cl;
 clientConnection_t	clc;
@@ -427,6 +428,22 @@ void CL_CaptureVoip(void)
 		return;
 #endif
 
+	// If your data rate is too low, you'll get Connection Interrupted warnings
+	//  when VoIP packets arrive, even if you have a broadband connection.
+	//  This might work on rates lower than 25000, but for safety's sake, we'll
+	//  just demand it. Who doesn't have at least a DSL line now, anyhow? If
+	//  you don't, you don't need VoIP.  :)
+	if (cl_voip->modified || cl_rate->modified) {
+		if ((cl_voip->integer) && (cl_rate->integer < 25000)) {
+			Com_Printf(S_COLOR_YELLOW "Your network rate is too slow for VoIP.\n");
+			Com_Printf("Set 'Data Rate' to 'LAN/Cable/xDSL' in 'Setup/System/Network'.\n");
+			Com_Printf("Until then, VoIP is disabled.\n");
+			Cvar_Set("cl_voip", "0");
+		}
+		cl_voip->modified = qfalse;
+		cl_rate->modified = qfalse;
+	}
+
 	if (!clc.speexInitialized)
 		return;  // just in case this gets called at a bad time.
 
@@ -553,6 +570,8 @@ void CL_CaptureVoip(void)
 				Com_DPrintf("VoIP: Send %d frames, %d bytes, %f power\n",
 				            speexFrames, wpos, clc.voipPower[clc.clientNums[0]]);
 
+				clc.voipLastPacketTime[clc.clientNums[0]] = cl.serverTime;
+
 				#if 0
 				static FILE *encio = NULL;
 				if (encio == NULL) encio = fopen("voip-outgoing-encoded.bin", "wb");
@@ -572,22 +591,20 @@ void CL_CaptureVoip(void)
 		S_MasterGain(1.0f);
 		clc.voipPower[clc.clientNums[0]] = 0.0f;  // force this value so it doesn't linger.
 	}
-
-	clc.voipLastPacketTime[clc.clientNums[0]] = cl.serverTime;
 }
 
 // Cgame and UI access functions for VoIP information
-void CL_GetVoipTimes( int *times ) {
-	if ( !times )
-		return;
+int CL_GetVoipTime( int clientNum ) {
+	if ( clientNum < 0  || clientNum >= ARRAY_LEN( clc.voipPower ) ) {
+		return 0.0f;
+	}
 
 	// make sure server is running
 	if ( clc.state != CA_ACTIVE ) {
-		memset( times, 0, sizeof ( clc.voipLastPacketTime ) );
-		return;
+		return 0;
 	}
 
-	memcpy( times, clc.voipLastPacketTime, sizeof ( clc.voipLastPacketTime ) );
+	return clc.voipLastPacketTime[clientNum];
 }
 
 float CL_GetVoipPower( int clientNum ) {
@@ -3651,7 +3668,7 @@ void CL_Init( void ) {
 	Cvar_Get ("cl_localClients", "1", 0 );
 
 	// userinfo
-	Cvar_Get ("rate", "25000", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
+	cl_rate = Cvar_Get ("rate", "25000", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
 	Cvar_Get ("snaps", "20", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
 	Cvar_Get ("cl_anonymous", "0", CVAR_USERINFO_ALL | CVAR_ARCHIVE );
 	Cvar_Get ("password", "", CVAR_USERINFO_ALL);
@@ -3668,23 +3685,10 @@ void CL_Init( void ) {
 	cl_voipCaptureMult = Cvar_Get ("cl_voipCaptureMult", "2.0", CVAR_ARCHIVE);
 	cl_voipUseVAD = Cvar_Get ("cl_voipUseVAD", "0", CVAR_ARCHIVE);
 	cl_voipVADThreshold = Cvar_Get ("cl_voipVADThreshold", "0.25", CVAR_ARCHIVE);
-	cl_voipShowMeter = Cvar_Get ("cl_voipShowMeter", "1", CVAR_ARCHIVE);
 
 	// This is a protocol version number.
-	cl_voip = Cvar_Get ("cl_voip", "1", CVAR_USERINFO | CVAR_ARCHIVE | CVAR_LATCH);
+	cl_voip = Cvar_Get ("cl_voip", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 	Cvar_CheckRange( cl_voip, 0, 1, qtrue );
-
-	// If your data rate is too low, you'll get Connection Interrupted warnings
-	//  when VoIP packets arrive, even if you have a broadband connection.
-	//  This might work on rates lower than 25000, but for safety's sake, we'll
-	//  just demand it. Who doesn't have at least a DSL line now, anyhow? If
-	//  you don't, you don't need VoIP.  :)
-	if ((cl_voip->integer) && (Cvar_VariableIntegerValue("rate") < 25000)) {
-		Com_Printf(S_COLOR_YELLOW "Your network rate is too slow for VoIP.\n");
-		Com_Printf("Set 'Data Rate' to 'LAN/Cable/xDSL' in 'Setup/System/Network' and restart.\n");
-		Com_Printf("Until then, VoIP is disabled.\n");
-		Cvar_Set("cl_voip", "0");
-	}
 #endif
 
 	//

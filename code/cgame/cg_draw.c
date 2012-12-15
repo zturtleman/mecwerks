@@ -1850,6 +1850,56 @@ static void CG_DrawLagometer( void ) {
 /*
 ===============================================================================
 
+VOIP METER
+
+===============================================================================
+*/
+
+/*
+==============
+CG_DrawVoipMeter
+==============
+*/
+void CG_DrawVoipMeter( void ) {
+	char	buffer[16];
+	char	string[256];
+	int		limit, i;
+	int		voipTime;
+	float	voipPower;
+
+	if ( !cg_voipShowMeter.integer ) {
+		return; // player doesn't want to show meter at all.
+	}
+
+	voipTime = trap_GetVoipTime( cg.cur_lc->clientNum );
+
+	// check if voip was used in the last 1/4 second
+	if ( !voipTime || voipTime < cg.time - 250 ) {
+		return;
+	}
+
+	CG_SetScreenPlacement( PLACE_CENTER, PLACE_TOP );
+
+	voipPower = trap_GetVoipPower( cg.cur_lc->clientNum );
+
+	limit = (int) (voipPower * 10.0f);
+	if (limit > 10)
+		limit = 10;
+
+	for (i = 0; i < limit; i++)
+		buffer[i] = '*';
+	while (i < 10)
+		buffer[i++] = ' ';
+	buffer[i] = '\0';
+
+	Com_sprintf( string, sizeof ( string ), "VoIP: [%s]", buffer );
+	CG_DrawStringExt( 320 - strlen( string ) * TINYCHAR_WIDTH / 2, 10, string, colorWhite, qfalse, qtrue, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
+}
+
+
+/*
+===============================================================================
+
 CENTER PRINTING
 
 ===============================================================================
@@ -2307,6 +2357,32 @@ static void CG_DrawCrosshairNames( void ) {
 	CG_DrawBigString( 320 - w / 2, 170, name, color[3] * 0.5f );
 #endif
 	trap_R_SetColor( NULL );
+
+	if ( cg_voipShowCrosshairMeter.integer )
+	{
+		float voipPower = trap_GetVoipPower( cg.cur_lc->crosshairClientNum );
+		int voipTime = trap_GetVoipTime( cg.cur_lc->crosshairClientNum );
+
+		if ( voipPower > 0 && voipTime > 0 && voipTime >= cg.time - 250 ) {
+			int limit, i;
+			char string[256];
+			char buffer[16];
+
+			limit = (int) (voipPower * 10.0f);
+			if (limit > 10)
+				limit = 10;
+
+			for (i = 0; i < limit; i++)
+				buffer[i] = '*';
+			while (i < 10)
+				buffer[i++] = ' ';
+			buffer[i] = '\0';
+
+			Com_sprintf( string, sizeof ( string ), "VoIP: [%s]", buffer );
+			w = CG_DrawStrlen( string ) * BIGCHAR_WIDTH;
+			CG_DrawBigString( 320 - w / 2, 170 + BIGCHAR_HEIGHT * 1.5f, string, color[3] * 0.5f );
+		}
+	}
 }
 
 
@@ -2882,6 +2958,8 @@ static void CG_Draw2D(stereoFrame_t stereoFrame)
 	CG_DrawTeamVote();
 
 	CG_DrawLagometer();
+
+	CG_DrawVoipMeter();
 
 #ifdef MISSIONPACK
 	if (!cg_paused.integer) {

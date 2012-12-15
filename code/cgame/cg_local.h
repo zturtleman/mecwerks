@@ -1243,6 +1243,8 @@ extern	vmCvar_t		cg_oldPlasma;
 extern	vmCvar_t		cg_trueLightning;
 extern	vmCvar_t		cg_atmosphericEffects;
 extern	vmCvar_t		cg_teamDmLeadAnnouncements;
+extern	vmCvar_t		cg_voipShowMeter;
+extern	vmCvar_t		cg_voipShowCrosshairMeter;
 #ifdef MISSIONPACK
 extern	vmCvar_t		cg_redTeamName;
 extern	vmCvar_t		cg_blueTeamName;
@@ -1652,10 +1654,10 @@ void		trap_GetGlconfig( glconfig_t *glconfig );
 // force a screen update, only used during gamestate load
 void		trap_UpdateScreen( void );
 int			trap_MemoryRemaining( void );
-void		trap_GetVoipTimes( int *times );
-float		trap_GetVoipPowerClient( int client );
-float		trap_GetVoipGainClient( int client );
-qboolean	trap_GetVoipMuteClient( int client );
+int			trap_GetVoipTime( int clientNum );
+float		trap_GetVoipPower( int clientNum );
+float		trap_GetVoipGain( int clientNum );
+qboolean	trap_GetVoipMute( int clientNum );
 qboolean	trap_GetVoipMuteAll( void );
 
 
