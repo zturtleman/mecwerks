@@ -118,26 +118,28 @@ void Cmd_Reload( gentity_t *ent ) {
 	int weapon = ent->client->ps.weapon;
 	int amt = G_ClipAmmoAmount( weapon );
 
-	if (ent->client->ps.clipammo[weapon] >= G_ClipAmmoAmount( weapon )) return;
-
 	if (ent->client->ps.weaponstate == WEAPON_RELOADING) return;
 
-	ent->client->ps.weaponstate = WEAPON_RELOADING;
-	ent->client->ps.torsoAnim = ((ent->client->ps.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | TORSO_DROP;
+	if (ent->client->ps.clipammo[weapon] >= G_ClipAmmoAmount( weapon )) return;
+
+        ent->client->ps.weaponstate = WEAPON_RELOADING;
+        ent->client->ps.torsoAnim = ((ent->client->ps.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT) | TORSO_DROP;
 	ent->client->ps.weaponTime += G_ReloadTime( weapon );
 
-	if (ent->client->ps.ammo[weapon] == 0) return;
-	
-	if (ent->client->ps.clipammo[weapon] > 0)
-		amt -= ent->client->ps.clipammo[weapon];
+        if (ent->client->ps.ammo[weapon] == 0) return;
 
-	if (ent->client->ps.ammo[weapon] < amt)
-		amt = ent->client->ps.ammo[weapon];
+        if (ent->client->ps.clipammo[weapon] > 0)
+                amt -= ent->client->ps.clipammo[weapon];
 
-	ent->client->ps.ammo[weapon] -= amt;
+        if (ent->client->ps.ammo[weapon] < amt)
+                amt = ent->client->ps.ammo[weapon];
 
-	ent->client->ps.clipammo[weapon] += amt;
-	ent->client->ps.lrweapon = weapon;
+        ent->client->ps.lrclip[weapon] = ent->client->ps.clipammo[weapon];
+        ent->client->ps.lrammo[weapon] = ent->client->ps.ammo[weapon];
+        ent->client->ps.lrweapon = weapon;
+
+        ent->client->ps.ammo[weapon] -= amt;
+        ent->client->ps.clipammo[weapon] += amt;
 }
 
 /*

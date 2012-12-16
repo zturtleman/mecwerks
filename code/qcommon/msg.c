@@ -1244,7 +1244,8 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				persistantbits;
 	int				ammobits;
 	int				clipammobits;
-	int				lastreloadbits;
+	int				lrammobits;
+	int				lrclipbits;
 	int				powerupbits;
 	int				numFields;
 	netField_t		*field;
@@ -1327,12 +1328,18 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			ammobits |= 1<<i;
 		}
 	}
-	lastreloadbits = 0;
+	lrammobits = 0;
         for (i=0 ; i<MAX_WEAPONS ; i++) {
-                if (to->lastreload[i] != from->lastreload[i]) {
-                        lastreloadbits |= 1<<i;
+                if (to->lrammo[i] != from->lrammo[i]) {
+                        lrammobits |= 1<<i;
                 }
         }
+	lrclipbits = 0;
+	for (i=0 ; i<MAX_WEAPONS ; i++) {
+		if (to->lrclip[i] != from->lrclip[i]) {
+			lrclipbits |= 1<<i;
+		}
+	}
 	clipammobits = 0;
         for (i=0 ; i<MAX_WEAPONS ; i++) {
                 if (to->clipammo[i] != from->clipammo[i]) {
@@ -1346,7 +1353,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		}
 	}
 
-	if (!statsbits && !persistantbits && !ammobits && !clipammobits && !lastreloadbits && !powerupbits) {
+	if (!statsbits && !persistantbits && !ammobits && !clipammobits && !lrammobits && !lrclipbits && !powerupbits) {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 		oldsize += 4;
 		return;
@@ -1395,12 +1402,22 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
                 MSG_WriteBits( msg, 0, 1 );     // no change
         }
 
-	if ( lastreloadbits ) {
+	if ( lrammobits ) {
                 MSG_WriteBits( msg, 1, 1 );     // changed
-                MSG_WriteBits( msg, lastreloadbits, MAX_WEAPONS );
+                MSG_WriteBits( msg, lrammobits, MAX_WEAPONS );
                 for (i=0 ; i<MAX_WEAPONS ; i++)
-                        if (lastreloadbits & (1<<i) )
-                                MSG_WriteShort (msg, to->lastreload[i]);
+                        if (lrammobits & (1<<i) )
+                                MSG_WriteShort (msg, to->lrammo[i]);
+        } else {
+                MSG_WriteBits( msg, 0, 1 );     // no change
+        }
+
+	if ( lrclipbits ) {
+                MSG_WriteBits( msg, 1, 1 );     // changed
+                MSG_WriteBits( msg, lrclipbits, MAX_WEAPONS );
+                for (i=0 ; i<MAX_WEAPONS ; i++)
+                        if (lrclipbits & (1<<i) )
+                                MSG_WriteShort (msg, to->lrclip[i]);
         } else {
                 MSG_WriteBits( msg, 0, 1 );     // no change
         }
@@ -1550,13 +1567,24 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
                         }
                 }
 
-		// parse lastreload
+		// parse lrammo
                 if ( MSG_ReadBits( msg, 1 ) ) {
-                        LOG("PS_LASTRELOAD");
+                        LOG("PS_LRAMMO");
                         bits = MSG_ReadBits (msg, MAX_WEAPONS);
                         for (i=0 ; i<MAX_WEAPONS ; i++) {
                                 if (bits & (1<<i) ) {
-                                        to->lastreload[i] = MSG_ReadShort(msg);
+                                        to->lrammo[i] = MSG_ReadShort(msg);
+                                }
+                        }
+                }
+
+		// parse lrclip
+                if ( MSG_ReadBits( msg, 1 ) ) {
+                        LOG("PS_LRCLIP");
+                        bits = MSG_ReadBits (msg, MAX_WEAPONS);
+                        for (i=0 ; i<MAX_WEAPONS ; i++) {
+                                if (bits & (1<<i) ) {
+                                        to->lrclip[i] = MSG_ReadShort(msg);
                                 }
                         }
                 }

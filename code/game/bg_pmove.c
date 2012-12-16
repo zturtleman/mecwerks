@@ -1511,16 +1511,14 @@ void PM_Reload( pmove_t *pm, qboolean reverse ) {
         int amt = PM_ClipAmmoAmount( weapon );
 
         if ( reverse ) {
-                if ( !pm->ps->lrweapon || !pm->ps->lastreload[weapon] ) return;
-		
+                if ( !pm->ps->lrweapon ) return;
+	
 		pm->ps->weaponTime -= pm->ps->weaponTime;
 	
-                weapon = pm->ps->lrweapon;
-                amt = pm->ps->lastreload[weapon];
+		weapon = pm->ps->lrweapon;
 
-                pm->ps->ammo[weapon] += amt;
-
-                pm->ps->clipammo[weapon] -= amt;
+                pm->ps->ammo[weapon] = pm->ps->lrammo[weapon];
+                pm->ps->clipammo[weapon] = pm->ps->lrclip[weapon];
         } else {
                 if (pm->ps->clipammo[weapon] >= PM_ClipAmmoAmount(weapon)) return;
 
@@ -1536,12 +1534,12 @@ void PM_Reload( pmove_t *pm, qboolean reverse ) {
                 if (pm->ps->ammo[weapon] < amt)
                         amt = pm->ps->ammo[weapon];
 
+		pm->ps->lrclip[weapon] = pm->ps->clipammo[weapon];
+		pm->ps->lrammo[weapon] = pm->ps->ammo[weapon];
+		pm->ps->lrweapon = weapon;
+
                 pm->ps->ammo[weapon] -= amt;
-
                 pm->ps->clipammo[weapon] += amt;
-
-                pm->ps->lrweapon = weapon;
-                pm->ps->lastreload[weapon] = amt;
         }
 }
 
@@ -1569,8 +1567,6 @@ static void PM_BeginWeaponChange( int weapon ) {
 	
 	PM_AddEvent( EV_CHANGE_WEAPON );
 	pm->ps->weaponstate = WEAPON_DROPPING;
-	pm->ps->weaponTime += 200;
-	PM_StartTorsoAnim( TORSO_DROP );
 }
 
 
