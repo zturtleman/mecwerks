@@ -109,26 +109,27 @@ typedef struct
 #define ID_WEAPON6		22	
 #define ID_WEAPON7		23	
 #define ID_WEAPON8		24	
-#define ID_WEAPON9		25	
-#define ID_GRAPPLE		26
-#define ID_ATTACK		27
-#define ID_WEAPPREV		28
-#define ID_WEAPNEXT		29
-#define ID_GESTURE		30
-#define ID_CHAT			31
-#define ID_CHAT2		32
-#define ID_CHAT3		33
-#define ID_CHAT4		34
+#define ID_WEAPON9		25
+#define ID_RELOAD		26	
+#define ID_GRAPPLE		27
+#define ID_ATTACK		28
+#define ID_WEAPPREV		29
+#define ID_WEAPNEXT		30
+#define ID_GESTURE		31
+#define ID_CHAT			32
+#define ID_CHAT2		33
+#define ID_CHAT3		34
+#define ID_CHAT4		35
 
 // all others
-#define ID_FREELOOK		35
-#define ID_INVERTMOUSE	36
-#define ID_ALWAYSRUN	37
-#define ID_AUTOSWITCH	38
-#define ID_MOUSESPEED	39
-#define ID_SELECTJOY	40
-#define ID_JOYTHRESHOLD	41
-#define ID_SMOOTHMOUSE	42
+#define ID_FREELOOK		36
+#define ID_INVERTMOUSE	37
+#define ID_ALWAYSRUN	38
+#define ID_AUTOSWITCH	39
+#define ID_MOUSESPEED	40
+#define ID_SELECTJOY	41
+#define ID_JOYTHRESHOLD	42
+#define ID_SMOOTHMOUSE	43
 
 #define ANIM_IDLE		0
 #define ANIM_RUN		1
@@ -191,6 +192,7 @@ typedef struct
 	menuaction_s		plasma;
 	menuaction_s		bfg;
 	menuaction_s		grapple;
+	menuaction_s		reload;
 	menuaction_s		attack;
 	menuaction_s		prevweapon;
 	menuaction_s		nextweapon;
@@ -267,6 +269,7 @@ static bind_t g_bindings[] =
 	{"weapon 7",		"railgun",			ID_WEAPON7,		ANIM_WEAPON7,	'7',			-1,		-1, -1},
 	{"weapon 8",		"plasma gun",		ID_WEAPON8,		ANIM_WEAPON8,	'8',			-1,		-1, -1},
 	{"weapon 9",		"BFG",				ID_WEAPON9,		ANIM_WEAPON9,	'9',			-1,		-1, -1},
+	{"reload",            "reload", ID_RELOAD,     ANIM_IDLE,          'r',                    -1,             -1, -1},
 	{"+button5", 		"off-hand grapple", ID_GRAPPLE,     ANIM_IDLE,		'g',			-1,		-1, -1},
 	{"+attack", 		"attack",			ID_ATTACK,		ANIM_ATTACK,	K_CTRL,			-1,		-1, -1},
 	{"weapprev",		"prev weapon",		ID_WEAPPREV,	ANIM_IDLE,		'[',			-1,		-1, -1},
@@ -309,6 +312,7 @@ static bind_t g_bindings2[] =
 	MINIBIND(ID_WEAPON7, -1, -1),
 	MINIBIND(ID_WEAPON8, -1, -1),
 	MINIBIND(ID_WEAPON9, -1, -1),
+	MINIBIND(ID_RELOAD, -1, -1),
 	MINIBIND(ID_GRAPPLE, -1, -1),
 	MINIBIND(ID_ATTACK, -1, -1),
 	MINIBIND(ID_WEAPPREV, -1, -1),
@@ -349,7 +353,8 @@ static bind_t g_bindings3[] =
 	MINIBIND(ID_WEAPON7, -1, -1),
 	MINIBIND(ID_WEAPON8, -1, -1),
 	MINIBIND(ID_WEAPON9, -1, -1),
-    MINIBIND(ID_GRAPPLE, -1, -1),
+	MINIBIND(ID_RELOAD, -1, -1),
+    	MINIBIND(ID_GRAPPLE, -1, -1),
 	MINIBIND(ID_ATTACK, -1, -1),
 	MINIBIND(ID_WEAPPREV, -1, -1),
 	MINIBIND(ID_WEAPNEXT, -1, -1),
@@ -389,7 +394,8 @@ static bind_t g_bindings4[] =
 	MINIBIND(ID_WEAPON7, -1, -1),
 	MINIBIND(ID_WEAPON8, -1, -1),
 	MINIBIND(ID_WEAPON9, -1, -1),
-    MINIBIND(ID_GRAPPLE, -1, -1),
+	MINIBIND(ID_RELOAD, -1, -1),
+    	MINIBIND(ID_GRAPPLE, -1, -1),
 	MINIBIND(ID_ATTACK, -1, -1),
 	MINIBIND(ID_WEAPPREV, -1, -1),
 	MINIBIND(ID_WEAPNEXT, -1, -1),
@@ -447,7 +453,8 @@ static menucommon_s *g_movement_controls[] =
 };
 
 static menucommon_s *g_weapons_controls[] = {
-	(menucommon_s *)&s_controls.attack,           
+	(menucommon_s *)&s_controls.attack, 
+	(menucommon_s *)&s_controls.reload,          
 	(menucommon_s *)&s_controls.nextweapon,
 	(menucommon_s *)&s_controls.prevweapon,
 	(menucommon_s *)&s_controls.autoswitch,
@@ -1737,7 +1744,13 @@ static void Controls_MenuInit( int localClient )
 	s_controls.nextweapon.generic.ownerdraw = Controls_DrawKeyBinding;
 	s_controls.nextweapon.generic.id        = ID_WEAPNEXT;
 
-    s_controls.grapple.generic.type	    = MTYPE_ACTION;
+	s_controls.reload.generic.type      = MTYPE_ACTION;
+        s_controls.reload.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
+        s_controls.reload.generic.callback  = Controls_ActionEvent;
+        s_controls.reload.generic.ownerdraw = Controls_DrawKeyBinding;
+        s_controls.reload.generic.id        = ID_RELOAD;
+
+    	s_controls.grapple.generic.type	    = MTYPE_ACTION;
 	s_controls.grapple.generic.flags     = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS|QMF_GRAYED|QMF_HIDDEN;
 	s_controls.grapple.generic.callback  = Controls_ActionEvent;
 	s_controls.grapple.generic.ownerdraw = Controls_DrawKeyBinding;
@@ -1929,6 +1942,7 @@ static void Controls_MenuInit( int localClient )
 	Menu_AddItem( &s_controls.menu, &s_controls.sidestep );
 
 	Menu_AddItem( &s_controls.menu, &s_controls.attack );
+	Menu_AddItem( &s_controls.menu, &s_controls.reload );
 	Menu_AddItem( &s_controls.menu, &s_controls.nextweapon );
 	Menu_AddItem( &s_controls.menu, &s_controls.prevweapon );
 	Menu_AddItem( &s_controls.menu, &s_controls.autoswitch );
