@@ -40,7 +40,7 @@ INGAME MENU
 #include "ui_local.h"
 
 
-#define INGAME_FRAME					"menu/art/addbotframe"
+#define INGAME_FRAME					"menu/art/ingameframe"
 //#define INGAME_FRAME					"menu/art/cut_frame"
 #define INGAME_MENU_VERTICAL_SPACING	28
 
@@ -55,6 +55,7 @@ INGAME MENU
 #define ID_RESUME				18
 #define ID_TEAMORDERS			19
 #define ID_LOCALPLAYERS			20
+#define ID_STARTSERVER			21
 
 
 typedef struct {
@@ -72,6 +73,7 @@ typedef struct {
 	menutext_s		quit;
 	menutext_s		resume;
 	menutext_s		localPlayers;
+	menutext_s		startserver;
 } ingamemenu_t;
 
 static ingamemenu_t	s_ingame;
@@ -191,6 +193,10 @@ void InGame_Event( void *ptr, int notification ) {
 
 	case ID_LOCALPLAYERS:
 		InSelectPlayerMenu(UI_TogglePlayerIngame, "ADD OR DROP", qfalse);
+		break;
+
+	case ID_STARTSERVER:
+		UI_StartServerMenu( qtrue );
 		break;
 	}
 }
@@ -328,6 +334,20 @@ void InGame_MenuInit( void ) {
 	s_ingame.server.style				= UI_CENTER|UI_SMALLFONT;
 
 	y += INGAME_MENU_VERTICAL_SPACING;
+        s_ingame.startserver.generic.type            = MTYPE_PTEXT;
+        s_ingame.startserver.generic.flags           = QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+        s_ingame.startserver.generic.x                       = 320;
+        s_ingame.startserver.generic.y                       = y;
+        s_ingame.startserver.generic.id                      = ID_STARTSERVER;
+        s_ingame.startserver.generic.callback        	= InGame_Event;
+        s_ingame.startserver.string                          = "NEW SERVER";
+        s_ingame.startserver.color                           = color_red;
+        s_ingame.startserver.style                           = UI_CENTER|UI_SMALLFONT;
+	if( !trap_Cvar_VariableValue( "sv_running" ) ) {
+                s_ingame.startserver.generic.flags |= QMF_GRAYED;
+        }
+
+	y += INGAME_MENU_VERTICAL_SPACING;
 	s_ingame.restart.generic.type		= MTYPE_PTEXT;
 	s_ingame.restart.generic.flags		= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
 	s_ingame.restart.generic.x			= 320;
@@ -384,6 +404,7 @@ void InGame_MenuInit( void ) {
 	}
 	Menu_AddItem( &s_ingame.menu, &s_ingame.setup );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.server );
+	Menu_AddItem( &s_ingame.menu, &s_ingame.startserver );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.restart );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.resume );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.leave );

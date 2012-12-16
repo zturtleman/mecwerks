@@ -982,20 +982,25 @@ typedef struct {
 	sfxHandle_t	takenYourTeamSound;
 	sfxHandle_t	takenOpponentSound;
 
-	sfxHandle_t redFlagReturnedSound;
-	sfxHandle_t blueFlagReturnedSound;
+	sfxHandle_t 	redFlagReturnedSound;
+	sfxHandle_t 	blueFlagReturnedSound;
 #ifdef MISSIONPACK
-	sfxHandle_t neutralFlagReturnedSound;
+	sfxHandle_t 	neutralFlagReturnedSound;
 #endif
 	sfxHandle_t	enemyTookYourFlagSound;
-	sfxHandle_t yourTeamTookEnemyFlagSound;
+	sfxHandle_t 	yourTeamTookEnemyFlagSound;
 	sfxHandle_t	youHaveFlagSound;
+	sfxHandle_t     playerHasFlagSound[MAX_SPLITVIEW];
+        sfxHandle_t     redTeamTookBlueFlagSound; // new
+        sfxHandle_t     blueTeamTookRedFlagSound; // new
 #ifdef MISSIONPACK
 	sfxHandle_t	enemyTookTheFlagSound;
-	sfxHandle_t yourTeamTookTheFlagSound;
-	sfxHandle_t yourBaseIsUnderAttackSound;
+	sfxHandle_t 	yourTeamTookTheFlagSound;
+	sfxHandle_t 	yourBaseIsUnderAttackSound;
+        sfxHandle_t     redTeamTookTheFlagSound; // new
+        sfxHandle_t     blueTeamTookTheFlagSound; // new
 #endif
-	sfxHandle_t holyShitSound;
+	sfxHandle_t 	holyShitSound;
 
 	// tournament sounds
 	sfxHandle_t	count3Sound;

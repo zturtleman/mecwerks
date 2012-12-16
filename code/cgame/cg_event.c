@@ -1171,7 +1171,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
  							CG_AddBufferedSound( cgs.media.yourTeamTookEnemyFlagSound );
 						}
 					} else {
-						// ZTM: NOTE: There are local players on both teams, so have no correct sound to play. New games should fix this.
+ #ifdef MISSIONPACK
+ 						if (cgs.gametype == GT_1FCTF)
+        						CG_AddBufferedSound( cgs.media.redTeamTookTheFlagSound );
+ 						else
+ #endif
+ 							CG_AddBufferedSound( cgs.media.redTeamTookBlueFlagSound );
 					}
 					break;
 				case GTS_BLUE_TAKEN: // CTF: blue team took the red flag, 1FCTF red team took the neutral flag
@@ -1196,7 +1201,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 							CG_AddBufferedSound( cgs.media.yourTeamTookEnemyFlagSound );
 						}
 					} else {
-						// ZTM: NOTE: There are local players on both teams, so have no correct sound to play. New games should fix this.
+						 #ifdef MISSIONPACK
+                                                if (cgs.gametype == GT_1FCTF)
+                                                        CG_AddBufferedSound( cgs.media.blueTeamTookTheFlagSound );
+                                                else
+ #endif
+                                                        CG_AddBufferedSound( cgs.media.blueTeamTookRedFlagSound );
 					}
 					break;
 #ifdef MISSIONPACK
