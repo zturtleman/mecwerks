@@ -105,6 +105,7 @@ fi
 #
 # Update spearmint code
 #
+echo "Updating Spearmint code"
 svn update > checkout.log
 
 #
@@ -128,7 +129,9 @@ done
 #
 # Clean up the commit log
 #
-grep -v - ../mecwerks/commitlog
+grep -v - ../mecwerks/commitlog > ../mecwerks/commitlog.tmp
+rm -rf ../mecwerks/commitlog
+mv ../mecwerks/commitlog.tmp ../mecwerks/commitlog
 
 #
 # Make the patch

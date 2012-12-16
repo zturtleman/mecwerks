@@ -171,8 +171,10 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_listEntity, "g_listEntity", "0", 0, 0, qfalse },
 
 	{ &g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM, 0, qfalse, qfalse  },
-    	{ &g_delagHitscan, "g_delagHitscan", "1", 0, 0, qtrue  }, //NT - new vars
-    	{ &g_wpranks, "g_railorder", "123123", CVAR_SERVERINFO | CVAR_ARCHIVE| CVAR_LATCH, 0, qfalse }, // wprank
+
+	// new variables
+    	{ &g_delagHitscan, "g_delagHitscan", "1", 0, 0, qtrue  }, //NT
+    	{ &g_wpranks, "g_railorder", "123123", CVAR_SERVERINFO | CVAR_ARCHIVE| CVAR_LATCH, 0, qfalse }, // rail factory
 
     #ifdef MISSIONPACK
 	{ &g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse },

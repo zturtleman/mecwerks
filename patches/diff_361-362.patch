@@ -1,0 +1,430 @@
+Index: code/server/sv_client.c
+===================================================================
+--- code/server/sv_client.c	(revision 361)
++++ code/server/sv_client.c	(revision 362)
+@@ -969,6 +969,9 @@
+ ==================
+ */
+ static void SV_DoneDownload_f( client_t *cl ) {
++	if ( cl->state == CS_ACTIVE )
++		return;
++
+ 	Com_DPrintf( "clientDownload: %s Done\n", cl->name);
+ 	// resend the game state to update any clients that entered during the download
+ 	SV_SendClientGameState(cl);
+Index: code/qcommon/vm_local.h
+===================================================================
+--- code/qcommon/vm_local.h	(revision 361)
++++ code/qcommon/vm_local.h	(revision 362)
+@@ -30,6 +30,14 @@
+ #include "q_shared.h"
+ #include "qcommon.h"
+ 
++// Max number of arguments to pass from engine to vm's vmMain function.
++// command number + 12 arguments
++#define MAX_VMMAIN_ARGS 13
++
++// Max number of arguments to pass from a vm to engine's syscall handler function for the vm.
++// syscall number + 15 arguments
++#define MAX_VMSYSCALL_ARGS 16
++
+ // don't change, this is hardcoded into x86 VMs, opStack protection relies
+ // on this
+ #define	OPSTACK_SIZE	1024
+Index: code/qcommon/vm_sparc.c
+===================================================================
+--- code/qcommon/vm_sparc.c	(revision 361)
++++ code/qcommon/vm_sparc.c	(revision 362)
+@@ -816,11 +816,11 @@
+ 		argPosition[0] = -1 - call;
+ 		ret = currentVM->systemCall(argPosition);
+ 	} else {
+-		intptr_t args[11];
++		intptr_t args[MAX_VMSYSCALL_ARGS];
+ 
+ 		args[0] = -1 - call;
+ 		int *argPosition = (int *)((byte *)currentVM->dataBase + pstack + 4);
+-		for( i = 1; i < 11; i++ )
++		for( i = 1; i < ARRAY_LEN(args); i++ )
+ 			args[i] = argPosition[i];
+ 
+ 		ret = currentVM->systemCall(args);
+@@ -1658,9 +1658,9 @@
+ 
+ 	vm->currentlyInterpreting = qtrue;
+ 
+-	programStack -= 48;
++	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+ 	argPointer = (int *)&image[ programStack + 8 ];
+-	memcpy( argPointer, args, 4 * 9 );
++	memcpy( argPointer, args, 4 * MAX_VMMAIN_ARGS );
+ 	argPointer[-1] = 0;
+ 	argPointer[-2] = -1;
+ 
+Index: code/qcommon/vm_x86.c
+===================================================================
+--- code/qcommon/vm_x86.c	(revision 361)
++++ code/qcommon/vm_x86.c	(revision 362)
+@@ -424,7 +424,7 @@
+ 		int *data;
+ #if idx64
+ 		int index;
+-		intptr_t args[16];
++		intptr_t args[MAX_VMSYSCALL_ARGS];
+ #endif
+ 		
+ 		data = (int *) (savedVM->dataBase + vm_programStack + 4);
+@@ -1722,6 +1722,7 @@
+ 	byte	*image;
+ 	int	*opStack;
+ 	int		opStackOfs;
++	int		arg;
+ 
+ 	currentVM = vm;
+ 
+@@ -1734,18 +1735,11 @@
+ 	// set up the stack frame 
+ 	image = vm->dataBase;
+ 
+-	programStack -= 48;
++	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+ 
+-	*(int *)&image[ programStack + 44] = args[9];
+-	*(int *)&image[ programStack + 40] = args[8];
+-	*(int *)&image[ programStack + 36] = args[7];
+-	*(int *)&image[ programStack + 32] = args[6];
+-	*(int *)&image[ programStack + 28] = args[5];
+-	*(int *)&image[ programStack + 24] = args[4];
+-	*(int *)&image[ programStack + 20] = args[3];
+-	*(int *)&image[ programStack + 16] = args[2];
+-	*(int *)&image[ programStack + 12] = args[1];
+-	*(int *)&image[ programStack + 8 ] = args[0];
++	for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
++		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
++
+ 	*(int *)&image[ programStack + 4 ] = 0;	// return stack
+ 	*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+ 
+@@ -1807,7 +1801,7 @@
+ 	{
+ 		Com_Error(ERR_DROP, "opStack corrupted in compiled code");
+ 	}
+-	if(programStack != stackOnEntry - 48)
++	if(programStack != stackOnEntry - (8 + 4 * MAX_VMMAIN_ARGS))
+ 		Com_Error(ERR_DROP, "programStack corrupted in compiled code");
+ 
+ 	vm->programStack = stackOnEntry;
+Index: code/qcommon/vm_x86_64.c
+===================================================================
+--- code/qcommon/vm_x86_64.c	(revision 361)
++++ code/qcommon/vm_x86_64.c	(revision 362)
+@@ -94,8 +94,8 @@
+ {
+ 	vm_t *savedVM;
+ 	intptr_t ret = 0x77;
+-	intptr_t args[16];
+-//	int iargs[16];
++	intptr_t args[MAX_VMSYSCALL_ARGS];
++//	int iargs[MAX_VMSYSCALL_ARGS];
+ 	int i;
+ 
+ //	Dfprintf(stderr, "callAsmCall(%ld, %ld)\n", callProgramStack, callSyscallNum);
+@@ -1032,6 +1032,7 @@
+ 	byte	*image;
+ 	void	*entryPoint;
+ 	int	*opStack;
++	int		arg;
+ 
+ 	currentVM = vm;
+ 	
+@@ -1054,18 +1055,11 @@
+ 
+ 	programCounter = 0;
+ 
+-	programStack -= 48;
++	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+ 
+-	*(int *)&image[ programStack + 44] = args[9];
+-	*(int *)&image[ programStack + 40] = args[8];
+-	*(int *)&image[ programStack + 36] = args[7];
+-	*(int *)&image[ programStack + 32] = args[6];
+-	*(int *)&image[ programStack + 28] = args[5];
+-	*(int *)&image[ programStack + 24] = args[4];
+-	*(int *)&image[ programStack + 20] = args[3];
+-	*(int *)&image[ programStack + 16] = args[2];
+-	*(int *)&image[ programStack + 12] = args[1];
+-	*(int *)&image[ programStack + 8 ] = args[0];
++	for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
++		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
++
+ 	*(int *)&image[ programStack + 4 ] = 0x77777777;	// return stack
+ 	*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+ 
+@@ -1099,7 +1093,7 @@
+ 	if(opStackRet != 1 || *opStack != 0xDEADBEEF)
+ 		Com_Error(ERR_DROP, "opStack corrupted in compiled code (offset %ld)", opStackRet);
+ 
+-	if ( programStack != stackOnEntry - 48 ) {
++	if ( programStack != stackOnEntry - ( 8 + 4 * MAX_VMMAIN_ARGS ) ) {
+ 		Com_Error( ERR_DROP, "programStack corrupted in compiled code" );
+ 	}
+ 
+Index: code/qcommon/vm_powerpc.c
+===================================================================
+--- code/qcommon/vm_powerpc.c	(revision 361)
++++ code/qcommon/vm_powerpc.c	(revision 362)
+@@ -375,13 +375,13 @@
+ 
+ 		ret = currentVM->systemCall( argPosition );
+ 	} else {
+-		intptr_t args[11];
++		intptr_t args[MAX_VMSYSCALL_ARGS];
+ 
+ 		// generated code does not invert syscall number
+ 		args[0] = -1 - callSyscallInvNum;
+ 
+ 		int *argPosition = (int *)((byte *)currentVM->dataBase + callProgramStack + 4);
+-		for( i = 1; i < 11; i++ )
++		for( i = 1; i < ARRAY_LEN(args); i++ )
+ 			args[ i ] = argPosition[ i ];
+ 
+ 		ret = currentVM->systemCall( args );
+@@ -2113,9 +2113,9 @@
+ 
+ 	vm->currentlyInterpreting = qtrue;
+ 
+-	programStack -= 48;
++	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+ 	argPointer = (int *)&image[ programStack + 8 ];
+-	memcpy( argPointer, args, 4 * 9 );
++	memcpy( argPointer, args, 4 * MAX_VMMAIN_ARGS );
+ 	argPointer[ -1 ] = 0;
+ 	argPointer[ -2 ] = -1;
+ 
+Index: code/qcommon/vm.c
+===================================================================
+--- code/qcommon/vm.c	(revision 361)
++++ code/qcommon/vm.c	(revision 362)
+@@ -346,7 +346,7 @@
+ intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
+ #if !id386 || defined __clang__
+   // rcg010206 - see commentary above
+-  intptr_t args[16];
++  intptr_t args[MAX_VMSYSCALL_ARGS];
+   int i;
+   va_list ap;
+   
+@@ -822,7 +822,7 @@
+ 	// if we have a dll loaded, call it directly
+ 	if ( vm->entryPoint ) {
+ 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
+-		int args[10];
++		int args[MAX_VMMAIN_ARGS-1];
+ 		va_list ap;
+ 		va_start(ap, callnum);
+ 		for (i = 0; i < ARRAY_LEN(args); i++) {
+@@ -832,7 +832,7 @@
+ 
+ 		r = vm->entryPoint( callnum,  args[0],  args[1],  args[2], args[3],
+                             args[4],  args[5],  args[6], args[7],
+-                            args[8],  args[9]);
++                            args[8],  args[9], args[10], args[11]);
+ 	} else {
+ #if ( id386 || idsparc ) && !defined __clang__ // calling convention doesn't need conversion in some cases
+ #ifndef NO_VM_COMPILED
+@@ -844,7 +844,7 @@
+ #else
+ 		struct {
+ 			int callnum;
+-			int args[10];
++			int args[MAX_VMMAIN_ARGS-1];
+ 		} a;
+ 		va_list ap;
+ 
+Index: code/qcommon/msg.c
+===================================================================
+--- code/qcommon/msg.c	(revision 361)
++++ code/qcommon/msg.c	(revision 362)
+@@ -570,7 +570,7 @@
+ 
+ extern cvar_t *cl_shownet;
+ 
+-#define	LOG(x) if( cl_shownet->integer == 4 ) { Com_Printf("%s ", x ); };
++#define	LOG(x) if( cl_shownet && cl_shownet->integer == 4 ) { Com_Printf("%s ", x ); };
+ 
+ void MSG_WriteDelta( msg_t *msg, int oldV, int newV, int bits ) {
+ 	if ( oldV == newV ) {
+@@ -1066,7 +1066,7 @@
+ 	if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+ 		Com_Memset( to, 0, sizeof( *to ) );	
+ 		to->number = MAX_GENTITIES - 1;
+-		if ( cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) {
++		if ( cl_shownet && ( cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) ) {
+ 			Com_Printf( "%3i: #%-3i remove\n", msg->readcount, number );
+ 		}
+ 		return;
+@@ -1088,7 +1088,7 @@
+ 
+ 	// shownet 2/3 will interleave with other printed info, -1 will
+ 	// just print the delta records`
+-	if ( cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) {
++	if ( cl_shownet && ( cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) ) {
+ 		print = 1;
+ 		Com_Printf( "%3i: #%-3i ", msg->readcount, to->number );
+ 	} else {
+@@ -1414,7 +1414,7 @@
+ 
+ 	// shownet 2/3 will interleave with other printed info, -2 will
+ 	// just print the delta records
+-	if ( cl_shownet->integer >= 2 || cl_shownet->integer == -2 ) {
++	if ( cl_shownet && ( cl_shownet->integer >= 2 || cl_shownet->integer == -2 ) ) {
+ 		print = 1;
+ 		Com_Printf( "%3i: playerstate ", msg->readcount );
+ 	} else {
+Index: code/qcommon/vm_interpreted.c
+===================================================================
+--- code/qcommon/vm_interpreted.c	(revision 361)
++++ code/qcommon/vm_interpreted.c	(revision 362)
+@@ -334,6 +334,7 @@
+ 	int		*codeImage;
+ 	int		v1;
+ 	int		dataMask;
++	int		arg;
+ #ifdef DEBUG_VM
+ 	vmSymbol_t	*profileSymbol;
+ #endif
+@@ -357,18 +358,11 @@
+ 	
+ 	programCounter = 0;
+ 
+-	programStack -= 48;
++	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+ 
+-	*(int *)&image[ programStack + 44] = args[9];
+-	*(int *)&image[ programStack + 40] = args[8];
+-	*(int *)&image[ programStack + 36] = args[7];
+-	*(int *)&image[ programStack + 32] = args[6];
+-	*(int *)&image[ programStack + 28] = args[5];
+-	*(int *)&image[ programStack + 24] = args[4];
+-	*(int *)&image[ programStack + 20] = args[3];
+-	*(int *)&image[ programStack + 16] = args[2];
+-	*(int *)&image[ programStack + 12] = args[1];
+-	*(int *)&image[ programStack + 8 ] = args[0];
++	for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
++		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
++
+ 	*(int *)&image[ programStack + 4 ] = 0;	// return stack
+ 	*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+ 
+@@ -516,10 +510,10 @@
+ 					// the vm has ints on the stack, we expect
+ 					// pointers so we might have to convert it
+ 					if (sizeof(intptr_t) != sizeof(int)) {
+-						intptr_t argarr[16];
+-						int *imagePtr = (int *)&image[programStack];
++						intptr_t argarr[ MAX_VMSYSCALL_ARGS ];
++						int *imagePtr = (int *)&image[ programStack ];
+ 						int i;
+-						for (i = 0; i < 16; ++i) {
++						for (i = 0; i < ARRAY_LEN(argarr); ++i) {
+ 							argarr[i] = *(++imagePtr);
+ 						}
+ 						r = vm->systemCall( argarr );
+Index: code/rend2/glsl/lightall_fp.glsl
+===================================================================
+--- code/rend2/glsl/lightall_fp.glsl	(revision 361)
++++ code/rend2/glsl/lightall_fp.glsl	(revision 362)
+@@ -46,7 +46,9 @@
+ varying vec3      var_Position;
+ #endif
+ 
++#if defined(USE_TCGEN) || defined(USE_NORMALMAP) || (defined(USE_LIGHT) && !defined(USE_FAST_LIGHT))
+ varying vec3      var_SampleToView;
++#endif
+ 
+ #if !defined(USE_FAST_LIGHT)
+ varying vec3      var_Normal;
+Index: code/rend2/glsl/lightall_vp.glsl
+===================================================================
+--- code/rend2/glsl/lightall_vp.glsl	(revision 361)
++++ code/rend2/glsl/lightall_vp.glsl	(revision 362)
+@@ -65,7 +65,7 @@
+ varying vec2   var_LightTex;
+ #endif
+ 
+-#if defined(USE_NORMALMAP) || defined(USE_LIGHT) && !defined(USE_FAST_LIGHT)
++#if defined(USE_TCGEN) || defined(USE_NORMALMAP) || (defined(USE_LIGHT) && !defined(USE_FAST_LIGHT))
+ varying vec3   var_SampleToView;
+ #endif
+ 
+@@ -154,7 +154,7 @@
+ 	vec3 SampleToView = u_ViewOrigin - position.xyz;
+ #endif
+ 
+-#if defined(USE_NORMALMAP) || defined(USE_LIGHT) && !defined(USE_FAST_LIGHT)
++#if defined(USE_TCGEN) || defined(USE_NORMALMAP) || (defined(USE_LIGHT) && !defined(USE_FAST_LIGHT))
+ 	var_SampleToView = SampleToView;
+ #endif
+ 
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 361)
++++ code/client/cl_main.c	(revision 362)
+@@ -134,6 +134,7 @@
+ clientStatic_t		cls;
+ vm_t				*cgvm;
+ 
++char				cl_reconnectServername[MAX_OSPATH];
+ char				cl_oldGame[MAX_QPATH];
+ qboolean			cl_oldGameSet;
+ 
+@@ -1761,12 +1762,14 @@
+ ================
+ */
+ void CL_Reconnect_f( void ) {
+-	if ( !strlen( clc.servername ) || !strcmp( clc.servername, "localhost" ) ) {
++	if ( !strlen( cl_reconnectServername ) )
++		return;
++	if ( !strcmp( cl_reconnectServername, "localhost" ) ) {
+ 		Com_Printf( "Can't reconnect to localhost.\n" );
+ 		return;
+ 	}
+ 	Cvar_Set("ui_singlePlayerActive", "0");
+-	Cbuf_AddText( va("connect %s\n", clc.servername ) );
++	Cbuf_AddText( va("connect %s\n", cl_reconnectServername ) );
+ }
+ 
+ /*
+@@ -1822,6 +1825,7 @@
+ 	Con_Close();
+ 
+ 	Q_strncpyz( clc.servername, server, sizeof(clc.servername) );
++	Q_strncpyz( cl_reconnectServername, server, sizeof( cl_reconnectServername ) );
+ 
+ 	if (!NET_StringToAdr(clc.servername, &clc.serverAddress, family) ) {
+ 		Com_Printf ("Bad server address\n");
+Index: Makefile
+===================================================================
+--- Makefile	(revision 361)
++++ Makefile	(revision 362)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2381
++IOQ3_REVISION = 2388
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 
+@@ -697,8 +697,10 @@
+     USE_CURL_DLOPEN=0
+   endif
+ 
++  # no shm_open on OpenBSD
++  USE_MUMBLE=0
++
+   SHLIBEXT=so
+-  SHLIBNAME=.$(SHLIBEXT)
+   SHLIBCFLAGS=-fPIC
+   SHLIBLDFLAGS=-shared $(LDFLAGS)
+ 
