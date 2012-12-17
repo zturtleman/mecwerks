@@ -177,6 +177,11 @@ fi
 #
 for (( i = $OLD_REV; i <= $NEW_REV; i++ ))
 do
+	if [ "$i" = "$OLD_REV" ]
+	then
+		echo "Updated to Spearmint $NEW_REV" >> $COMMIT_LOG
+		echo "" >> $COMMIT_LOG
+	fi
 	echo "- Spearmint $i" >> $COMMIT_LOG
 	svn log $SCODE -r$i >> $COMMIT_LOG
 	echo "Added commit log message for revision $i to $COMMIT_LOG"
@@ -221,4 +226,9 @@ then
 		$TOOL add $PATCH_DIR/$PATCH_PREFIX$OLD_REV-$NEW_REV.$PATCH_SUFFIX
 		echo "Added $PATCH_PREFIX$OLD_REV-$NEW_REV.$PATCH_SUFFIX to repo"
 	fi
+
+	#
+	# Start the commit
+	#
+	$TOOL commit -a -t $COMMIT_LOG
 fi
