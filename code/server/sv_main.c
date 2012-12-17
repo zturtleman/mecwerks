@@ -239,7 +239,7 @@ void QDECL SV_SendServerCommand(client_t *cl, const char *fmt, ...) {
 	globalPrint = !strncmp( (char *)message, "print", 5 );
 
 	if ( globalPrint ) {
-		memmove( &message[1], &message[0], (size_t)( strlen( (const char *)message ) ) );
+		memmove( &message[1], &message[0], (size_t)( strlen( (const char *)message+1 ) ) );
 		message[0] = 'g'; // "gprint"
 	}
 
