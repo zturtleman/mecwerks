@@ -134,7 +134,7 @@ clientConnection_t	clc;
 clientStatic_t		cls;
 vm_t				*cgvm;
 
-char				cl_reconnectServername[MAX_OSPATH];
+char				cl_reconnectArgs[MAX_OSPATH];
 char				cl_oldGame[MAX_QPATH];
 qboolean			cl_oldGameSet;
 
@@ -1762,14 +1762,10 @@ CL_Reconnect_f
 ================
 */
 void CL_Reconnect_f( void ) {
-	if ( !strlen( cl_reconnectServername ) )
+	if ( !strlen( cl_reconnectArgs ) )
 		return;
-	if ( !strcmp( cl_reconnectServername, "localhost" ) ) {
-		Com_Printf( "Can't reconnect to localhost.\n" );
-		return;
-	}
 	Cvar_Set("ui_singlePlayerActive", "0");
-	Cbuf_AddText( va("connect %s\n", cl_reconnectServername ) );
+	Cbuf_AddText( va("connect %s\n", cl_reconnectArgs ) );
 }
 
 /*
@@ -1803,6 +1799,9 @@ void CL_Connect_f( void ) {
 		server = Cmd_Argv(2);
 	}
 
+	// save arguments for reconnect
+	Q_strncpyz( cl_reconnectArgs, Cmd_Args(), sizeof( cl_reconnectArgs ) );
+
 	Cvar_Set("ui_singlePlayerActive", "0");
 
 	// fire a message off to the motd server
@@ -1825,7 +1824,6 @@ void CL_Connect_f( void ) {
 	Con_Close();
 
 	Q_strncpyz( clc.servername, server, sizeof(clc.servername) );
-	Q_strncpyz( cl_reconnectServername, server, sizeof( cl_reconnectServername ) );
 
 	if (!NET_StringToAdr(clc.servername, &clc.serverAddress, family) ) {
 		Com_Printf ("Bad server address\n");
@@ -3174,19 +3172,28 @@ void CL_DrawCenteredPic(qhandle_t hShader)
 
 /*
 ============
-CL_DrawLoadingScreen
+CL_DrawLoadingScreenFrame
 ============
 */
-void CL_DrawLoadingScreen(void)
+void CL_DrawLoadingScreenFrame( stereoFrame_t stereoFrame, qhandle_t hShader )
 {
-	qhandle_t hShader;
-
-	re.BeginFrame( STEREO_CENTER );
+	re.BeginFrame( stereoFrame );
 
 	// Need to draw extra stuff or screen is completely white for some shaders.
 	re.SetColor( g_color_table[0] );
 	re.DrawStretchPic( 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
 	re.SetColor( NULL );
+
+	CL_DrawCenteredPic( hShader );
+}
+
+/*
+============
+CL_DrawLoadingScreen
+============
+*/
+void CL_DrawLoadingScreen( void ) {
+	qhandle_t hShader;
 
 	// Q3A menu background logo
 	if (cls.glconfig.hardwareType == GLHW_RAGEPRO ) {
@@ -3196,7 +3203,15 @@ void CL_DrawLoadingScreen(void)
 		hShader = re.RegisterShaderNoMip("menuback");
 	}
 
-	CL_DrawCenteredPic(hShader);
+	// XXX
+	int in_anaglyphMode = Cvar_VariableIntegerValue("r_anaglyphMode");
+	// if running in stereo, we need to draw the frame twice
+	if ( cls.glconfig.stereoEnabled || in_anaglyphMode) {
+		CL_DrawLoadingScreenFrame( STEREO_LEFT, hShader );
+		CL_DrawLoadingScreenFrame( STEREO_RIGHT, hShader );
+	} else {
+		CL_DrawLoadingScreenFrame( STEREO_CENTER, hShader );
+	}
 
 	if ( com_speeds->integer ) {
 		re.EndFrame( &time_frontend, &time_backend );

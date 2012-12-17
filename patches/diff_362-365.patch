@@ -1,0 +1,1310 @@
+Index: README
+===================================================================
+--- README	(revision 362)
++++ README	(revision 365)
+@@ -304,6 +304,9 @@
+                                       1.32 had no lead announcements in TDM).
+ 
+ 
++  cg_consoleLatency                 - controls how long messages stay in cgame
++                                      notify area in miliseconds (default 3000)
++
+ New commands
+   video [filename]        - start video capture (use with demo command)
+   stopvideo               - stop video capture
+Index: code/server/sv_game.c
+===================================================================
+--- code/server/sv_game.c	(revision 362)
++++ code/server/sv_game.c	(revision 365)
+@@ -387,6 +387,9 @@
+ 	case G_ARGS:
+ 		Cmd_ArgsBuffer( VMA(1), args[2] );
+ 		return 0;
++	case G_LITERAL_ARGS:
++		Cmd_LiteralArgsBuffer( VMA(1), args[2] );
++		return 0;
+ 
+ 	case G_FS_FOPEN_FILE:
+ 		return FS_FOpenFileByMode( VMA(1), VMA(2), args[3] );
+Index: code/qcommon/cmd.c
+===================================================================
+--- code/qcommon/cmd.c	(revision 362)
++++ code/qcommon/cmd.c	(revision 365)
+@@ -373,20 +373,43 @@
+ } cmd_function_t;
+ 
+ 
+-static	int			cmd_argc;
+-static	char		*cmd_argv[MAX_STRING_TOKENS];		// points into cmd_tokenized
+-static	char		cmd_tokenized[BIG_INFO_STRING+MAX_STRING_TOKENS];	// will have 0 bytes inserted
+-static	char		cmd_cmd[BIG_INFO_STRING]; // the original command we received (no token processing)
++typedef struct cmdContext_s
++{
++	int		argc;
++	char	*argv[ MAX_STRING_TOKENS ];	// points into cmd.tokenized
++	char	tokenized[ BIG_INFO_STRING + MAX_STRING_TOKENS ];	// will have 0 bytes inserted
++	char	cmd[ BIG_INFO_STRING ]; // the original command we received (no token processing)
++} cmdContext_t;
+ 
++static cmdContext_t		cmd;
++static cmdContext_t		savedCmd;
+ static	cmd_function_t	*cmd_functions;		// possible commands to execute
+ 
+ /*
+ ============
++Cmd_SaveCmdContext
++============
++*/
++void Cmd_SaveCmdContext( void ) {
++	Com_Memcpy( &savedCmd, &cmd, sizeof( cmdContext_t ) );
++}
++
++/*
++============
++Cmd_RestoreCmdContext
++============
++*/
++void Cmd_RestoreCmdContext( void ) {
++	Com_Memcpy( &cmd, &savedCmd, sizeof( cmdContext_t ) );
++}
++
++/*
++============
+ Cmd_Argc
+ ============
+ */
+ int		Cmd_Argc( void ) {
+-	return cmd_argc;
++	return cmd.argc;
+ }
+ 
+ /*
+@@ -395,10 +418,10 @@
+ ============
+ */
+ char	*Cmd_Argv( int arg ) {
+-	if ( (unsigned)arg >= cmd_argc ) {
++	if ( (unsigned)arg >= cmd.argc ) {
+ 		return "";
+ 	}
+-	return cmd_argv[arg];	
++	return cmd.argv[arg];	
+ }
+ 
+ /*
+@@ -426,9 +449,9 @@
+ 	int		i;
+ 
+ 	cmd_args[0] = 0;
+-	for ( i = 1 ; i < cmd_argc ; i++ ) {
+-		strcat( cmd_args, cmd_argv[i] );
+-		if ( i != cmd_argc-1 ) {
++	for ( i = 1 ; i < cmd.argc ; i++ ) {
++		strcat( cmd_args, cmd.argv[i] );
++		if ( i != cmd.argc-1 ) {
+ 			strcat( cmd_args, " " );
+ 		}
+ 	}
+@@ -450,9 +473,9 @@
+ 	cmd_args[0] = 0;
+ 	if (arg < 0)
+ 		arg = 0;
+-	for ( i = arg ; i < cmd_argc ; i++ ) {
+-		strcat( cmd_args, cmd_argv[i] );
+-		if ( i != cmd_argc-1 ) {
++	for ( i = arg ; i < cmd.argc ; i++ ) {
++		strcat( cmd_args, cmd.argv[i] );
++		if ( i != cmd.argc-1 ) {
+ 			strcat( cmd_args, " " );
+ 		}
+ 	}
+@@ -474,6 +497,18 @@
+ 
+ /*
+ ============
++Cmd_LiteralArgsBuffer
++
++The interpreted versions use this because
++they can't have pointers returned to them
++============
++*/
++void	Cmd_LiteralArgsBuffer( char *buffer, int bufferLength ) {
++	Q_strncpyz( buffer, cmd.cmd, bufferLength );
++}
++
++/*
++============
+ Cmd_Cmd
+ 
+ Retrieve the unmodified command string
+@@ -483,7 +518,7 @@
+ */
+ char *Cmd_Cmd(void)
+ {
+-	return cmd_cmd;
++	return cmd.cmd;
+ }
+ 
+ /*
+@@ -497,9 +532,9 @@
+ {
+ 	int i;
+ 
+-	for(i = 1; i < cmd_argc; i++)
++	for(i = 1; i < cmd.argc; i++)
+ 	{
+-		char *c = cmd_argv[i];
++		char *c = cmd.argv[i];
+ 		
+ 		if(strlen(c) > MAX_CVAR_VALUE_STRING - 1)
+ 			c[MAX_CVAR_VALUE_STRING - 1] = '\0';
+@@ -533,19 +568,20 @@
+ #endif
+ 
+ 	// clear previous args
+-	cmd_argc = 0;
++	cmd.argc = 0;
++	cmd.cmd[ 0 ] = '\0';
+ 
+ 	if ( !text_in ) {
+ 		return;
+ 	}
+ 	
+-	Q_strncpyz( cmd_cmd, text_in, sizeof(cmd_cmd) );
++	Q_strncpyz( cmd.cmd, text_in, sizeof(cmd.cmd) );
+ 
+ 	text = text_in;
+-	textOut = cmd_tokenized;
++	textOut = cmd.tokenized;
+ 
+ 	while ( 1 ) {
+-		if ( cmd_argc == MAX_STRING_TOKENS ) {
++		if ( cmd.argc == MAX_STRING_TOKENS ) {
+ 			return;			// this is usually something malicious
+ 		}
+ 
+@@ -580,8 +616,8 @@
+ 		// handle quoted strings
+     // NOTE TTimo this doesn't handle \" escaping
+ 		if ( !ignoreQuotes && *text == '"' ) {
+-			cmd_argv[cmd_argc] = textOut;
+-			cmd_argc++;
++			cmd.argv[cmd.argc] = textOut;
++			cmd.argc++;
+ 			text++;
+ 			while ( *text && *text != '"' ) {
+ 				*textOut++ = *text++;
+@@ -595,8 +631,8 @@
+ 		}
+ 
+ 		// regular token
+-		cmd_argv[cmd_argc] = textOut;
+-		cmd_argc++;
++		cmd.argv[cmd.argc] = textOut;
++		cmd.argc++;
+ 
+ 		// skip until whitespace, quote, or command
+ 		while ( *text > ' ' ) {
+@@ -785,7 +821,7 @@
+ ============
+ */
+ void	Cmd_ExecuteString( const char *text ) {	
+-	cmd_function_t	*cmd, **prev;
++	cmd_function_t	*cmdFunc, **prev;
+ 
+ 	// execute the command line
+ 	Cmd_TokenizeString( text );		
+@@ -794,21 +830,21 @@
+ 	}
+ 
+ 	// check registered command functions	
+-	for ( prev = &cmd_functions ; *prev ; prev = &cmd->next ) {
+-		cmd = *prev;
+-		if ( !Q_stricmp( cmd_argv[0],cmd->name ) ) {
++	for ( prev = &cmd_functions ; *prev ; prev = &cmdFunc->next ) {
++		cmdFunc = *prev;
++		if ( !Q_stricmp( cmd.argv[0], cmdFunc->name ) ) {
+ 			// rearrange the links so that the command will be
+ 			// near the head of the list next time it is used
+-			*prev = cmd->next;
+-			cmd->next = cmd_functions;
+-			cmd_functions = cmd;
++			*prev = cmdFunc->next;
++			cmdFunc->next = cmd_functions;
++			cmd_functions = cmdFunc;
+ 
+ 			// perform the action
+-			if ( !cmd->function ) {
++			if ( !cmdFunc->function ) {
+ 				// let the cgame or game handle it
+ 				break;
+ 			} else {
+-				cmd->function ();
++				cmdFunc->function ();
+ 			}
+ 			return;
+ 		}
+Index: code/qcommon/qcommon.h
+===================================================================
+--- code/qcommon/qcommon.h	(revision 362)
++++ code/qcommon/qcommon.h	(revision 365)
+@@ -456,6 +456,7 @@
+ char	*Cmd_Args (void);
+ char	*Cmd_ArgsFrom( int arg );
+ void	Cmd_ArgsBuffer( char *buffer, int bufferLength );
++void	Cmd_LiteralArgsBuffer( char *buffer, int bufferLength );
+ char	*Cmd_Cmd (void);
+ void	Cmd_Args_Sanitize( void );
+ // The functions that execute commands get their parameters with these
+@@ -471,6 +472,8 @@
+ // Parses a single line of text into arguments and tries to execute it
+ // as if it was typed at the console
+ 
++void	Cmd_SaveCmdContext( void );
++void	Cmd_RestoreCmdContext( void );
+ 
+ /*
+ ==============================================================
+@@ -977,6 +980,7 @@
+ void CL_Shutdown(char *finalmsg, qboolean disconnect, qboolean quit);
+ void CL_Frame( int msec );
+ qboolean CL_GameCommand( void );
++void CL_GameConsoleText( void );
+ void CL_KeyEvent (int key, qboolean down, unsigned time);
+ 
+ void CL_CharEvent( int key );
+Index: code/game/g_syscalls.asm
+===================================================================
+--- code/game/g_syscalls.asm	(revision 362)
++++ code/game/g_syscalls.asm	(revision 365)
+@@ -21,38 +21,39 @@
+ equ trap_Argc							-26
+ equ trap_Argv							-27
+ equ trap_Args							-28
++equ trap_LiteralArgs					-29
+ 
+-equ trap_AddCommand						-29
+-equ trap_RemoveCommand					-30
+-equ trap_Cmd_ExecuteText				-31
++equ trap_AddCommand						-30
++equ trap_RemoveCommand					-31
++equ trap_Cmd_ExecuteText				-32
+ 
+-equ trap_Cvar_Register						-32
+-equ trap_Cvar_Update						-33
+-equ trap_Cvar_Set							-34
+-equ trap_Cvar_SetValue						-35
+-equ trap_Cvar_Reset							-36
+-equ trap_Cvar_VariableValue					-37
+-equ trap_Cvar_VariableIntegerValue			-38
+-equ trap_Cvar_VariableStringBuffer			-39
+-equ trap_Cvar_LatchedVariableStringBuffer	-40
+-equ trap_Cvar_InfoStringBuffer				-41
++equ trap_Cvar_Register						-33
++equ trap_Cvar_Update						-34
++equ trap_Cvar_Set							-35
++equ trap_Cvar_SetValue						-36
++equ trap_Cvar_Reset							-37
++equ trap_Cvar_VariableValue					-38
++equ trap_Cvar_VariableIntegerValue			-39
++equ trap_Cvar_VariableStringBuffer			-40
++equ trap_Cvar_LatchedVariableStringBuffer	-41
++equ trap_Cvar_InfoStringBuffer				-42
+ 
+-equ trap_FS_FOpenFile					-42
+-equ trap_FS_Read						-43
+-equ trap_FS_Write						-44
+-equ trap_FS_Seek						-45
+-equ trap_FS_FCloseFile					-46
+-equ trap_FS_GetFileList					-47
+-equ trap_FS_Delete						-48
+-equ trap_FS_Rename						-49
++equ trap_FS_FOpenFile					-43
++equ trap_FS_Read						-44
++equ trap_FS_Write						-45
++equ trap_FS_Seek						-46
++equ trap_FS_FCloseFile					-47
++equ trap_FS_GetFileList					-48
++equ trap_FS_Delete						-49
++equ trap_FS_Rename						-50
+ 
+-equ trap_PC_AddGlobalDefine				-50
+-equ trap_PC_RemoveAllGlobalDefines		-51
+-equ trap_PC_LoadSource					-52
+-equ trap_PC_FreeSource					-53
+-equ trap_PC_ReadToken					-54
+-equ trap_PC_UnreadToken					-55
+-equ trap_PC_SourceFileAndLine			-56
++equ trap_PC_AddGlobalDefine				-51
++equ trap_PC_RemoveAllGlobalDefines		-52
++equ trap_PC_LoadSource					-53
++equ trap_PC_FreeSource					-54
++equ trap_PC_ReadToken					-55
++equ trap_PC_UnreadToken					-56
++equ trap_PC_SourceFileAndLine			-57
+ 
+ 
+ equ	trap_LocateGameData					-101
+Index: code/game/g_syscalls.c
+===================================================================
+--- code/game/g_syscalls.c	(revision 362)
++++ code/game/g_syscalls.c	(revision 365)
+@@ -75,6 +75,10 @@
+ 	syscall( G_ARGS, buffer, bufferLength );
+ }
+ 
++void	trap_LiteralArgs( char *buffer, int bufferLength ) {
++	syscall( G_LITERAL_ARGS, buffer, bufferLength );
++}
++
+ int		trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
+ 	return syscall( G_FS_FOPEN_FILE, qpath, f, mode );
+ }
+Index: code/game/bg_misc.h
+===================================================================
+--- code/game/bg_misc.h	(revision 362)
++++ code/game/bg_misc.h	(revision 365)
+@@ -141,10 +141,6 @@
+ 	PM_SPECTATOR,	// still run into walls
+ 	PM_DEAD,		// no acceleration or turning, but free falling
+ 	PM_FREEZE,		// stuck in place with no control
+-	/* bg_public.h
+-		ZTM: NOTE: Client (not cgame) expects PM_INTERMISSION as 5 and
+-			PM_SPINTERMISSION as 6.
+-	*/
+ 	PM_INTERMISSION,	// no movement or status bar
+ 	PM_SPINTERMISSION	// no movement or status bar
+ } pmtype_t;
+@@ -870,6 +866,7 @@
+ int		trap_Argc( void );
+ void	trap_Argv( int n, char *buffer, int bufferLength );
+ void	trap_Args( char *buffer, int bufferLength );
++void	trap_LiteralArgs( char *buffer, int bufferLength );
+ 
+ // register a command name so the console can perform command completion.
+ void	trap_AddCommand( const char *cmdName );
+Index: code/game/g_public.h
+===================================================================
+--- code/game/g_public.h	(revision 362)
++++ code/game/g_public.h	(revision 365)
+@@ -131,6 +131,7 @@
+ 	G_ARGC,			// ( void );
+ 	G_ARGV,			// ( int n, char *buffer, int bufferLength );
+ 	G_ARGS,			// ( char *buffer, int bufferLength );
++	G_LITERAL_ARGS,	// ( char *buffer, int bufferLength );
+ 
+ 	G_ADDCOMMAND,	// ( const char *cmdName );
+ 	G_REMOVECOMMAND,// ( const char *cmdName );
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 362)
++++ code/game/bg_public.h	(revision 365)
+@@ -41,9 +41,6 @@
+ // client only
+ #define	CS_MESSAGE				3		// from the map worldspawn's message field
+ 
+-#define PM_INTERMISSION 5 // bg_misc.h enum pmtype_t
+-#define PM_SPINTERMISSION 6 // bg_misc.h enum pmtype_t
+-
+ // botlib only
+ //NOTE: enum entityType_t in bg_misc.h
+ //FIXME: these might change
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 362)
++++ code/cgame/cg_syscalls.asm	(revision 365)
+@@ -21,38 +21,39 @@
+ equ trap_Argc							-26
+ equ trap_Argv							-27
+ equ trap_Args							-28
++equ trap_LiteralArgs					-29
+ 
+-equ trap_AddCommand						-29
+-equ trap_RemoveCommand					-30
+-equ trap_Cmd_ExecuteText				-31
++equ trap_AddCommand						-30
++equ trap_RemoveCommand					-31
++equ trap_Cmd_ExecuteText				-32
+ 
+-equ trap_Cvar_Register						-32
+-equ trap_Cvar_Update						-33
+-equ trap_Cvar_Set							-34
+-equ trap_Cvar_SetValue						-35
+-equ trap_Cvar_Reset							-36
+-equ trap_Cvar_VariableValue					-37
+-equ trap_Cvar_VariableIntegerValue			-38
+-equ trap_Cvar_VariableStringBuffer			-39
+-equ trap_Cvar_LatchedVariableStringBuffer	-40
+-equ trap_Cvar_InfoStringBuffer				-41
++equ trap_Cvar_Register						-33
++equ trap_Cvar_Update						-34
++equ trap_Cvar_Set							-35
++equ trap_Cvar_SetValue						-36
++equ trap_Cvar_Reset							-37
++equ trap_Cvar_VariableValue					-38
++equ trap_Cvar_VariableIntegerValue			-39
++equ trap_Cvar_VariableStringBuffer			-40
++equ trap_Cvar_LatchedVariableStringBuffer	-41
++equ trap_Cvar_InfoStringBuffer				-42
+ 
+-equ trap_FS_FOpenFile					-42
+-equ trap_FS_Read						-43
+-equ trap_FS_Write						-44
+-equ trap_FS_Seek						-45
+-equ trap_FS_FCloseFile					-46
+-equ trap_FS_GetFileList					-47
+-equ trap_FS_Delete						-48
+-equ trap_FS_Rename						-49
++equ trap_FS_FOpenFile					-43
++equ trap_FS_Read						-44
++equ trap_FS_Write						-45
++equ trap_FS_Seek						-46
++equ trap_FS_FCloseFile					-47
++equ trap_FS_GetFileList					-48
++equ trap_FS_Delete						-49
++equ trap_FS_Rename						-50
+ 
+-equ trap_PC_AddGlobalDefine				-50
+-equ trap_PC_RemoveAllGlobalDefines		-51
+-equ trap_PC_LoadSource					-52
+-equ trap_PC_FreeSource					-53
+-equ trap_PC_ReadToken					-54
+-equ trap_PC_UnreadToken					-55
+-equ trap_PC_SourceFileAndLine			-56
++equ trap_PC_AddGlobalDefine				-51
++equ trap_PC_RemoveAllGlobalDefines		-52
++equ trap_PC_LoadSource					-53
++equ trap_PC_FreeSource					-54
++equ trap_PC_ReadToken					-55
++equ trap_PC_UnreadToken					-56
++equ trap_PC_SourceFileAndLine			-57
+ 
+ 
+ 
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 362)
++++ code/cgame/cg_syscalls.c	(revision 365)
+@@ -118,6 +118,10 @@
+ 	syscall( CG_ARGS, buffer, bufferLength );
+ }
+ 
++void	trap_LiteralArgs( char *buffer, int bufferLength ) {
++	syscall( CG_LITERAL_ARGS, buffer, bufferLength );
++}
++
+ int		trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
+ 	return syscall( CG_FS_FOPENFILE, qpath, f, mode );
+ }
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 362)
++++ code/cgame/cg_draw.c	(revision 365)
+@@ -3010,6 +3010,46 @@
+ 
+ /*
+ =====================
++CG_DrawSmallWrappedText
++
++Draw multiline text
++=====================
++*/
++void CG_DrawSmallWrappedText(int x, int y, const char *textPtr) {
++	const char *p, *start;
++	char buff[1024];
++
++	if (!textPtr || *textPtr == '\0') {
++		return;
++	}
++
++	start = textPtr;
++	p = strchr(textPtr, '\n');
++	while (p && *p) {
++		strncpy(buff, start, p-start+1);
++		buff[p-start] = '\0';
++		CG_DrawSmallString(x, y, buff, 1.0f );
++		y += SMALLCHAR_HEIGHT + 3;
++		start += p - start + 1;
++		p = strchr(p+1, '\n');
++	}
++	CG_DrawSmallString(x, y, start, 1.0f );
++}
++
++/*
++=====================
++CG_DrawNotify
++
++Draw console notify area.
++=====================
++*/
++void CG_DrawNotify( void ) {
++	CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
++	CG_DrawSmallWrappedText(0, 0, cg.consoleText);
++}
++
++/*
++=====================
+ CG_DrawScreen2D
+ 
+ Perform drawing that fills the screen, drawing over all viewports
+@@ -3036,6 +3076,9 @@
+ 	} else {
+ 		CG_DrawGlobalCenterString();
+ 	}
++
++	// Draw console notify area.
++	CG_DrawNotify();
+ }
+ 
+ 
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 362)
++++ code/cgame/cg_local.h	(revision 365)
+@@ -457,6 +457,15 @@
+ 
+ //======================================================================
+ 
++typedef struct
++{
++  int time;
++  int length;
++} consoleLine_t;
++
++#define MAX_CONSOLE_TEXT  8192
++#define MAX_CONSOLE_LINES 32
++
+ // all cg.stepTime, cg.duckTime, cg.landTime, etc are set to cg.time when the action
+ // occurs, and they will have visible effects for #define STEP_TIME or whatever msec after
+ 
+@@ -688,6 +697,11 @@
+ 	char			testModelName[MAX_QPATH];
+ 	qboolean		testGun;
+ 
++	// console
++	char			consoleText[ MAX_CONSOLE_TEXT ];
++	consoleLine_t	consoleLines[ MAX_CONSOLE_LINES ];
++	int				numConsoleLines;
++
+ 	// Local client data, from events and such
+ 	cglc_t			*cur_lc;	// Current local client data we are working with
+ 	playerState_t	*cur_ps; // Like cur_lc, but for player state
+@@ -1244,6 +1258,7 @@
+ extern	vmCvar_t		cg_teamDmLeadAnnouncements;
+ extern	vmCvar_t		cg_voipShowMeter;
+ extern	vmCvar_t		cg_voipShowCrosshairMeter;
++extern	vmCvar_t		cg_consoleLatency;
+ #ifdef MISSIONPACK
+ extern	vmCvar_t		cg_redTeamName;
+ extern	vmCvar_t		cg_blueTeamName;
+@@ -1288,7 +1303,10 @@
+ score_t *CG_GetSelectedScore( void );
+ void CG_BuildSpectatorString( void );
+ 
++void CG_RemoveNotifyLine( void );
++void CG_AddNotifyText( void );
+ 
++
+ //
+ // cg_view.c
+ //
+Index: code/cgame/cg_view.c
+===================================================================
+--- code/cgame/cg_view.c	(revision 362)
++++ code/cgame/cg_view.c	(revision 365)
+@@ -1160,6 +1160,11 @@
+ 	cg.cur_ps = NULL;
+ 	cg.cur_localClientNum = -1;
+ 
++	// Remove expired console lines
++	if( cg.consoleLines[ 0 ].time + cg_consoleLatency.integer < cg.time && cg_consoleLatency.integer > 0 ) {
++		CG_RemoveNotifyLine( );
++	}
++
+ 	// Draw over all viewports
+ 	CG_DrawScreen2D( stereoView );
+ 
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 362)
++++ code/cgame/cg_public.h	(revision 365)
+@@ -95,6 +95,7 @@
+ 	CG_ARGC,
+ 	CG_ARGV,
+ 	CG_ARGS,
++	CG_LITERAL_ARGS,
+ 
+ 	CG_ADDCOMMAND,
+ 	CG_REMOVECOMMAND,
+@@ -284,6 +285,10 @@
+ 	CG_LAST_ATTACKER,
+ //	int (*CG_LastAttacker)( int localClientNum );
+ 
++	CG_VOIP_STRING,
++//  char *(*CG_VoIPString)( void );
++//  returns a string of comma-delimited clientnums based on args
++
+ 	CG_KEY_EVENT, 
+ //	void	(*CG_KeyEvent)( int key, qboolean down );
+ 
+@@ -293,12 +298,14 @@
+ 	CG_EVENT_HANDLING,
+ //	void (*CG_EventHandling)(int type);
+ 
+-	CG_WANTSBINDKEYS,
++	CG_CONSOLE_TEXT,
++//	void (*CG_ConsoleText)( void );
++//	pass text that has been printed to the console to cgame
++//	use Cmd_Argc() / Cmd_Argv() to read it
++
++	CG_WANTSBINDKEYS
+ //	qboolean CG_WantsBindKeys( void );
+ 
+-	CG_VOIP_STRING
+-//  char *(*CG_VoIPString)( void );
+-//  returns a string of comma-delimited clientnums based on args
+ } cgameExport_t;
+ 
+ //----------------------------------------------
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 362)
++++ code/cgame/cg_main.c	(revision 365)
+@@ -87,6 +87,9 @@
+ 	case CG_EVENT_HANDLING:
+ 		CG_EventHandling(arg0);
+ 		return 0;
++    case CG_CONSOLE_TEXT:
++		CG_AddNotifyText();
++		return 0;
+ 	case CG_WANTSBINDKEYS:
+ #ifdef MISSIONPACK_HUD
+ 		return Display_WantsBindKeys();
+@@ -207,6 +210,7 @@
+ vmCvar_t	cg_teamDmLeadAnnouncements;
+ vmCvar_t	cg_voipShowMeter;
+ vmCvar_t	cg_voipShowCrosshairMeter;
++vmCvar_t	cg_consoleLatency;
+ 
+ #ifdef MISSIONPACK
+ vmCvar_t 	cg_redTeamName;
+@@ -363,6 +367,7 @@
+ 	{ &cg_teamDmLeadAnnouncements, "cg_teamDmLeadAnnouncements", "1", CVAR_ARCHIVE },
+ 	{ &cg_voipShowMeter, "cg_voipShowMeter", "1", CVAR_ARCHIVE },
+ 	{ &cg_voipShowCrosshairMeter, "cg_voipShowCrosshairMeter", "1", CVAR_ARCHIVE },
++	{ &cg_consoleLatency, "cg_consoleLatency", "3000", CVAR_ARCHIVE },
+ //	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE }
+ };
+ 
+@@ -495,6 +500,61 @@
+ 	return cg.snap->pss[cg.snap->lcIndex[localClientNum]].persistant[PERS_ATTACKER];
+ }
+ 
++/*
++=================
++CG_RemoveNotifyLine
++=================
++*/
++void CG_RemoveNotifyLine( void )
++{
++  int i, offset, totalLength;
++
++  if( cg.numConsoleLines == 0 )
++    return;
++
++  offset = cg.consoleLines[ 0 ].length;
++  totalLength = strlen( cg.consoleText ) - offset;
++
++  //slide up consoleText
++  for( i = 0; i <= totalLength; i++ )
++    cg.consoleText[ i ] = cg.consoleText[ i + offset ];
++
++  //pop up the first consoleLine
++  for( i = 0; i < cg.numConsoleLines; i++ )
++    cg.consoleLines[ i ] = cg.consoleLines[ i + 1 ];
++
++  cg.numConsoleLines--;
++}
++
++/*
++=================
++CG_AddNotifyText
++=================
++*/
++void CG_AddNotifyText( void ) {
++	char buffer[ BIG_INFO_STRING ];
++	int bufferLen;
++
++	trap_LiteralArgs( buffer, BIG_INFO_STRING );
++
++	if( !buffer[ 0 ] ) {
++		cg.consoleText[ 0 ] = '\0';
++		cg.numConsoleLines = 0;
++		return;
++	}
++
++	bufferLen = strlen( buffer );
++
++	if( cg.numConsoleLines == MAX_CONSOLE_LINES )
++		CG_RemoveNotifyLine( );
++
++	Q_strcat( cg.consoleText, MAX_CONSOLE_TEXT, buffer );
++	cg.consoleLines[ cg.numConsoleLines ].time = cg.time;
++	cg.consoleLines[ cg.numConsoleLines ].length = bufferLen;
++	cg.numConsoleLines++;
++}
++
++
+ void QDECL CG_DPrintf( const char *msg, ... ) {
+ 	va_list		argptr;
+ 	char		text[1024];
+Index: code/ui/ui_public.h
+===================================================================
+--- code/ui/ui_public.h	(revision 362)
++++ code/ui/ui_public.h	(revision 365)
+@@ -58,6 +58,7 @@
+ 	UI_ARGC,
+ 	UI_ARGV,
+ 	UI_ARGS,
++	UI_LITERAL_ARGS,
+ 
+ 	UI_ADDCOMMAND,
+ 	UI_REMOVECOMMAND,
+Index: code/ui/ui_syscalls.asm
+===================================================================
+--- code/ui/ui_syscalls.asm	(revision 362)
++++ code/ui/ui_syscalls.asm	(revision 365)
+@@ -21,38 +21,39 @@
+ equ trap_Argc							-26
+ equ trap_Argv							-27
+ equ trap_Args							-28
++equ trap_LiteralArgs					-29
+ 
+-equ trap_AddCommand						-29
+-equ trap_RemoveCommand					-30
+-equ trap_Cmd_ExecuteText				-31
++equ trap_AddCommand						-30
++equ trap_RemoveCommand					-31
++equ trap_Cmd_ExecuteText				-32
+ 
+-equ trap_Cvar_Register						-32
+-equ trap_Cvar_Update						-33
+-equ trap_Cvar_Set							-34
+-equ trap_Cvar_SetValue						-35
+-equ trap_Cvar_Reset							-36
+-equ trap_Cvar_VariableValue					-37
+-equ trap_Cvar_VariableIntegerValue			-38
+-equ trap_Cvar_VariableStringBuffer			-39
+-equ trap_Cvar_LatchedVariableStringBuffer	-40
+-equ trap_Cvar_InfoStringBuffer				-41
++equ trap_Cvar_Register						-33
++equ trap_Cvar_Update						-34
++equ trap_Cvar_Set							-35
++equ trap_Cvar_SetValue						-36
++equ trap_Cvar_Reset							-37
++equ trap_Cvar_VariableValue					-38
++equ trap_Cvar_VariableIntegerValue			-39
++equ trap_Cvar_VariableStringBuffer			-40
++equ trap_Cvar_LatchedVariableStringBuffer	-41
++equ trap_Cvar_InfoStringBuffer				-42
+ 
+-equ trap_FS_FOpenFile					-42
+-equ trap_FS_Read						-43
+-equ trap_FS_Write						-44
+-equ trap_FS_Seek						-45
+-equ trap_FS_FCloseFile					-46
+-equ trap_FS_GetFileList					-47
+-equ trap_FS_Delete						-48
+-equ trap_FS_Rename						-49
++equ trap_FS_FOpenFile					-43
++equ trap_FS_Read						-44
++equ trap_FS_Write						-45
++equ trap_FS_Seek						-46
++equ trap_FS_FCloseFile					-47
++equ trap_FS_GetFileList					-48
++equ trap_FS_Delete						-49
++equ trap_FS_Rename						-50
+ 
+-equ trap_PC_AddGlobalDefine				-50
+-equ trap_PC_RemoveAllGlobalDefines		-51
+-equ trap_PC_LoadSource					-52
+-equ trap_PC_FreeSource					-53
+-equ trap_PC_ReadToken					-54
+-equ trap_PC_UnreadToken					-55
+-equ trap_PC_SourceFileAndLine			-56
++equ trap_PC_AddGlobalDefine				-51
++equ trap_PC_RemoveAllGlobalDefines		-52
++equ trap_PC_LoadSource					-53
++equ trap_PC_FreeSource					-54
++equ trap_PC_ReadToken					-55
++equ trap_PC_UnreadToken					-56
++equ trap_PC_SourceFileAndLine			-57
+ 
+ 
+ 
+Index: code/ui/ui_syscalls.c
+===================================================================
+--- code/ui/ui_syscalls.c	(revision 362)
++++ code/ui/ui_syscalls.c	(revision 365)
+@@ -129,6 +129,10 @@
+ 	syscall( UI_ARGS, buffer, bufferLength );
+ }
+ 
++void trap_LiteralArgs( char *buffer, int bufferLength ) {
++	syscall( UI_LITERAL_ARGS, buffer, bufferLength );
++}
++
+ void trap_Cmd_ExecuteText( int exec_when, const char *text ) {
+ 	syscall( UI_CMD_EXECUTETEXT, exec_when, text );
+ }
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 362)
++++ code/client/cl_main.c	(revision 365)
+@@ -134,7 +134,7 @@
+ clientStatic_t		cls;
+ vm_t				*cgvm;
+ 
+-char				cl_reconnectServername[MAX_OSPATH];
++char				cl_reconnectArgs[MAX_OSPATH];
+ char				cl_oldGame[MAX_QPATH];
+ qboolean			cl_oldGameSet;
+ 
+@@ -1762,14 +1762,10 @@
+ ================
+ */
+ void CL_Reconnect_f( void ) {
+-	if ( !strlen( cl_reconnectServername ) )
++	if ( !strlen( cl_reconnectArgs ) )
+ 		return;
+-	if ( !strcmp( cl_reconnectServername, "localhost" ) ) {
+-		Com_Printf( "Can't reconnect to localhost.\n" );
+-		return;
+-	}
+ 	Cvar_Set("ui_singlePlayerActive", "0");
+-	Cbuf_AddText( va("connect %s\n", cl_reconnectServername ) );
++	Cbuf_AddText( va("connect %s\n", cl_reconnectArgs ) );
+ }
+ 
+ /*
+@@ -1803,6 +1799,9 @@
+ 		server = Cmd_Argv(2);
+ 	}
+ 
++	// save arguments for reconnect
++	Q_strncpyz( cl_reconnectArgs, Cmd_Args(), sizeof( cl_reconnectArgs ) );
++
+ 	Cvar_Set("ui_singlePlayerActive", "0");
+ 
+ 	// fire a message off to the motd server
+@@ -1825,7 +1824,6 @@
+ 	Con_Close();
+ 
+ 	Q_strncpyz( clc.servername, server, sizeof(clc.servername) );
+-	Q_strncpyz( cl_reconnectServername, server, sizeof( cl_reconnectServername ) );
+ 
+ 	if (!NET_StringToAdr(clc.servername, &clc.serverAddress, family) ) {
+ 		Com_Printf ("Bad server address\n");
+@@ -3174,20 +3172,29 @@
+ 
+ /*
+ ============
+-CL_DrawLoadingScreen
++CL_DrawLoadingScreenFrame
+ ============
+ */
+-void CL_DrawLoadingScreen(void)
++void CL_DrawLoadingScreenFrame( stereoFrame_t stereoFrame, qhandle_t hShader )
+ {
+-	qhandle_t hShader;
++	re.BeginFrame( stereoFrame );
+ 
+-	re.BeginFrame( STEREO_CENTER );
+-
+ 	// Need to draw extra stuff or screen is completely white for some shaders.
+ 	re.SetColor( g_color_table[0] );
+ 	re.DrawStretchPic( 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight, 0, 0, 0, 0, cls.whiteShader );
+ 	re.SetColor( NULL );
+ 
++	CL_DrawCenteredPic( hShader );
++}
++
++/*
++============
++CL_DrawLoadingScreen
++============
++*/
++void CL_DrawLoadingScreen( void ) {
++	qhandle_t hShader;
++
+ 	// Q3A menu background logo
+ 	if (cls.glconfig.hardwareType == GLHW_RAGEPRO ) {
+ 		// the blend effect turns to shit with the normal 
+@@ -3196,7 +3203,15 @@
+ 		hShader = re.RegisterShaderNoMip("menuback");
+ 	}
+ 
+-	CL_DrawCenteredPic(hShader);
++	// XXX
++	int in_anaglyphMode = Cvar_VariableIntegerValue("r_anaglyphMode");
++	// if running in stereo, we need to draw the frame twice
++	if ( cls.glconfig.stereoEnabled || in_anaglyphMode) {
++		CL_DrawLoadingScreenFrame( STEREO_LEFT, hShader );
++		CL_DrawLoadingScreenFrame( STEREO_RIGHT, hShader );
++	} else {
++		CL_DrawLoadingScreenFrame( STEREO_CENTER, hShader );
++	}
+ 
+ 	if ( com_speeds->integer ) {
+ 		re.EndFrame( &time_frontend, &time_backend );
+Index: code/client/cl_console.c
+===================================================================
+--- code/client/cl_console.c	(revision 362)
++++ code/client/cl_console.c	(revision 365)
+@@ -35,8 +35,6 @@
+ int g_console_field_width = 78;
+ 
+ 
+-#define	NUM_CON_TIMES 4
+-
+ #define		CON_TEXTSIZE	32768
+ typedef struct {
+ 	qboolean	initialized;
+@@ -56,8 +54,6 @@
+ 
+ 	int		vislines;		// in scanlines
+ 
+-	int		times[NUM_CON_TIMES];	// cls.realtime time the line was generated
+-								// for transparent notify lines
+ 	vec4_t	color;
+ } console_t;
+ 
+@@ -66,7 +62,6 @@
+ console_t	con;
+ 
+ cvar_t		*con_conspeed;
+-cvar_t		*con_notifytime;
+ 
+ #define	DEFAULT_CONSOLE_WIDTH	78
+ 
+@@ -85,7 +80,6 @@
+ 	Field_Clear( &g_consoleField );
+ 	g_consoleField.widthInChars = g_console_field_width;
+ 
+-	Con_ClearNotify ();
+ 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_CONSOLE );
+ }
+ 
+@@ -234,11 +228,8 @@
+ ================
+ */
+ void Con_ClearNotify( void ) {
+-	int		i;
+-	
+-	for ( i = 0 ; i < NUM_CON_TIMES ; i++ ) {
+-		con.times[i] = 0;
+-	}
++	Cmd_TokenizeString( NULL );
++	CL_GameConsoleText( );
+ }
+ 
+ 						
+@@ -300,8 +291,6 @@
+ 							  oldtotallines) * oldwidth + j];
+ 			}
+ 		}
+-
+-		Con_ClearNotify ();
+ 	}
+ 
+ 	con.current = con.totallines - 1;
+@@ -328,7 +317,6 @@
+ void Con_Init (void) {
+ 	int		i;
+ 
+-	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
+ 	con_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
+ 
+ 	Field_Clear( &g_consoleField );
+@@ -370,19 +358,10 @@
+ Con_Linefeed
+ ===============
+ */
+-void Con_Linefeed (qboolean skipnotify)
++void Con_Linefeed (void)
+ {
+ 	int		i;
+ 
+-	// mark time for transparent overlay
+-	if (con.current >= 0)
+-	{
+-    if (skipnotify)
+-		  con.times[con.current % NUM_CON_TIMES] = 0;
+-    else
+-		  con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+-	}
+-
+ 	con.x = 0;
+ 	if (con.display == con.current)
+ 		con.display++;
+@@ -405,7 +384,6 @@
+ 	unsigned char	c;
+ 	unsigned short	color;
+ 	qboolean skipnotify = qfalse;		// NERVE - SMF
+-	int prev;							// NERVE - SMF
+ 
+ 	// TTimo - prefix for text that shows up in console but not in notify
+ 	// backported from RTCW
+@@ -429,6 +407,16 @@
+ 		con.initialized = qtrue;
+ 	}
+ 
++	if( !skipnotify && !( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) ) {
++		Cmd_SaveCmdContext( );
++
++		// feed the text to cgame
++		Cmd_TokenizeString( txt );
++		CL_GameConsoleText( );
++
++		Cmd_RestoreCmdContext( );
++	}
++
+ 	color = ColorIndex(COLOR_WHITE);
+ 
+ 	while ( (c = *((unsigned char *) txt)) != 0 ) {
+@@ -448,7 +436,7 @@
+ 
+ 		// word wrap
+ 		if (l != con.linewidth && (con.x + l >= con.linewidth) ) {
+-			Con_Linefeed(skipnotify);
++			Con_Linefeed();
+ 
+ 		}
+ 
+@@ -457,7 +445,7 @@
+ 		switch (c)
+ 		{
+ 		case '\n':
+-			Con_Linefeed (skipnotify);
++			Con_Linefeed ();
+ 			break;
+ 		case '\r':
+ 			con.x = 0;
+@@ -467,25 +455,10 @@
+ 			con.text[y*con.linewidth+con.x] = (color << 8) | c;
+ 			con.x++;
+ 			if(con.x >= con.linewidth)
+-				Con_Linefeed(skipnotify);
++				Con_Linefeed();
+ 			break;
+ 		}
+ 	}
+-
+-
+-	// mark time for transparent overlay
+-	if (con.current >= 0) {
+-		// NERVE - SMF
+-		if ( skipnotify ) {
+-			prev = con.current % NUM_CON_TIMES - 1;
+-			if ( prev < 0 )
+-				prev = NUM_CON_TIMES - 1;
+-			con.times[prev] = 0;
+-		}
+-		else
+-		// -NERVE - SMF
+-			con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+-	}
+ }
+ 
+ 
+@@ -522,87 +495,8 @@
+ 		SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qtrue );
+ }
+ 
+-
+ /*
+ ================
+-Con_DrawNotify
+-
+-Draws the last few lines of output transparently over the game top
+-================
+-*/
+-void Con_DrawNotify (void)
+-{
+-	int		x, v;
+-	short	*text;
+-	int		i;
+-	int		time;
+-	int		skip;
+-	int		currentColor;
+-
+-	currentColor = 7;
+-	re.SetColor( g_color_table[currentColor] );
+-
+-	v = 0;
+-	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++)
+-	{
+-		if (i < 0)
+-			continue;
+-		time = con.times[i % NUM_CON_TIMES];
+-		if (time == 0)
+-			continue;
+-		time = cls.realtime - time;
+-		if (time > con_notifytime->value*1000)
+-			continue;
+-		text = con.text + (i % con.totallines)*con.linewidth;
+-
+-		if (cl.snap.pss[0].pm_type != PM_INTERMISSION && Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CGAME) ) {
+-			continue;
+-		}
+-
+-		for (x = 0 ; x < con.linewidth ; x++) {
+-			if ( ( text[x] & 0xff ) == ' ' ) {
+-				continue;
+-			}
+-			if ( ( (text[x]>>8)&7 ) != currentColor ) {
+-				currentColor = (text[x]>>8)&7;
+-				re.SetColor( g_color_table[currentColor] );
+-			}
+-			SCR_DrawSmallChar( cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH, v, text[x] & 0xff );
+-		}
+-
+-		v += SMALLCHAR_HEIGHT;
+-	}
+-
+-	re.SetColor( NULL );
+-
+-	if (Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CGAME) ) {
+-		return;
+-	}
+-
+-	// draw the chat line
+-	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
+-	{
+-		if (chat_team)
+-		{
+-			SCR_DrawBigString (8, v, "say_team:", 1.0f, qfalse );
+-			skip = 10;
+-		}
+-		else
+-		{
+-			SCR_DrawBigString (8, v, "say:", 1.0f, qfalse );
+-			skip = 5;
+-		}
+-
+-		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
+-			SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
+-
+-		v += BIGCHAR_HEIGHT;
+-	}
+-
+-}
+-
+-/*
+-================
+ Con_DrawSolidConsole
+ 
+ Draws the console with the solid background
+@@ -734,11 +628,27 @@
+ 
+ 	if ( con.displayFrac ) {
+ 		Con_DrawSolidConsole( con.displayFrac );
+-	} else {
+-		// draw notify lines
+-		if ( clc.state == CA_ACTIVE ) {
+-			Con_DrawNotify ();
++	}
++
++	if( Key_GetCatcher( ) & ( KEYCATCH_UI | KEYCATCH_CGAME ) )
++		return;
++
++	// draw the chat line
++	// ZTM: FIXME: Move to cgame or ui
++	if( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
++	{
++		int skip;
++
++		if( chat_team ) {
++			SCR_DrawBigString( 8, 232, "Team Say:", 1.0f, qfalse );
++			skip = 11;
++		} else {
++			SCR_DrawBigString( 8, 232, "Say:", 1.0f, qfalse );
++			skip = 5;
+ 		}
++
++		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, 232,
++				SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qfalse );
+ 	}
+ }
+ 
+@@ -807,7 +717,6 @@
+ 		return;
+ 	}
+ 	Field_Clear( &g_consoleField );
+-	Con_ClearNotify ();
+ 	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CONSOLE );
+ 	con.finalFrac = 0;				// none visible
+ 	con.displayFrac = 0;
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 362)
++++ code/client/cl_cgame.c	(revision 365)
+@@ -532,6 +532,9 @@
+ 	case CG_ARGS:
+ 		Cmd_ArgsBuffer( VMA(1), args[2] );
+ 		return 0;
++	case CG_LITERAL_ARGS:
++		Cmd_LiteralArgsBuffer( VMA(1), args[2] );
++		return 0;
+ 	case CG_FS_FOPENFILE:
+ 		return FS_FOpenFileByMode( VMA(1), VMA(2), args[3] );
+ 	case CG_FS_READ:
+@@ -962,8 +965,20 @@
+ 	return VM_Call( cgvm, CG_CONSOLE_COMMAND );
+ }
+ 
++/*
++====================
++CL_GameConsoleText
++====================
++*/
++void CL_GameConsoleText( void ) {
++	if ( !cgvm ) {
++		return;
++	}
+ 
++	VM_Call( cgvm, CG_CONSOLE_TEXT );
++}
+ 
++
+ /*
+ =====================
+ CL_CGameRendering
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 362)
++++ code/client/cl_ui.c	(revision 365)
+@@ -732,6 +732,10 @@
+ 		Cmd_ArgsBuffer( VMA(1), args[2] );
+ 		return 0;
+ 
++	case UI_LITERAL_ARGS:
++		Cmd_LiteralArgsBuffer( VMA(1), args[2] );
++		return 0;
++
+ 	case UI_ADDCOMMAND:
+ 		CL_AddUICommand( VMA(1) );
+ 		return 0;
+Index: Makefile
+===================================================================
+--- Makefile	(revision 362)
++++ Makefile	(revision 365)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2388
++IOQ3_REVISION = 2389
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 

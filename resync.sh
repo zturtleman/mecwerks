@@ -1,17 +1,33 @@
 #!/bin/bash
 
-#
-# Set zero's for error checking
-#
+#Tool to add patch to repo with
+TOOL=git
+#File to store new commitlog to
+COMMIT_LOG=commitlog
+#File to store old commit log at if one exists
+OLDCOMMIT_LOG=commit.old
+#File to move commit log to when fixing it
+TMPCOMMIT_LOG=commit.tmp
+#Repository that the spearmint code is in
+SCODE=http://ioq3ztm.googlecode.com/svn/trunk/
+#Set this to zero for error checking
 OLD_REV=0
+#Set this to zero for error checking
 NEW_REV=0
-PATCH=0
-
-#
-# Makefile.local is used to get current revision number 
-#
+#This is the one-lined file that holds the current spearmint revision (SPEAR_REV = REVISION#)
 OLDCFG=REVISION
+#This sets the current revision using the cfg file
 OLD_REV=`grep "$SPEAR_REV =" "$OLDCFG" | cut -f3 -d' '`
+#This is normally set to one so the patch is applied after it is created
+PATCH=1
+#This is normally set to one so the patch will be added to the workng repository
+ADD_PATCH=1
+#The directory to put the patch file
+PATCH_DIR=patches
+#The prefix to put on the patch name
+PATCH_PREFIX=diff_
+#The extension of the patch file
+PATCH_SUFFIX=patch
 
 #
 # Read command line arguments
@@ -24,35 +40,85 @@ do
         if [ "$ARG" = "--help" ] || [ "$ARG" = "-help" ] || [ "$ARG" = "-h" ]
         then
                                         echo ""
-                echo "This script auto updates code to syncronize with the spearmint code"
-                echo "A patch is put in patches/diff_<oldrev:<newrev>.patch"
+                echo "This script automatically updates code to syncronize with Spearmint"
+                echo "A patch is put in $PATCH_DIR/$PATCH_PREFIX<oldrev>:<newrev>.$PATCH_SUFFIX"
                 echo ""
-                echo ""
-                echo "  OPTIONS"
-                echo "    -help         Show this help"
+		echo "  OPTIONS:"
+                echo "    -scode <arg>          Set source code svn repo"
+                echo "                                  (default: $SCODE)"
+                echo "    -newrev <arg>         Manually set newest revision"
+                echo "    -oldrev <arg>         Manually set current revision"
+                echo "    -tmpcommitlog <arg>   Set temporary commit log"
+                echo "                                  (default: $TMPCOMMIT_LOG)"
+                echo "    -oldcommitlog <arg>   Set what to store old commit log as"
+                echo "                                  (default: $OLDCOMMIT_LOG)"
+                echo "    -newcommitlog <arg>   Set what to store new commit log as"
+                echo "                                  (default: $COMMIT_LOG)"
+                echo "    -tool <arg>           Set tool to be used for adding patch to repo (git, svn, etc.)"
+                echo "                                  (default: $TOOL)"
+                echo "    -cfgfile <arg>        Set cfg file to get current revision from"
+                echo "                                  (default: $OLDCFG)"
+                echo "    -patchdir <arg>       Set the directory to place the patch"
+                echo "                                  (default: $PATCH_DIR)"
+                echo "    -patchprefix <arg>    Set the prefix to add to the patches name"
+                echo "                                  (default: $PATCH_PREFIX)"
+                echo "    -patchsuffix <arg>    Set the extension to use for the patch"
+                echo "                                  (default: $PATCH_SUFFIX)"
+                echo "    -nopatch              Do not apply patch after it's created"
+                echo "    -noadd                Do not add patch to repo"
+                echo "    -help                 Show this help"
                 echo "    -h"
-                echo ""
-                echo "    -patch       apply patch after created"
+                echo "To permanently set a variable edit this script"
                 exit 1
         fi
 	
 	#
 	# Check other arguements
 	#
-	if [ "$ARG" == "-newrev" ] || [ "$ARG" == "-oldrev" ] || [ "$ARG" == "-patch" ]
+	if [ "$ARG" == "-newrev" ] || [ "$ARG" == "-oldrev" ] || [ "$ARG" == "-nopatch" ] || [ "$ARG" == "-tmpcommitlog" ] || [ "$ARG" == "-oldcommitlog" ] || [ "$ARG" == "-newcommitlog" ] || [ "$ARG" == "-tool" ] || [ "$ARG" == "-cfgfile" ] || [ "$ARG" == "-patchdir" ] || [ "$ARG" == "-patchprefix" ] || [ "$ARG" == "-patchsuffix" ] || [ "$ARG" == "-noadd" ] || [ "$ARG" == "-scode" ]
 	then
 		NEXT_ARG="$ARG"
 	fi
 
 	case "$NEXT_ARG" in
+		-tmpcommitlog)
+			TMPCOMMIT_LOG="$ARG"
+			;;
+		-oldcommitlog)
+			OLDCOMMIT_LOG="$ARG"
+			;;
+		-newcommitlog)
+			COMMIT_LOG="$ARG"
+			;;
+		-tool)
+			TOOL="$ARG"
+			;;
+		-cfgfile)
+			OLDCFG="$ARG"
+			;;
+		-patchdir)
+			PATCH_DIR="$ARG"
+			;;
+		-patchprefix)
+			PATCH_PREFIX="$ARG"
+			;;
+		-patchsuffix)
+			PATCH_SUFFIX="$ARG"
+			;;
+		-noadd)
+			ADD_PATCH="0"
+			;;
+		-scode)
+			SCODE="$ARG"
+			;;
 		-newrev)
 			NEW_REV="$ARG"
 			;;
 		-oldrev)
 			OLD_REV="$ARG"
 			;;
-		-patch)
-			PATCH=1
+		-nopatch)
+			PATCH=0
 			;;
 		*)
 			echo "Unkown arguement '$ARG'"
@@ -67,21 +133,16 @@ done
 #
 if [ "$OLD_REV" = 0 ]
 then
-	echo "No old revision set. Check REVISION"
+	echo "No old revision set. Make sure there is a line in $OLDCFG as 'SPEAR_REV = <REVISION###>'"
 	error 1
 fi
-
-#
-# Make sure we are in the spearmint code directory
-#
-cd ../spear
 
 #
 # Set new revision to compare with
 #
 if [ "$NEW_REV" = "0" ]
 then
-	NEW_REV=`svn log -rHEAD | grep "^r[0-9]" | cut -f1 -d' ' | cut -c 2-`
+	NEW_REV=`svn log $SCODE -rHEAD | grep "^r[0-9]" | cut -f1 -d' ' | cut -c 2-`
 fi
 
 #
@@ -103,18 +164,12 @@ then
 fi
 
 #
-# Update spearmint code
-#
-echo "Updating Spearmint code"
-svn update > checkout.log
-
-#
 # If there's a commitlog there move it to a temp file
 #
-if [ -f ../mecwerks/commitlog ]
+if [ -f $COMMIT_LOG ]
 then
-	mv ../mecwerks/commitlog ../mecwerks/tmpcommit
-	echo "Found old commit log and moved it to tmpcommit"
+	mv $COMMIT_LOG $OLDCOMMIT_LOG
+	echo "Found old $COMMIT_LOG and moved it to $OLDCOMMIT_LOG"
 fi
 
 #
@@ -122,22 +177,23 @@ fi
 #
 for (( i = $OLD_REV; i <= $NEW_REV; i++ ))
 do
-	svn log -r$i >> ../mecwerks/commitlog
-	echo "Added commit log message for revision $i to commitlog"
+	echo "- Spearmint $i" >> $COMMIT_LOG
+	svn log $SCODE -r$i >> $COMMIT_LOG
+	echo "Added commit log message for revision $i to $COMMIT_LOG"
 done
 
 #
 # Clean up the commit log
 #
-grep -v - ../mecwerks/commitlog > ../mecwerks/commitlog.tmp
-rm -rf ../mecwerks/commitlog
-mv ../mecwerks/commitlog.tmp ../mecwerks/commitlog
+grep -v - $COMMIT_LOG > $TMPCOMMIT_LOG
+rm -rf $COMMIT_LOG
+mv $TMPCOMMIT_LOG $COMMIT_LOG
 
 #
 # Make the patch
 #
 echo "Making patch"
-svn diff -r $OLD_REV:$NEW_REV > ../mecwerks/patches/diff_$OLD_REV-$NEW_REV.patch
+svn diff $SCODE -r $OLD_REV:$NEW_REV > $PATCH_DIR/$PATCH_PREFIX$OLD_REV-$NEW_REV.$PATCH_SUFFIX
 
 
 #
@@ -148,13 +204,21 @@ then
 	#
 	# Update REVISION
 	#
-	cd ../mecwerks
 	echo "SPEAR_REV = $NEW_REV" > $OLDCFG
-	echo "REVISION updated"
+	echo "$OLDCFG updated"
 
+	#
+	# Apply Patch
+	#
 	echo "Patching"
-	patch -p0 < patches/diff_$OLD_REV-$NEW_REV.patch
+	patch -p0 < $PATCH_DIR/$PATCH_PREFIX$OLD_REV-$NEW_REV.$PATCH_SUFFIX
 
-	git add patches/diff_$OLD_REV-$NEW_REV.patch
-	echo "Added Patch to repo"
+	#
+	# Add Patch to repo
+	#
+	if [ "$ADD_PATCH" = "1" ]
+	then
+		$TOOL add $PATCH_DIR/$PATCH_PREFIX$OLD_REV-$NEW_REV.$PATCH_SUFFIX
+		echo "Added $PATCH_PREFIX$OLD_REV-$NEW_REV.$PATCH_SUFFIX to repo"
+	fi
 fi
