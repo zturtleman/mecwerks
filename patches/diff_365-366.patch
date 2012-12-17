@@ -1,0 +1,519 @@
+Index: code/server/sv_main.c
+===================================================================
+--- code/server/sv_main.c	(revision 365)
++++ code/server/sv_main.c	(revision 366)
+@@ -215,6 +215,7 @@
+ 	va_list		argptr;
+ 	byte		message[MAX_MSGLEN];
+ 	client_t	*client;
++	qboolean	globalPrint;
+ 	int			j;
+ 	
+ 	va_start (argptr,fmt);
+@@ -234,15 +235,23 @@
+ 		return;
+ 	}
+ 
++	// hack so client knows message is for all local clients.
++	globalPrint = !strncmp( (char *)message, "print", 5 );
++
++	if ( globalPrint ) {
++		memmove( &message[1], &message[0], (size_t)( strlen( (const char *)message ) ) );
++		message[0] = 'g'; // "gprint"
++	}
++
+ 	// hack to echo broadcast prints to console
+-	if ( com_dedicated->integer && !strncmp( (char *)message, "print", 5) ) {
++	if ( com_dedicated->integer && globalPrint ) {
+ 		Com_Printf ("broadcast: %s\n", SV_ExpandNewlines((char *)message) );
+ 	}
+ 
+ 	// send the data to all relevent clients
+ 	for (j = 0, client = svs.clients; j < sv_maxclients->integer ; j++, client++) {
+ 		// Don't sent print for extra local clients
+-		if (client->mainClient && !strncmp( (char *)message, "print", 5)) {
++		if ( client->mainClient && globalPrint ) {
+ 			continue;
+ 		}
+ 
+Index: code/game/g_cmds.c
+===================================================================
+--- code/game/g_cmds.c	(revision 365)
++++ code/game/g_cmds.c	(revision 366)
+@@ -902,6 +902,8 @@
+ */
+ 
+ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message ) {
++	const char *cmd;
++
+ 	if (!other) {
+ 		return;
+ 	}
+@@ -924,9 +926,26 @@
+ 		return;
+ 	}
+ 
++	switch ( mode ) {
++		case SAY_ALL:
++		default:
++			// don't send global chats to splitscreen clients
++			if ( other->r.mainClientNum != -1 ) {
++				return;
++			}
++
++			cmd = "chat";
++			break;
++		case SAY_TELL:
++			cmd = "tell";
++			break;
++		case SAY_TEAM:
++			cmd = "tchat";
++			break;
++	}
++
+ 	trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\"", 
+-		mode == SAY_TEAM ? "tchat" : "chat",
+-		name, Q_COLOR_ESCAPE, color, message));
++		cmd, name, Q_COLOR_ESCAPE, color, message));
+ }
+ 
+ #define EC		"\x19"
+@@ -988,11 +1007,6 @@
+ 	for (j = 0; j < level.maxclients; j++) {
+ 		other = &g_entities[j];
+ 
+-		// Don't send to extra local clients, would be printed multiple times.
+-		if (other->r.mainClientNum != -1) {
+-			continue;
+-		}
+-
+ 		G_SayTo( ent, other, mode, color, name, text );
+ 	}
+ }
+Index: code/game/ai_main.c
+===================================================================
+--- code/game/ai_main.c	(revision 365)
++++ code/game/ai_main.c	(revision 366)
+@@ -1013,13 +1013,13 @@
+ 			{ /*CenterPrintf*/ }
+ 		else if (!Q_stricmp(buf, "cs"))
+ 			{ /*ConfigStringModified*/ }
+-		else if (!Q_stricmp(buf, "print")) {
++		else if (!Q_stricmp(buf, "gprint") || !Q_stricmp(buf, "print")) {
+ 			//remove first and last quote from the chat message
+ 			memmove(args, args+1, strlen(args));
+ 			args[strlen(args)-1] = '\0';
+ 			trap_BotQueueConsoleMessage(bs->cs, CMS_NORMAL, args);
+ 		}
+-		else if (!Q_stricmp(buf, "chat")) {
++		else if (!Q_stricmp(buf, "chat") || !Q_stricmp(buf, "tell")) {
+ 			//remove first and last quote from the chat message
+ 			memmove(args, args+1, strlen(args));
+ 			args[strlen(args)-1] = '\0';
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 365)
++++ code/cgame/cg_draw.c	(revision 366)
+@@ -2807,6 +2807,47 @@
+ #endif
+ }
+ 
++
++/*
++=====================
++CG_DrawSmallWrappedText
++
++Draw multiline text
++=====================
++*/
++void CG_DrawSmallWrappedText(int x, int y, const char *textPtr) {
++	const char *p, *start;
++	char buff[1024];
++
++	if (!textPtr || *textPtr == '\0') {
++		return;
++	}
++
++	start = textPtr;
++	p = strchr(textPtr, '\n');
++	while (p && *p) {
++		strncpy(buff, start, p-start+1);
++		buff[p-start] = '\0';
++		CG_DrawSmallString(x, y, buff, 1.0f );
++		y += SMALLCHAR_HEIGHT + 3;
++		start += p - start + 1;
++		p = strchr(p+1, '\n');
++	}
++	CG_DrawSmallString(x, y, start, 1.0f );
++}
++
++/*
++=====================
++CG_DrawNotify
++
++Draw console notify area.
++=====================
++*/
++void CG_DrawNotify( void ) {
++	CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
++	CG_DrawSmallWrappedText(0, 0, cg.cur_lc->consoleText);
++}
++
+ //==================================================================================
+ #ifdef MISSIONPACK_HUD
+ /* 
+@@ -2935,6 +2976,8 @@
+ 	if (!cg.cur_lc->scoreBoardShowing) {
+ 		CG_DrawCenterString();
+ 	}
++
++	CG_DrawNotify();
+ }
+ 
+ 
+@@ -3010,46 +3053,6 @@
+ 
+ /*
+ =====================
+-CG_DrawSmallWrappedText
+-
+-Draw multiline text
+-=====================
+-*/
+-void CG_DrawSmallWrappedText(int x, int y, const char *textPtr) {
+-	const char *p, *start;
+-	char buff[1024];
+-
+-	if (!textPtr || *textPtr == '\0') {
+-		return;
+-	}
+-
+-	start = textPtr;
+-	p = strchr(textPtr, '\n');
+-	while (p && *p) {
+-		strncpy(buff, start, p-start+1);
+-		buff[p-start] = '\0';
+-		CG_DrawSmallString(x, y, buff, 1.0f );
+-		y += SMALLCHAR_HEIGHT + 3;
+-		start += p - start + 1;
+-		p = strchr(p+1, '\n');
+-	}
+-	CG_DrawSmallString(x, y, start, 1.0f );
+-}
+-
+-/*
+-=====================
+-CG_DrawNotify
+-
+-Draw console notify area.
+-=====================
+-*/
+-void CG_DrawNotify( void ) {
+-	CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
+-	CG_DrawSmallWrappedText(0, 0, cg.consoleText);
+-}
+-
+-/*
+-=====================
+ CG_DrawScreen2D
+ 
+ Perform drawing that fills the screen, drawing over all viewports
+@@ -3076,9 +3079,6 @@
+ 	} else {
+ 		CG_DrawGlobalCenterString();
+ 	}
+-
+-	// Draw console notify area.
+-	CG_DrawNotify();
+ }
+ 
+ 
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 365)
++++ code/cgame/cg_local.h	(revision 366)
+@@ -463,8 +463,8 @@
+   int length;
+ } consoleLine_t;
+ 
+-#define MAX_CONSOLE_TEXT  8192
+-#define MAX_CONSOLE_LINES 32
++#define MAX_CONSOLE_LINES 4
++#define MAX_CONSOLE_TEXT  ( 256 * MAX_CONSOLE_LINES )
+ 
+ // all cg.stepTime, cg.duckTime, cg.landTime, etc are set to cg.time when the action
+ // occurs, and they will have visible effects for #define STEP_TIME or whatever msec after
+@@ -573,6 +573,11 @@
+ 	int			scoreFadeTime;
+ 	char		killerName[MAX_NAME_LENGTH];
+ 
++	// console
++	char			consoleText[ MAX_CONSOLE_TEXT ];
++	consoleLine_t	consoleLines[ MAX_CONSOLE_LINES ];
++	int				numConsoleLines;
++
+ } cglc_t;
+  
+ #define MAX_SPAWN_VARS          64
+@@ -697,11 +702,6 @@
+ 	char			testModelName[MAX_QPATH];
+ 	qboolean		testGun;
+ 
+-	// console
+-	char			consoleText[ MAX_CONSOLE_TEXT ];
+-	consoleLine_t	consoleLines[ MAX_CONSOLE_LINES ];
+-	int				numConsoleLines;
+-
+ 	// Local client data, from events and such
+ 	cglc_t			*cur_lc;	// Current local client data we are working with
+ 	playerState_t	*cur_ps; // Like cur_lc, but for player state
+@@ -1285,6 +1285,8 @@
+ void QDECL CG_Printf( const char *msg, ... ) __attribute__ ((format (printf, 1, 2)));
+ void QDECL CG_Error( const char *msg, ... ) __attribute__ ((noreturn, format (printf, 1, 2)));
+ 
++void QDECL CG_NotifyPrintf( int localClientNum, const char *msg, ... ) __attribute__ ((format (printf, 2, 3)));
++
+ void CG_LocalClientAdded(int localClientNum, int clientNum);
+ void CG_LocalClientRemoved(int localClientNum);
+ 
+@@ -1303,7 +1305,7 @@
+ score_t *CG_GetSelectedScore( void );
+ void CG_BuildSpectatorString( void );
+ 
+-void CG_RemoveNotifyLine( void );
++void CG_RemoveNotifyLine( cglc_t *localClient );
+ void CG_AddNotifyText( void );
+ 
+ 
+Index: code/cgame/cg_view.c
+===================================================================
+--- code/cgame/cg_view.c	(revision 365)
++++ code/cgame/cg_view.c	(revision 366)
+@@ -1045,6 +1045,11 @@
+ 
+ 		// update cg.predictedPlayerState
+ 		CG_PredictPlayerState();
++
++		// Remove expired console lines
++		if( cg.cur_lc->consoleLines[ 0 ].time + cg_consoleLatency.integer < cg.time && cg_consoleLatency.integer > 0 ) {
++			CG_RemoveNotifyLine( cg.cur_lc );
++		}
+ 	}
+ 
+ 	// If all local clients dropped out from playing still draw main local client.
+@@ -1160,11 +1165,6 @@
+ 	cg.cur_ps = NULL;
+ 	cg.cur_localClientNum = -1;
+ 
+-	// Remove expired console lines
+-	if( cg.consoleLines[ 0 ].time + cg_consoleLatency.integer < cg.time && cg_consoleLatency.integer > 0 ) {
+-		CG_RemoveNotifyLine( );
+-	}
+-
+ 	// Draw over all viewports
+ 	CG_DrawScreen2D( stereoView );
+ 
+Index: code/cgame/cg_servercmds.c
+===================================================================
+--- code/cgame/cg_servercmds.c	(revision 365)
++++ code/cgame/cg_servercmds.c	(revision 366)
+@@ -1060,7 +1060,8 @@
+ 		return;
+ 	}
+ 
+-	if ( !strcmp( cmd, "print" ) ) {
++	// global print to all clients
++	if ( !strcmp( cmd, "gprint" ) ) {
+ #ifdef MISSIONPACK
+ 		cmd = CG_Argv(start+1);			// yes, this is obviously a hack, but so is the way we hear about
+ 									// votes passing or failing
+@@ -1071,40 +1072,46 @@
+ 		}
+ #endif
+ 
+-		if (lc != 0) {
+-			// Show which client this is for.
+-			CG_Printf("(For Local Client %d): ", lc+1);
+-		}
+-		CG_Printf( "%s", CG_Argv(start+1) );
++		CG_Printf("%s", CG_Argv( start+1 ) );
+ 		return;
+ 	}
+ 
++	if ( !strcmp( cmd, "print" ) ) {
++		CG_NotifyPrintf( lc, "%s", CG_Argv( start+1 ) );
++		return;
++	}
++
+ 	if ( !strcmp( cmd, "chat" ) ) {
+ 		if ( !cg_teamChatsOnly.integer ) {
+ 			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+-			if (lc != 0) {
+-				// Show which client this is for.
+-				Com_sprintf(text, MAX_SAY_TEXT, "(For Local Client %d): %s", lc+1, CG_Argv(start+1));
+-			} else {
+-				Q_strncpyz( text, CG_Argv(start+1), MAX_SAY_TEXT );
+-			}
++
++			Q_strncpyz( text, CG_Argv(start+1), MAX_SAY_TEXT );
++
+ 			CG_RemoveChatEscapeChar( text );
+ 			CG_Printf( "%s\n", text );
+ 		}
+ 		return;
+ 	}
+ 
++	if ( !strcmp( cmd, "tell" ) ) {
++		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
++
++		Q_strncpyz( text, CG_Argv(start+1), MAX_SAY_TEXT );
++
++		CG_RemoveChatEscapeChar( text );
++		CG_NotifyPrintf( lc, "%s\n", text );
++		return;
++	}
++
++	// ZTM: FIXME: only send each tchat message once for each team (if a local client is on the team).
+ 	if ( !strcmp( cmd, "tchat" ) ) {
+ 		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+-		if (lc != 0) {
+-			// Show which client this is for.
+-			Com_sprintf(text, MAX_SAY_TEXT, "(For Local Client %d): %s", lc+1, CG_Argv(start+1));
+-		} else {
+-			Q_strncpyz( text, CG_Argv(start+1), MAX_SAY_TEXT );
+-		}
++
++		Q_strncpyz( text, CG_Argv(start+1), MAX_SAY_TEXT );
++
+ 		CG_RemoveChatEscapeChar( text );
+ 		CG_AddToTeamChat( text );
+-		CG_Printf( "%s\n", text );
++		CG_NotifyPrintf( lc, "%s\n", text );
+ 		return;
+ 	}
+ 
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 365)
++++ code/cgame/cg_main.c	(revision 366)
+@@ -505,25 +505,25 @@
+ CG_RemoveNotifyLine
+ =================
+ */
+-void CG_RemoveNotifyLine( void )
++void CG_RemoveNotifyLine( cglc_t *localClient )
+ {
+   int i, offset, totalLength;
+ 
+-  if( cg.numConsoleLines == 0 )
++  if( !localClient || localClient->numConsoleLines == 0 )
+     return;
+ 
+-  offset = cg.consoleLines[ 0 ].length;
+-  totalLength = strlen( cg.consoleText ) - offset;
++  offset = localClient->consoleLines[ 0 ].length;
++  totalLength = strlen( localClient->consoleText ) - offset;
+ 
+   //slide up consoleText
+   for( i = 0; i <= totalLength; i++ )
+-    cg.consoleText[ i ] = cg.consoleText[ i + offset ];
++    localClient->consoleText[ i ] = localClient->consoleText[ i + offset ];
+ 
+   //pop up the first consoleLine
+-  for( i = 0; i < cg.numConsoleLines; i++ )
+-    cg.consoleLines[ i ] = cg.consoleLines[ i + 1 ];
++  for( i = 0; i < localClient->numConsoleLines; i++ )
++    localClient->consoleLines[ i ] = localClient->consoleLines[ i + 1 ];
+ 
+-  cg.numConsoleLines--;
++  localClient->numConsoleLines--;
+ }
+ 
+ /*
+@@ -532,29 +532,75 @@
+ =================
+ */
+ void CG_AddNotifyText( void ) {
+-	char buffer[ BIG_INFO_STRING ];
++	char text[ BIG_INFO_STRING ];
++	char *buffer;
+ 	int bufferLen;
++	int lc;
++	cglc_t *localClient;
++	int localClientBits;
+ 
+-	trap_LiteralArgs( buffer, BIG_INFO_STRING );
++	trap_LiteralArgs( text, sizeof ( text ) );
+ 
+-	if( !buffer[ 0 ] ) {
+-		cg.consoleText[ 0 ] = '\0';
+-		cg.numConsoleLines = 0;
++	if( !text[ 0 ] ) {
++		for ( lc = 0; lc < CG_MaxSplitView(); lc++ ) {
++			cg.localClients[lc].consoleText[ 0 ] = '\0';
++			cg.localClients[lc].numConsoleLines = 0;
++		}
+ 		return;
+ 	}
+ 
++	buffer = text;
+ 	bufferLen = strlen( buffer );
+ 
+-	if( cg.numConsoleLines == MAX_CONSOLE_LINES )
+-		CG_RemoveNotifyLine( );
++	// [player #] perfix for text that only shows up in notify area for one local client
++	if ( bufferLen > 4 && !Q_strncmp( buffer, "[player ", 8 ) && isdigit(buffer[8]) && buffer[9] == ']' ) {
++		localClientBits = 1 << ( atoi( &buffer[8] ) - 1 );
+ 
+-	Q_strcat( cg.consoleText, MAX_CONSOLE_TEXT, buffer );
+-	cg.consoleLines[ cg.numConsoleLines ].time = cg.time;
+-	cg.consoleLines[ cg.numConsoleLines ].length = bufferLen;
+-	cg.numConsoleLines++;
++		buffer += 10;
++		bufferLen = strlen( buffer );
++	} else {
++		localClientBits = ~0;
++	}
++
++	for ( lc = 0; lc < CG_MaxSplitView(); lc++ ) {
++		if ( !( localClientBits & ( 1 << lc ) ) ) {
++			continue;
++		}
++
++		localClient = &cg.localClients[lc];
++
++		if( localClient->numConsoleLines == MAX_CONSOLE_LINES )
++			CG_RemoveNotifyLine( localClient );
++
++		Q_strcat( localClient->consoleText, MAX_CONSOLE_TEXT, buffer );
++		localClient->consoleLines[ localClient->numConsoleLines ].time = cg.time;
++		localClient->consoleLines[ localClient->numConsoleLines ].length = bufferLen;
++		localClient->numConsoleLines++;
++	}
+ }
+ 
++/*
++=================
++CG_NotifyPrintf
+ 
++Only printed in notify area for localClientNum (and client console)
++=================
++*/
++void QDECL CG_NotifyPrintf( int localClientNum, const char *msg, ... ) {
++	va_list		argptr;
++	char		text[1024];
++	int			prefixLen;
++
++	Com_sprintf( text, sizeof(text), "[player %d]", localClientNum + 1 );
++	prefixLen = strlen(text);
++
++	va_start (argptr, msg);
++	Q_vsnprintf (text+prefixLen, sizeof(text)-prefixLen, msg, argptr);
++	va_end (argptr);
++
++	trap_Print( text );
++}
++
+ void QDECL CG_DPrintf( const char *msg, ... ) {
+ 	va_list		argptr;
+ 	char		text[1024];
