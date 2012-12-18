@@ -47,7 +47,6 @@ GAME OPTIONS MENU
 
 #define PREFERENCES_X_POS		360
 
-#define ID_CROSSHAIR			127
 #define ID_SIMPLEITEMS			128
 #define ID_HIGHQUALITYSKY		129
 #define ID_EJECTINGBRASS		130
@@ -62,9 +61,6 @@ GAME OPTIONS MENU
 #define ID_ATMEFFECTS			139
 #define ID_BACK					140
 
-#define	NUM_CROSSHAIRS			10
-
-
 typedef struct {
 	menuframework_s		menu;
 
@@ -72,7 +68,6 @@ typedef struct {
 	menubitmap_s		framel;
 	menubitmap_s		framer;
 
-	menulist_s			crosshair;
 	menuradiobutton_s	simpleitems;
 	menuradiobutton_s	brass;
 	menuradiobutton_s	wallmarks;
@@ -87,7 +82,6 @@ typedef struct {
 	menulist_s			atmeffects;
 	menubitmap_s		back;
 
-	qhandle_t			crosshairShader[NUM_CROSSHAIRS];
 } preferences_t;
 
 static preferences_t s_preferences;
@@ -117,7 +111,6 @@ static const char *atmeffects_names[] =
 };
 
 static void Preferences_SetMenuItems( void ) {
-	s_preferences.crosshair.curvalue		= (int)trap_Cvar_VariableValue( "cg_drawCrosshair" ) % NUM_CROSSHAIRS;
 	s_preferences.simpleitems.curvalue		= trap_Cvar_VariableValue( "cg_simpleItems" ) != 0;
 	s_preferences.brass.curvalue			= trap_Cvar_VariableValue( "cg_brassTime" ) != 0;
 	s_preferences.wallmarks.curvalue		= trap_Cvar_VariableValue( "cg_marks" ) != 0;
@@ -144,10 +137,6 @@ static void Preferences_Event( void* ptr, int notification ) {
 	}
 
 	switch( ((menucommon_s*)ptr)->id ) {
-	case ID_CROSSHAIR:
-		trap_Cvar_SetValue( "cg_drawCrosshair", s_preferences.crosshair.curvalue );
-		break;
-
 	case ID_SIMPLEITEMS:
 		trap_Cvar_SetValue( "cg_simpleItems", s_preferences.simpleitems.curvalue );
 		break;
@@ -206,56 +195,6 @@ static void Preferences_Event( void* ptr, int notification ) {
 	}
 }
 
-
-/*
-=================
-Crosshair_Draw
-=================
-*/
-static void Crosshair_Draw( void *self ) {
-	menulist_s	*s;
-	float		*color;
-	int			x, y;
-	int			style;
-	qboolean	focus;
-
-	s = (menulist_s *)self;
-	x = s->generic.x;
-	y =	s->generic.y;
-
-	style = UI_SMALLFONT;
-	focus = (s->generic.parent->cursor == s->generic.menuPosition);
-
-	if ( s->generic.flags & QMF_GRAYED )
-		color = text_color_disabled;
-	else if ( focus )
-	{
-		color = text_color_highlight;
-		style |= UI_PULSE;
-	}
-	else if ( s->generic.flags & QMF_BLINK )
-	{
-		color = text_color_highlight;
-		style |= UI_BLINK;
-	}
-	else
-		color = text_color_normal;
-
-	if ( focus )
-	{
-		// draw cursor
-		UI_FillRect( s->generic.left, s->generic.top, s->generic.right-s->generic.left+1, s->generic.bottom-s->generic.top+1, listbar_color ); 
-		UI_DrawChar( x, y, 13, UI_CENTER|UI_BLINK|UI_SMALLFONT, color);
-	}
-
-	UI_DrawString( x - SMALLCHAR_WIDTH, y, s->generic.name, style|UI_RIGHT, color );
-	if( !s->curvalue ) {
-		return;
-	}
-	UI_DrawHandlePic( x + SMALLCHAR_WIDTH, y - 4, 24, 24, s_preferences.crosshairShader[s->curvalue] );
-}
-
-
 static void Preferences_MenuInit( void ) {
 	int				y;
 
@@ -290,21 +229,6 @@ static void Preferences_MenuInit( void ) {
 	s_preferences.framer.height  	   = 334;
 
 	y = 144;
-	s_preferences.crosshair.generic.type		= MTYPE_SPINCONTROL;
-	s_preferences.crosshair.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT|QMF_NODEFAULTINIT|QMF_OWNERDRAW;
-	s_preferences.crosshair.generic.x			= PREFERENCES_X_POS;
-	s_preferences.crosshair.generic.y			= y;
-	s_preferences.crosshair.generic.name		= "Crosshair:";
-	s_preferences.crosshair.generic.callback	= Preferences_Event;
-	s_preferences.crosshair.generic.ownerdraw	= Crosshair_Draw;
-	s_preferences.crosshair.generic.id			= ID_CROSSHAIR;
-	s_preferences.crosshair.generic.top			= y - 4;
-	s_preferences.crosshair.generic.bottom		= y + 20;
-	s_preferences.crosshair.generic.left		= PREFERENCES_X_POS - ( ( strlen(s_preferences.crosshair.generic.name) + 1 ) * SMALLCHAR_WIDTH );
-	s_preferences.crosshair.generic.right		= PREFERENCES_X_POS + 48;
-	s_preferences.crosshair.numitems			= NUM_CROSSHAIRS;
-
-	y += BIGCHAR_HEIGHT+2+4;
 	s_preferences.simpleitems.generic.type        = MTYPE_RADIOBUTTON;
 	s_preferences.simpleitems.generic.name	      = "Simple Items:";
 	s_preferences.simpleitems.generic.flags	      = QMF_PULSEIFFOCUS|QMF_SMALLFONT;
@@ -431,7 +355,6 @@ static void Preferences_MenuInit( void ) {
 	Menu_AddItem( &s_preferences.menu, &s_preferences.framel );
 	Menu_AddItem( &s_preferences.menu, &s_preferences.framer );
 
-	Menu_AddItem( &s_preferences.menu, &s_preferences.crosshair );
 	Menu_AddItem( &s_preferences.menu, &s_preferences.simpleitems );
 	Menu_AddItem( &s_preferences.menu, &s_preferences.wallmarks );
 	Menu_AddItem( &s_preferences.menu, &s_preferences.brass );
@@ -463,9 +386,6 @@ void Preferences_Cache( void ) {
 	trap_R_RegisterShaderNoMip( ART_FRAMER );
 	trap_R_RegisterShaderNoMip( ART_BACK0 );
 	trap_R_RegisterShaderNoMip( ART_BACK1 );
-	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
-		s_preferences.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
-	}
 }
 
 

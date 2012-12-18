@@ -2149,7 +2149,7 @@ static void CG_DrawCrosshair(void)
 	float		x, y;
 	int			ca;
 
-	if ( !cg_drawCrosshair.integer ) {
+	if ( !cg_drawCrosshair[cg.cur_localClientNum].integer ) {
 		return;
 	}
 
@@ -2191,7 +2191,7 @@ static void CG_DrawCrosshair(void)
 	x = cg_crosshairX.integer;
 	y = cg_crosshairY.integer;
 
-	ca = cg_drawCrosshair.integer;
+	ca = cg_drawCrosshair[cg.cur_localClientNum].integer;
 	if (ca < 0) {
 		ca = 0;
 	}
@@ -2218,7 +2218,7 @@ static void CG_DrawCrosshair3D(void)
 	char rendererinfos[128];
 	refEntity_t ent;
 
-	if ( !cg_drawCrosshair.integer ) {
+	if ( !cg_drawCrosshair[cg.cur_localClientNum].integer ) {
 		return;
 	}
 
@@ -2241,7 +2241,7 @@ static void CG_DrawCrosshair3D(void)
 		w *= ( 1 + f );
 	}
 
-	ca = cg_drawCrosshair.integer;
+	ca = cg_drawCrosshair[cg.cur_localClientNum].integer;
 	if (ca < 0) {
 		ca = 0;
 	}
@@ -2325,7 +2325,7 @@ static void CG_DrawCrosshairNames( void ) {
 	char		*name;
 	float		w;
 
-	if ( !cg_drawCrosshair.integer ) {
+	if ( !cg_drawCrosshair[cg.cur_localClientNum].integer ) {
 		return;
 	}
 	if ( !cg_drawCrosshairNames.integer ) {

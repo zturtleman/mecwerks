@@ -48,13 +48,13 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define NUM_COLOR_EFFECTS 7
 
 #define ID_NAME			10
-#define ID_HANDICAP		11
+#define ID_CROSSHAIR		11
 #define ID_EFFECTS		12
 #define ID_BACK			13
 #define ID_MODEL		14
 
 #define MAX_NAMELENGTH	20
-
+#define NUM_CROSSHAIRS                  10
 
 typedef struct {
 	menuframework_s		menu;
@@ -79,37 +79,15 @@ typedef struct {
 	char				playerModel[MAX_QPATH];
 	int					localClient;
 	char				bannerString[32];
+
+	menulist_s		crosshair;
+	qhandle_t               crosshairShader[NUM_CROSSHAIRS];
 } playersettings_t;
 
 static playersettings_t	s_playersettings;
 
 static int gamecodetoui[NUM_COLOR_EFFECTS] = {4,2,3,0,5,1,6};
 static int uitogamecode[NUM_COLOR_EFFECTS] = {4,6,2,3,1,5,7};
-
-static const char *handicap_items[] = {
-	"None",
-	"95",
-	"90",
-	"85",
-	"80",
-	"75",
-	"70",
-	"65",
-	"60",
-	"55",
-	"50",
-	"45",
-	"40",
-	"35",
-	"30",
-	"25",
-	"20",
-	"15",
-	"10",
-	"5",
-	NULL
-};
-
 
 /*
 =================
@@ -182,32 +160,57 @@ static void PlayerSettings_DrawName( void *self ) {
 	UI_DrawProportionalString( 320, 440, name, UI_CENTER|UI_BIGFONT, text_color_normal );
 }
 
-
 /*
 =================
-PlayerSettings_DrawHandicap
+Crosshair_Draw
 =================
 */
-static void PlayerSettings_DrawHandicap( void *self ) {
-	menulist_s		*item;
-	qboolean		focus;
-	int				style;
-	float			*color;
+static void Crosshair_Draw( void *self ) {
+        menulist_s      *s;
+        qboolean                focus;
+        int                             style;
+        float                   *color;
+        int                             basex, x, y;
 
-	item = (menulist_s *)self;
-	focus = (item->generic.parent->cursor == item->generic.menuPosition);
+        s = (menulist_s*)self;
+        basex = s->generic.x;
+        y = s->generic.y;
+        focus = (s->generic.parent->cursor == s->generic.menuPosition);
 
-	style = UI_LEFT|UI_SMALLFONT;
-	color = text_color_normal;
-	if( focus ) {
-		style |= UI_PULSE;
-		color = text_color_highlight;
-	}
+        style = UI_LEFT|UI_SMALLFONT;
+        color = text_color_normal;
+        if( focus ) {
+                style |= UI_PULSE;
+                color = text_color_highlight;
+        }
 
-	UI_DrawProportionalString( item->generic.x, item->generic.y, "Handicap", style, color );
-	UI_DrawProportionalString( item->generic.x + 64, item->generic.y + PROP_HEIGHT, handicap_items[item->curvalue], style, color );
+        UI_DrawProportionalString( basex, y, "CROSSHAIR", style, color );
+        
+	x = s->generic.x;
+
+        style = UI_SMALLFONT;
+        focus = (s->generic.parent->cursor == s->generic.menuPosition);
+
+        if ( s->generic.flags & QMF_GRAYED )
+                color = text_color_disabled;
+        else if ( focus )
+        {
+                color = text_color_highlight;
+                style |= UI_PULSE;
+        }
+        else if ( s->generic.flags & QMF_BLINK )
+        {
+                color = text_color_highlight;
+                style |= UI_BLINK;
+        }
+        else
+                color = text_color_normal;
+
+        if( !s->curvalue ) {
+                return;
+        }
+        UI_DrawHandlePic( x + 64, y + PROP_HEIGHT + 8, 24, 24, s_playersettings.crosshairShader[s->curvalue] );
 }
-
 
 /*
 =================
@@ -276,8 +279,7 @@ static void PlayerSettings_SaveChanges( void ) {
 	trap_Cvar_Set( Com_LocalClientCvarName(s_playersettings.localClient, "name"), s_playersettings.name.field.buffer );
 
 	// handicap
-	trap_Cvar_SetValue( Com_LocalClientCvarName(s_playersettings.localClient, "handicap"),
-			(1000 - s_playersettings.handicap.curvalue * 50) );
+	trap_Cvar_SetValue( Com_LocalClientCvarName(s_playersettings.localClient, "cg_drawCrosshair"), s_playersettings.crosshair.curvalue );
 
 	// effects color
 	trap_Cvar_SetValue( Com_LocalClientCvarName(s_playersettings.localClient, "color1"),
@@ -306,7 +308,6 @@ PlayerSettings_SetMenuItems
 static void PlayerSettings_SetMenuItems( void ) {
 	vec3_t	viewangles;
 	int		c;
-	int		h;
 
 	// name
 	Q_strncpyz( s_playersettings.name.field.buffer, UI_Cvar_VariableString(
@@ -330,9 +331,8 @@ static void PlayerSettings_SetMenuItems( void ) {
 			UI_Cvar_VariableString( Com_LocalClientCvarName(s_playersettings.localClient, "model") ) );
 	UI_PlayerInfo_SetInfo( &s_playersettings.playerinfo, LEGS_IDLE, TORSO_STAND, viewangles, vec3_origin, WP_MACHINEGUN, qfalse );
 
-	// handicap
-	h = Com_Clamp( 50, 1000, trap_Cvar_VariableValue(Com_LocalClientCvarName(s_playersettings.localClient, "handicap")) );
-	s_playersettings.handicap.curvalue = 20 - h / 5 ;
+	// crosshair
+	s_playersettings.crosshair.curvalue = (int)trap_Cvar_VariableValue( Com_LocalClientCvarName(s_playersettings.localClient, "cg_drawCrosshair" )) % NUM_CROSSHAIRS;
 }
 
 
@@ -347,9 +347,8 @@ static void PlayerSettings_MenuEvent( void* ptr, int event ) {
 	}
 
 	switch( ((menucommon_s*)ptr)->id ) {
-	case ID_HANDICAP:
-		trap_Cvar_Set( Com_LocalClientCvarName(s_playersettings.localClient, "handicap"),
-				va( "%i", 100 - 25 * s_playersettings.handicap.curvalue ) );
+	case ID_CROSSHAIR:
+		trap_Cvar_Set( Com_LocalClientCvarName(s_playersettings.localClient, "cg_drawCrosshair"), s_playersettings.crosshair.generic.name  );
 		break;
 
 	case ID_MODEL:
@@ -431,17 +430,19 @@ static void PlayerSettings_MenuInit( int localClient )
 	s_playersettings.name.generic.bottom		= y + 2 * PROP_HEIGHT;
 
 	y += 3 * PROP_HEIGHT;
-	s_playersettings.handicap.generic.type		= MTYPE_SPINCONTROL;
-	s_playersettings.handicap.generic.flags		= QMF_NODEFAULTINIT;
-	s_playersettings.handicap.generic.id		= ID_HANDICAP;
-	s_playersettings.handicap.generic.ownerdraw	= PlayerSettings_DrawHandicap;
-	s_playersettings.handicap.generic.x			= 192;
-	s_playersettings.handicap.generic.y			= y;
-	s_playersettings.handicap.generic.left		= 192 - 8;
-	s_playersettings.handicap.generic.top		= y - 8;
-	s_playersettings.handicap.generic.right		= 192 + 200;
-	s_playersettings.handicap.generic.bottom	= y + 2 * PROP_HEIGHT;
-	s_playersettings.handicap.numitems			= 20;
+	s_playersettings.crosshair.generic.type        = MTYPE_SPINCONTROL;
+        s_playersettings.crosshair.generic.flags       = QMF_PULSEIFFOCUS|QMF_SMALLFONT|QMF_NODEFAULTINIT|QMF_OWNERDRAW;
+        s_playersettings.crosshair.generic.x           = 192;
+        s_playersettings.crosshair.generic.y           = y;
+        s_playersettings.crosshair.generic.name        = "Crosshair:";
+        s_playersettings.crosshair.generic.callback    = PlayerSettings_MenuEvent;
+        s_playersettings.crosshair.generic.ownerdraw   = Crosshair_Draw;
+        s_playersettings.crosshair.generic.id          = ID_CROSSHAIR;
+        s_playersettings.crosshair.generic.top         = y - 8;
+        s_playersettings.crosshair.generic.bottom      = y + 2 * PROP_HEIGHT;
+        s_playersettings.crosshair.generic.left        = 192 - 8;
+        s_playersettings.crosshair.generic.right       = 192 + 200;
+        s_playersettings.crosshair.numitems            = NUM_CROSSHAIRS;
 
 	y += 3 * PROP_HEIGHT;
 	s_playersettings.effects.generic.type		= MTYPE_SPINCONTROL;
@@ -498,7 +499,7 @@ static void PlayerSettings_MenuInit( int localClient )
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.framer );
 
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.name );
-	Menu_AddItem( &s_playersettings.menu, &s_playersettings.handicap );
+	Menu_AddItem( &s_playersettings.menu, &s_playersettings.crosshair );
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.effects );
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.model );
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.back );
@@ -517,12 +518,18 @@ PlayerSettings_Cache
 =================
 */
 void PlayerSettings_Cache( void ) {
+	int n;
+	
 	trap_R_RegisterShaderNoMip( ART_FRAMEL );
 	trap_R_RegisterShaderNoMip( ART_FRAMER );
 	trap_R_RegisterShaderNoMip( ART_MODEL0 );
 	trap_R_RegisterShaderNoMip( ART_MODEL1 );
 	trap_R_RegisterShaderNoMip( ART_BACK0 );
 	trap_R_RegisterShaderNoMip( ART_BACK1 );
+
+	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
+                s_playersettings.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
+        }
 
 	s_playersettings.fxBasePic = trap_R_RegisterShaderNoMip( ART_FX_BASE );
 	s_playersettings.fxPic[0] = trap_R_RegisterShaderNoMip( ART_FX_RED );
