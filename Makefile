@@ -115,8 +115,16 @@ ifndef BASEGAME
 BASEGAME=baseq3
 endif
 
+ifndef MECDEBUG
+MEC_DEBUG=1
+endif
+
 ifndef BASEGAME_CFLAGS
-BASEGAME_CFLAGS=
+   ifdef MEC_DEBUG
+      BASEGAME_CFLAGS=-DMEC_DEBUG
+   else
+      BASEGAME_CFLAGS=
+   endif
 endif
 
 ifndef MISSIONPACK

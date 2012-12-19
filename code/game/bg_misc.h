@@ -117,11 +117,9 @@ typedef enum {
 	GT_TEAM,			// team deathmatch
 	GT_TEAM_FRENZY,			// team scoring frenzy
 	GT_CTF,				// capture the flag
-#ifdef MISSIONPACK
 	GT_1FCTF,
 	GT_OBELISK,
 	GT_HARVESTER,
-#endif
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
@@ -219,9 +217,7 @@ void Pmove (pmove_t *pmove);
 typedef enum {
 	STAT_HEALTH,
 	STAT_HOLDABLE_ITEM,
-#ifdef MISSIONPACK
 	STAT_PERSISTANT_POWERUP,
-#endif
 	STAT_WEAPONS,					// 16 bit fields
 	STAT_ARMOR,				
 	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
@@ -256,9 +252,7 @@ typedef enum {
 
 // entityState_t->eFlags
 #define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
-#ifdef MISSIONPACK
 #define EF_TICKING			0x00000002		// used to make players play the prox mine ticking sound
-#endif
 #define	EF_TELEPORT_BIT		0x00000004		// toggled every time the origin abruptly changes
 #define	EF_AWARD_EXCELLENT	0x00000008		// draw an excellent sprite
 #define EF_PLAYER_EVENT		0x00000010
@@ -330,11 +324,9 @@ typedef enum {
 	WP_PLASMAGUN,
 	WP_BFG,
 	WP_GRAPPLING_HOOK,
-#ifdef MISSIONPACK
 	WP_NAILGUN,
 	WP_PROX_LAUNCHER,
 	WP_CHAINGUN,
-#endif
 
 	WP_NUM_WEAPONS
 } weapon_t;
@@ -669,13 +661,11 @@ typedef enum {
 	MOD_SUICIDE,
 	MOD_TARGET_LASER,
 	MOD_TRIGGER_HURT,
-#ifdef MISSIONPACK
 	MOD_NAIL,
 	MOD_CHAINGUN,
 	MOD_PROXIMITY_MINE,
 	MOD_KAMIKAZE,
 	MOD_JUICED,
-#endif
 	MOD_GRAPPLE
 } meansOfDeath_t;
 
