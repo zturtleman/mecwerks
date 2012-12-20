@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */ 
 
+#if 0
 #define FPH FS_HEALTH
 #define FPA FS_ARMOR
   
@@ -69,5 +70,55 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   
 #define FGW FLAG_WEIGHT
  
+#else
+
+//MEC
+#define FS_HEALTH FPH
+#define FS_ARMOR FPA
+  
+#define W_SHOTGUN SGW
+#define W_MACHINEGUN MGW
+#define W_GRENADELAUNCHER GLW
+#define W_ROCKETLAUNCHER RLW
+#define W_RAILGUN RGW
+#define W_BFG10K BFW
+#define W_LIGHTNING LGW
+#define W_PLASMAGUN PGW
+#define W_GRENADELAUNCHER PXW
+#define W_SHOTGUN NGW
+#define W_PLASMAGUN CGW
+  
+#define GWW_SHOTGUN GSGW
+#define GWW_MACHINEGUN GMGW
+#define GWW_GRENADELAUNCHER GGLW
+#define GWW_ROCKETLAUNCHER GRLW
+#define GWW_RAILGUN GRGW
+#define GWW_BFG10K GBFW
+#define GWW_LIGHTNING GLGW
+#define GWW_PLASMAGUN GPGW
+#define GWW_GRENADELAUNCHER GPXW
+#define GWW_SHOTGUN GNGW
+#define GWW_PLASMAGUN GCGW
+  
+#define W_TELEPORTER TELW
+#define W_MEDKIT MEDW
+#define W_QUAD QW
+#define W_ENVIRO ENVW
+#define W_HASTE HAW
+#define W_INVISIBILITY INW
+#define W_REGEN REGW
+#define W_FLIGHT FLW
+#define W_FLIGHT KAMW
+#define W_REGEN IBW
+#define W_TELEPORTER PORW
+#define W_ENVIRO SCW
+#define W_REGEN GUW
+#define W_QUAD DUBW
+#define W_REGEN AMRW
+#define FLAG_WEIGHT REDCW
+#define FLAG_WEIGHT BLCW
+  
+#define FLAG_WEIGHT FGW
+#endif
 
 #include "fuzi.c"

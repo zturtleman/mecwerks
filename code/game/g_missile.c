@@ -101,6 +101,7 @@ void G_ExplodeMissile( gentity_t *ent ) {
 }
 
 
+#ifdef MISSIONPACK
 /*
 ================
 ProximityMine_Explode
@@ -267,6 +268,7 @@ static void ProximityMine_Player( gentity_t *mine, gentity_t *player ) {
 		mine->nextthink = level.time + 10 * 1000;
 	}
 }
+#endif
 
 /*
 ================
@@ -276,8 +278,10 @@ G_MissileImpact
 void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	gentity_t		*other;
 	qboolean		hitClient = qfalse;
+#ifdef MISSIONPACK
 	vec3_t			forward, impactpoint, bouncedir;
 	int				eFlags;
+#endif
 	other = &g_entities[trace->entityNum];
 
 	// check for bounce
@@ -288,6 +292,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		return;
 	}
 
+#ifdef MISSIONPACK
 	if ( other->takedamage ) {
 		if ( ent->s.weapon != WP_PROX_LAUNCHER ) {
 			if ( other->client && other->client->invulnerabilityTime > level.time ) {
@@ -306,6 +311,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			}
 		}
 	}
+#endif
 	// impact damage
 	if (other->takedamage) {
 		// FIXME: wrong damage direction?
@@ -326,6 +332,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 		}
 	}
 
+#ifdef MISSIONPACK
 	if( ent->s.weapon == WP_PROX_LAUNCHER ) {
 		if( ent->s.pos.trType != TR_GRAVITY ) {
 			return;
@@ -360,6 +367,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 
 		return;
 	}
+#endif
 
 	if (!strcmp(ent->classname, "hook")) {
 		gentity_t *nent;
@@ -457,10 +465,12 @@ void G_RunMissile( gentity_t *ent ) {
 	if ( ent->target_ent ) {
 		passent = ent->target_ent->s.number;
 	}
+#ifdef MISSIONPACK
 	// prox mines that left the owner bbox will attach to anything, even the owner
 	else if (ent->s.weapon == WP_PROX_LAUNCHER && ent->count) {
 		passent = ENTITYNUM_NONE;
 	}
+#endif
 	else {
 		// ignore interactions with the missile owner
 		passent = ent->r.ownerNum;
@@ -497,6 +507,7 @@ void G_RunMissile( gentity_t *ent ) {
 			return;		// exploded
 		}
 	}
+#ifdef MISSIONPACK
 	// if the prox mine wasn't yet outside the player body
 	if (ent->s.weapon == WP_PROX_LAUNCHER && !ent->count) {
 		// check if the prox mine is outside the owner bbox
@@ -505,6 +516,7 @@ void G_RunMissile( gentity_t *ent ) {
 			ent->count = 1;
 		}
 	}
+#endif
 	// check think function after bouncing
 	G_RunThink( ent );
 }
@@ -710,6 +722,7 @@ gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir) {
 }
 
 
+#ifdef MISSIONPACK
 /*
 =================
 fire_nail
@@ -804,3 +817,4 @@ gentity_t *fire_prox( gentity_t *self, vec3_t start, vec3_t dir ) {
 
 	return bolt;
 }
+#endif

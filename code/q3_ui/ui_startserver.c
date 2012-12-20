@@ -104,25 +104,24 @@ static const char *gametype_items[] = {
     "Scoring Frenzy",
 	"Team Scoring Frenzy",
 	"Rail Factory",
+#ifdef MISSIONPACK
 	"1 Flag CTF",
 	"Overload",
 	"Harvester",
+#endif
 	NULL
 };
 
-static int gametype_remap[] = {
-	GT_FFA, 
-	GT_TEAM, 
-	GT_TOURNAMENT, 
-	GT_CTF, 
-	GT_FRENZY, 
-	GT_TEAM_FRENZY, 
-	GT_RARENA,
-	GT_1FCTF, 
-	GT_OBELISK, 
-	GT_HARVESTER
+static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF, GT_FRENZY, GT_TEAM_FRENZY, GT_RARENA
+#ifdef MISSIONPACK
+,GT_1FCTF, GT_OBELISK, GT_HARVESTER
+#endif
 };
-static int gametype_remap2[] = {0, 4, 2, 0, 1, 3, 5, 2, 4, 5, 6};
+static int gametype_remap2[] = {0, 4, 2, 0, 1, 3, 5, 2
+#ifdef MISSIONPACK
+,4, 5, 6
+#endif
+};
 
 static void UI_ServerOptionsMenu( qboolean multiplayer );
 
@@ -868,6 +867,7 @@ static void ServerOptions_Start( void ) {
 		trap_Cvar_SetValue( "ui_ctf_friendly", friendlyfire );
 		break;
 
+#ifdef MISSIONPACK
 	case GT_1FCTF:
 		trap_Cvar_SetValue( "ui_1flag_capturelimit", flaglimit );
 		trap_Cvar_SetValue( "ui_1flag_timelimit", timelimit );
@@ -885,6 +885,7 @@ static void ServerOptions_Start( void ) {
 		trap_Cvar_SetValue( "ui_harvester_timelimit", timelimit );
 		trap_Cvar_SetValue( "ui_harvester_friendly", friendlyfire );
 		break;
+#endif
 	}
 
 	trap_Cvar_SetValue( "sv_maxclients", Com_Clamp( 0, 12, maxclients ) );
@@ -1318,6 +1319,7 @@ static void ServerOptions_SetMenuItems( void ) {
 		s_serveroptions.friendlyfire.curvalue = (int)Com_Clamp( 0, 1, trap_Cvar_VariableValue( "ui_ctf_friendly" ) );
 		break;
 
+#ifdef MISSIONPACK
 	case GT_1FCTF:
 		Com_sprintf( s_serveroptions.flaglimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 100, trap_Cvar_VariableValue( "ui_1flag_capturelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_1flag_timelimit" ) ) );
@@ -1335,6 +1337,7 @@ static void ServerOptions_SetMenuItems( void ) {
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_harvester_timelimit" ) ) );
 		s_serveroptions.friendlyfire.curvalue = (int)Com_Clamp( 0, 1, trap_Cvar_VariableValue( "ui_harvester_friendly" ) );
 		break;
+#endif
 	}
 
 	s_serveroptions.publicserver.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "ui_publicServer" ) );

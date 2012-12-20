@@ -203,7 +203,9 @@ int BotNearbyGoal(bot_state_t *bs, int tfl, bot_goal_t *ltg, float range) {
 	if (BotGoForAir(bs, tfl, ltg, range)) return qtrue;
 	// if the bot is carrying a flag or cubes
 	if (BotCTFCarryingFlag(bs)
+#ifdef MISSIONPACK
 		|| Bot1FCTFCarryingFlag(bs) || BotHarvesterCarryingCubes(bs)
+#endif
 		) {
 		//if the bot is just a few secs away from the base 
 		if (trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin,
@@ -841,6 +843,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 	}
 #endif //CTF
+#ifdef MISSIONPACK
 	else if (gametype == GT_1FCTF) {
 		if (bs->ltgtype == LTG_GETFLAG) {
 			//check for bot typing status message
@@ -1036,6 +1039,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			return qtrue;
 		}
 	}
+#endif
 	//normal goal stuff
 	return BotGetItemLongTermGoal(bs, tfl, goal);
 }
@@ -1306,12 +1310,14 @@ int BotSelectActivateWeapon(bot_state_t *bs) {
 		return WEAPONINDEX_PLASMAGUN;
 	else if (bs->inventory[INVENTORY_LIGHTNING] > 0 && bs->inventory[INVENTORY_LIGHTNINGAMMO] > 0)
 		return WEAPONINDEX_LIGHTNING;
+#ifdef MISSIONPACK
 	else if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 0)
 		return WEAPONINDEX_CHAINGUN;
 	else if (bs->inventory[INVENTORY_NAILGUN] > 0 && bs->inventory[INVENTORY_NAILS] > 0)
 		return WEAPONINDEX_NAILGUN;
 	else if (bs->inventory[INVENTORY_PROXLAUNCHER] > 0 && bs->inventory[INVENTORY_MINES] > 0)
 		return WEAPONINDEX_PROXLAUNCHER;
+#endif
 	else if (bs->inventory[INVENTORY_GRENADELAUNCHER] > 0 && bs->inventory[INVENTORY_GRENADES] > 0)
 		return WEAPONINDEX_GRENADE_LAUNCHER;
 	else if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 0)
@@ -1886,6 +1892,7 @@ int AINode_Seek_LTG(bot_state_t *bs)
 				range = 50;
 		}
 #endif //CTF
+#ifdef MISSIONPACK
 		else if (gametype == GT_1FCTF) {
 			if (Bot1FCTFCarryingFlag(bs))
 				range = 50;
@@ -1894,6 +1901,7 @@ int AINode_Seek_LTG(bot_state_t *bs)
 			if (BotHarvesterCarryingCubes(bs))
 				range = 80;
 		}
+#endif
 		//
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
 			trap_BotResetLastAvoidReach(bs->ms);
@@ -2058,11 +2066,13 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	VectorCopy(entinfo.origin, target);
 	// if not a player enemy
 	if (bs->enemy >= MAX_CLIENTS) {
+#ifdef MISSIONPACK
 		// if attacking an obelisk
 		if ( bs->enemy == redobelisk.entitynum ||
 			bs->enemy == blueobelisk.entitynum ) {
 			target[2] += 16;
 		}
+#endif
 	}
 	//update the reachability area and origin if possible
 	areanum = BotPointAreaNum(target);
@@ -2090,10 +2100,12 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	}
 	//if the enemy is not visible
 	if (!BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy)) {
+#ifdef MISSIONPACK
 		if (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum) {
 			AIEnter_Battle_Chase(bs, "battle fight: obelisk out of sight");
 			return qfalse;
 		}
+#endif
 		if (BotWantsToChase(bs)) {
 			AIEnter_Battle_Chase(bs, "battle fight: enemy out of sight");
 			return qfalse;
@@ -2358,11 +2370,13 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		VectorCopy(entinfo.origin, target);
 		// if not a player enemy
 		if (bs->enemy >= MAX_CLIENTS) {
+#ifdef MISSIONPACK
 			// if attacking an obelisk
 			if ( bs->enemy == redobelisk.entitynum ||
 				bs->enemy == blueobelisk.entitynum ) {
 				target[2] += 16;
 			}
+#endif
 		}
 		//update the reachability area and origin if possible
 		areanum = BotPointAreaNum(target);
@@ -2404,6 +2418,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 				range = 50;
 		}
 #endif //CTF
+#ifdef MISSIONPACK
 		else if (gametype == GT_1FCTF) {
 			if (Bot1FCTFCarryingFlag(bs))
 				range = 50;
@@ -2412,6 +2427,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 			if (BotHarvesterCarryingCubes(bs))
 				range = 80;
 		}
+#endif
 		//
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
 			trap_BotResetLastAvoidReach(bs->ms);
@@ -2531,11 +2547,13 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		VectorCopy(entinfo.origin, target);
 		// if not a player enemy
 		if (bs->enemy >= MAX_CLIENTS) {
+#ifdef MISSIONPACK
 			// if attacking an obelisk
 			if ( bs->enemy == redobelisk.entitynum ||
 				bs->enemy == blueobelisk.entitynum ) {
 				target[2] += 16;
 			}
+#endif
 		}
 		//update the reachability area and origin if possible
 		areanum = BotPointAreaNum(target);

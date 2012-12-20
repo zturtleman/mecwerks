@@ -252,6 +252,7 @@ static void CG_scrollScoresUp_f( void) {
 #endif
 
 
+#ifdef MISSIONPACK
 static void CG_spWin_f( void) {
 	trap_Cvar_Set("cg_cameraOrbit", "2");
 	trap_Cvar_Set("cg_cameraOrbitDelay", "35");
@@ -273,6 +274,8 @@ static void CG_spLose_f( void) {
 	//trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
 	CG_GlobalCenterPrint("YOU LOSE...", SCREEN_HEIGHT/2, 2.0);
 }
+
+#endif
 
 static void CG_TellTarget_f( void ) {
 	int		clientNum;
@@ -603,8 +606,6 @@ static consoleCommand_t	commands[] = {
 	{ "tcmd", CG_TargetCommand_f },
 	{ "tell_target", CG_TellTarget_f },
 	{ "tell_attacker", CG_TellAttacker_f },
-	{ "spWin", CG_spWin_f },
-        { "spLose", CG_spLose_f },
 #ifdef MISSIONPACK
 	{ "vtell_target", CG_VoiceTellTarget_f },
 	{ "vtell_attacker", CG_VoiceTellAttacker_f },

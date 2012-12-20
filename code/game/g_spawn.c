@@ -182,9 +182,11 @@ void SP_team_CTF_blueplayer( gentity_t *ent );
 void SP_team_CTF_redspawn( gentity_t *ent );
 void SP_team_CTF_bluespawn( gentity_t *ent );
 
+#ifdef MISSIONPACK
 void SP_team_blueobelisk( gentity_t *ent );
 void SP_team_redobelisk( gentity_t *ent );
 void SP_team_neutralobelisk( gentity_t *ent );
+#endif
 void SP_item_botroam( gentity_t *ent ) { }
 
 spawn_t	spawns[] = {
@@ -253,9 +255,11 @@ spawn_t	spawns[] = {
 	{"team_CTF_redspawn", SP_team_CTF_redspawn},
 	{"team_CTF_bluespawn", SP_team_CTF_bluespawn},
 
+#ifdef MISSIONPACK
 	{"team_redobelisk", SP_team_redobelisk},
 	{"team_blueobelisk", SP_team_blueobelisk},
 	{"team_neutralobelisk", SP_team_neutralobelisk},
+#endif
 	{"item_botroam", SP_item_botroam},
 
 	{NULL, 0}
@@ -273,29 +277,9 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	spawn_t	*s;
 	gitem_t	*item;
 
-#ifdef MEC_DEBUG
-	if ( m_devcmd[3].integer ) {
-		if ((Q_strncmp(ent->classname, "weapon", 6)==0) || 
-		(Q_strncmp(ent->classname, "ammo", 4)==0) || 
-		(Q_strncmp(ent->classname, "item", 4)==0) ||
-		(Q_strncmp(ent->classname, "holdable", 8)==0) ||
-		(Q_strncmp(ent->classname, "team", 4)==0))
-                        return qfalse;
-	} else {
-		if ( m_devcmd[0].integer )
-			if (Q_strncmp(ent->classname, "weapon", 6)==0)
-                	        return qfalse;
-		if ( m_devcmd[1].integer )
-			if (Q_strncmp(ent->classname, "item", 4)==0)
-                        	return qfalse;
-		if ( m_devcmd[2].integer )
-			if (Q_strncmp(ent->classname, "ammo", 5)==0)
-                        	return qfalse;
-	}
-#endif
-
 	if ( g_gametype.integer == GT_RARENA) {
-		if ((Q_strncmp(ent->classname, "weapon", 6)==0) || (Q_strncmp(ent->classname, "ammo", 4)==0))
+		if ((Q_strncmp(ent->classname, "weapon_", 7)==0) ||
+            (Q_strncmp(ent->classname, "ammo_", 5)==0))
 			return qfalse;
 	}
 
@@ -429,7 +413,11 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	int			i;
 	gentity_t	*ent;
 	char		*s, *value, *gametypeName;
-	static char *gametypeNames[GT_MAX_GAME_TYPE] = {"ffa", "tournament", "single", "team", "ctf", "oneflag", "obelisk", "harvester"};
+	static char *gametypeNames[GT_MAX_GAME_TYPE] = {"ffa", "tournament", "single", "team", "ctf"
+#ifdef MISSIONPACK
+		, "oneflag", "obelisk", "harvester"
+#endif
+		};
 
 	// get the next free entity
 	ent = G_Spawn();
@@ -463,14 +451,15 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 			return;
 		}
 	}
-// MEC NOTE: Come back to this for any side games that share maps
-#if 0
+
+#ifdef MISSIONPACK
 	G_SpawnInt( "notta", "0", &i );
 	if ( i ) {
 		ADJUST_AREAPORTAL();
 		G_FreeEntity( ent );
 		return;
 	}
+#else
 	G_SpawnInt( "notq3a", "0", &i );
 	if ( i ) {
 		ADJUST_AREAPORTAL();
@@ -478,6 +467,7 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 		return;
 	}
 #endif
+
 	if( G_SpawnString( "gametype", NULL, &value ) ) {
 		if( g_gametype.integer >= 0 && g_gametype.integer < GT_MAX_GAME_TYPE ) {
 			gametypeName = gametypeNames[g_gametype.integer];

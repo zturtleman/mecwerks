@@ -21,7 +21,8 @@ along with Foobar; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
-#if 0 
+
+#if 0
 #define GTW W_GAUNTLET
 #define SGW W_SHOTGUN
 #define MGW W_MACHINEGUN
@@ -35,7 +36,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define PXW W_GRENADELAUNCHER
 #define NGW W_SHOTGUN
 #define CGW W_PLASMAGUN
-#endif
+
+#else
 
 //MEC
 #define W_GAUNTLET GTW
@@ -48,8 +50,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define W_LIGHTNING LGW
 #define W_PLASMAGUN PGW
 #define W_GRAPPLE GRW
-#define W_GRENADELAUNCHER PXW
-#define W_SHOTGUN NGW
-#define W_PLASMAGUN CGW
+#endif
 
 #include "fuzw.c"

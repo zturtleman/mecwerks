@@ -29,6 +29,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 */
 //
 
+#ifdef MISSIONPACK
 
 #define CTF_CAPTURE_BONUS		100		// what you get for capture
 #define CTF_TEAM_BONUS			25		// what your team gets for capture
@@ -43,7 +44,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define CTF_RETURN_FLAG_ASSIST_BONUS		10	// awarded for returning a flag that causes a capture to happen almost immediately
 #define CTF_FRAG_CARRIER_ASSIST_BONUS		10	// award for fragging a flag carrier if a capture happens almost immediately
 
-#if 0
+#else
 
 #define CTF_CAPTURE_BONUS		5		// what you get for capture
 #define CTF_TEAM_BONUS			0		// what your team gets for capture

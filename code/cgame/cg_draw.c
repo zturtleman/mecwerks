@@ -1111,6 +1111,7 @@ static float CG_DrawScores( float y ) {
 			}
 		}
 
+#ifdef MISSIONPACK
 		if ( cgs.gametype == GT_1FCTF ) {
 			// Display flag status
 			item = BG_FindItemForPowerup( PW_NEUTRALFLAG );
@@ -1135,6 +1136,7 @@ static float CG_DrawScores( float y ) {
 				}
 			}
 		}
+#endif
 
 		color[0] = 1.0f;
 		color[1] = 0.0f;
@@ -1286,6 +1288,7 @@ static float CG_DrawPowerups( float y ) {
 			continue;
 		}
 
+#ifdef MISSIONPACK
 		if (i == PW_SCOUT
 			|| i == PW_GUARD
 			|| i == PW_DOUBLER
@@ -1293,6 +1296,7 @@ static float CG_DrawPowerups( float y ) {
 		{
 			continue;
 		}
+#endif
 
 		t = ps->powerups[ i ] - cg.time;
 		// ZOID--don't draw if the power up has unlimited time (999 seconds)
@@ -1524,6 +1528,7 @@ static void CG_DrawHoldableItem( void ) {
 }
 #endif // MISSIONPACK_HUD
 
+#ifdef MISSIONPACK
 /*
 ===================
 CG_DrawPersistantPowerup
@@ -1542,6 +1547,7 @@ static void CG_DrawPersistantPowerup( void ) {
 	}
 }
 #endif // MISSIONPACK_HUD
+#endif // MISSIONPACK
 
 
 /*
@@ -2640,6 +2646,7 @@ static void CG_DrawAmmoWarning( void ) {
 }
 
 
+#ifdef MISSIONPACK
 /*
 =================
 CG_DrawProxWarning
@@ -2679,6 +2686,7 @@ static void CG_DrawProxWarning( void ) {
 	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 	CG_DrawBigStringColor( 320 - w / 2, 64 + BIGCHAR_HEIGHT, s, g_color_table[ColorIndex(COLOR_RED)] );
 }
+#endif
 
 
 /*
@@ -2756,12 +2764,14 @@ static void CG_DrawWarmup( void ) {
 			s = "Team Deathmatch";
 		} else if ( cgs.gametype == GT_CTF ) {
 			s = "Capture the Flag";
+#ifdef MISSIONPACK
 		} else if ( cgs.gametype == GT_1FCTF ) {
 			s = "One Flag CTF";
 		} else if ( cgs.gametype == GT_OBELISK ) {
 			s = "Overload";
 		} else if ( cgs.gametype == GT_HARVESTER ) {
 			s = "Harvester";
+#endif
 		} else {
 			s = "";
 		}
@@ -2961,7 +2971,9 @@ static void CG_Draw2D(stereoFrame_t stereoFrame)
       
 			CG_DrawAmmoWarning();
 
+#ifdef MISSIONPACK
 			CG_DrawProxWarning();
+#endif      
 			if(stereoFrame == STEREO_CENTER)
 				CG_DrawCrosshair();
 			CG_DrawCrosshairNames();
@@ -2969,7 +2981,9 @@ static void CG_Draw2D(stereoFrame_t stereoFrame)
 
 #ifndef MISSIONPACK_HUD
 			CG_DrawHoldableItem();
+#ifdef MISSIONPACK
 			CG_DrawPersistantPowerup();
+#endif
 #endif
 			CG_DrawReward();
 		}
@@ -2988,10 +3002,13 @@ static void CG_Draw2D(stereoFrame_t stereoFrame)
 
 	CG_DrawVoipMeter();
 
+#ifdef MISSIONPACK
 	if (!cg_paused.integer) {
 		CG_DrawUpperRight(stereoFrame);
 	}
-	//CG_DrawUpperRight(stereoFrame);
+#else
+	CG_DrawUpperRight(stereoFrame);
+#endif
 
 #ifndef MISSIONPACK_HUD
 	CG_DrawLowerRight();
