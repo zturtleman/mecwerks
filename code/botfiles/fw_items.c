@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */ 
 
-#if 0
+#if 1
 #define FPH FS_HEALTH
 #define FPA FS_ARMOR
   

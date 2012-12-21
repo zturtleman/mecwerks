@@ -138,11 +138,12 @@ weight "Machinegun"
 			case 1: return 0;
 			default: 
 				{
-				switch(ENEMY_HORIZONTAL_DIST)
-					{
-					case 800: return MGW;
-					default: return $evalint(MGW*0.1);
-					}
+					return MGW;
+				//switch(ENEMY_HORIZONTAL_DIST)
+				//	{
+				//	case 800: return MGW;
+				//	default: return $evalint(MGW*0.1);
+				//	}
 				}
 			}
 		}

@@ -12,8 +12,12 @@ cd ../
 
 cp * ../../../tests/
 
-cd ../../code/
+cd ../../
+
+./bot-sync.sh
+
+cd code/
 
 zip -rq pak10.pk3 botfiles/
 
-mv pak9.pk3 ../../tests/baseq3/
+mv pak10.pk3 ../../tests/baseq3/

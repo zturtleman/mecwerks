@@ -10,37 +10,37 @@ BASEDIR=baseq3
 MPACKDIR=missionpack
 
 BIN_OBJ="
-	build/release-darwin-ppc/mecwerks.ppc
+	build/release-darwin-x86_64/mecwerks.x86_64
 	build/release-darwin-i386/mecwerks.i386
 "
 BIN_DEDOBJ="
-	build/release-darwin-ppc/mecwerks-server.ppc
+	build/release-darwin-x86_64/mecwerks-server.x86_64
 	build/release-darwin-i386/mecwerks-server.i386
 "
 BASE_OBJ="
-	build/release-darwin-ppc/$BASEDIR/cgameppc.dylib
+	build/release-darwin-x86_64/$BASEDIR/cgamex86_64.dylib
 	build/release-darwin-i386/$BASEDIR/cgamei386.dylib
-	build/release-darwin-ppc/$BASEDIR/uippc.dylib
+	build/release-darwin-x86_64/$BASEDIR/uix86_64.dylib
 	build/release-darwin-i386/$BASEDIR/uii386.dylib
-	build/release-darwin-ppc/$BASEDIR/gameppc.dylib
+	build/release-darwin-x86_64/$BASEDIR/gamex86_64.dylib
 	build/release-darwin-i386/$BASEDIR/gamei386.dylib
 "
 MPACK_OBJ="
-	build/release-darwin-ppc/$MPACKDIR/cgameppc.dylib
+	build/release-darwin-x86_64/$MPACKDIR/cgamex86_64.dylib
 	build/release-darwin-i386/$MPACKDIR/cgamei386.dylib
-	build/release-darwin-ppc/$MPACKDIR/uippc.dylib
+	build/release-darwin-x86_64/$MPACKDIR/uix_86_64.dylib
 	build/release-darwin-i386/$MPACKDIR/uii386.dylib
-	build/release-darwin-ppc/$MPACKDIR/gameppc.dylib
+	build/release-darwin-x86_64/$MPACKDIR/gamex86_64.dylib
 	build/release-darwin-i386/$MPACKDIR/gamei386.dylib
 "
 RENDER_OBJ="
-	build/release-darwin-ppc/renderer_opengl1_smp_ppc.dylib
+	build/release-darwin-x86_64/renderer_opengl1_smp_x86_64.dylib
 	build/release-darwin-i386/renderer_opengl1_smp_i386.dylib
-	build/release-darwin-ppc/renderer_opengl1_ppc.dylib
+	build/release-darwin-x86_64/renderer_opengl1_x86_64.dylib
 	build/release-darwin-i386/renderer_opengl1_i386.dylib
-	build/release-darwin-ppc/renderer_rend2_smp_ppc.dylib
+	build/release-darwin-x86_64/renderer_rend2_smp_x86_64.dylib
 	build/release-darwin-i386/renderer_rend2_smp_i386.dylib
-	build/release-darwin-ppc/renderer_rend2_ppc.dylib
+	build/release-darwin-x86_64/renderer_rend2_x86_64.dylib
 	build/release-darwin-i386/renderer_rend2_i386.dylib
 "
 
