@@ -207,6 +207,7 @@ static int gameCvarTableSize = ARRAY_LEN( gameCvarTable );
 
 
 void G_InitGame( int levelTime, int randomSeed, int restart );
+void G_InitNextWave( void );
 void G_RunFrame( int levelTime );
 void G_ShutdownGame( int restart );
 qboolean G_SnapshotCallback( int entityNum, int clientNum );
@@ -455,6 +456,10 @@ G_InitGame
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 
+        level.skill = 0;
+        level.wave = 0;
+        level.waveWarmupTime = -1;
+
 	G_DPrintf ("------- Game Initialization -------\n");
 	G_DPrintf ("gamename: %s\n", GAMEVERSION);
 	G_DPrintf ("gamedate: %s\n", __DATE__);
@@ -556,10 +561,77 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	}
 
 	G_RemapTeamShaders();
-
+	
+	if ( g_gametype.integer == GT_SURVIVAL )
+		G_InitNextWave();
 }
 
+/*
+=================
+G_InitWave
+=================
+*/
+ void G_InitNextWave( void ) {
+        level.wave++; //increase wave index to next wave
 
+        //TODO: if last wave is hit, set wave index to 0 and increase skill level by 1. If skill level is already maximum skill, then continue to a won-game state
+
+        level.state = LS_WAVEWARMUP;
+        level.waveWarmupTime = level.time + ( g_warmup.integer - 1 ) * 1000; //TODO: make wave warmup time configurable seperate of level warmuptime?
+}
+
+void G_SpawnEnemiesForWave( void ) {
+        char *netname;
+ 
+        switch (level.wave) {
+                case 1:
+                        Q_strncpyz(netname, "anarki", sizeof(netname));
+                        trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                        break;
+                case 2:
+                        Q_strncpyz(netname, "sarge", sizeof(netname));
+                        trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                        trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                default:
+                        break;
+        }
+ 
+        level.state = LS_WAVEINPROGRESS;
+}
+
+/*
+=================
+G_EndWave
+=================
+*/
+void G_EndWave( void ) {
+        //check if the wave is done by checking if bots are still active in the game
+        int i;
+        gclient_t       *cl;
+        qboolean foundBot;
+ 
+        foundBot = qfalse;
+ 
+        for (i = 0; i < g_maxclients.integer; i++ ) {
+                cl = level.clients + i;
+                if ( cl->pers.connected != CON_CONNECTED ) {
+                        continue;
+                }
+                if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
+                        continue;
+                }
+                foundBot = qtrue;
+        }
+ 
+        //if bots are still in the game, return and let the wave continue
+        if (foundBot)
+                return;
+ 
+        //no bots were found, so end this wave
+        trap_SendServerCommand( -1, va("cp \"Wave %i completed!\n\"", level.wave) );
+        level.state = LS_WAVEFINISHED;
+        level.waveWarmupTime = level.time + 3000;
+}
 
 /*
 =================
@@ -1284,6 +1356,28 @@ void LogExit( const char *string ) {
 
 }
 
+/*
+=============
+CheckWave
+=============
+*/
+void CheckWave() {
+        switch (level.state) {
+                case LS_WAVEWARMUP:
+                        if (level.time >= level.waveWarmupTime) {
+                                level.waveWarmupTime = -1;
+                                G_SpawnEnemiesForWave();
+                        }
+                        else
+                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n\"", level.wave) ); //TODO: see if a countdown for the last 3 secs can be implemented
+                        break;
+                case LS_WAVEFINISHED:
+                        if (level.time >= level.waveWarmupTime) {
+                                G_InitNextWave();
+                        }
+                        break;
+        }
+}
 
 /*
 =================
@@ -1958,6 +2052,9 @@ void G_RunFrame( int levelTime ) {
 			ClientEndFrame( ent );
 		}
 	}
+	
+        // see if it is time to do a wave start
+        CheckWave();
 
 	// see if it is time to do a tournement restart
 	CheckTournament();

@@ -185,6 +185,11 @@ struct gentity_s {
 	gitem_t		*item;			// for bonus items
 };
 
+typedef enum {
+	LS_WAVEWARMUP,
+	LS_WAVEINPROGRESS,
+	LS_WAVEFINISHED
+} levelstate_t;
 
 typedef enum {
 	CON_DISCONNECTED,
@@ -433,6 +438,12 @@ typedef struct {
 	gentity_t	*locationHead;			// head of the location list
 	int			bodyQueIndex;			// dead bodies
 	gentity_t	*bodyQue[BODY_QUEUE_SIZE];
+
+	// wave spawn bots
+        int                     state;                  // level state
+        int                     skill;                  // skill level
+        int                     wave;                   // current wave
+        int                     waveWarmupTime;		// time before next wave starts after finishing a wave
 #ifdef MISSIONPACK
 	int			portalSequence;
 #endif

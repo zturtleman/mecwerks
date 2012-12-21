@@ -326,6 +326,31 @@ void G_AddRandomBot( int team ) {
 
 /*
 ===============
+G_RemoveAllBots
+===============
+*/
+void G_RemoveAllBots( void ) {
+        int i;
+        char netname[36];
+        gclient_t       *cl;
+ 
+        for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+                cl = level.clients + i;
+                if ( cl->pers.connected != CON_CONNECTED ) {
+                        continue;
+                }
+                if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
+                        continue;
+                }
+                strcpy(netname, cl->pers.netname);
+                Q_CleanStr(netname);
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("kick %s\n", netname) );
+        }
+}
+
+
+/*
+===============
 G_RemoveRandomBot
 ===============
 */

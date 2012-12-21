@@ -1581,7 +1581,28 @@ void BotChooseWeapon(bot_state_t *bs) {
 		trap_EA_SelectWeapon(bs->client, bs->weaponnum);
 	}
 	else {
-		newweaponnum = trap_BotChooseBestFightWeapon(bs->ws, bs->inventory);
+		if ( g_gametype.integer == GT_SURVIVAL ) {
+	                if (bs->inventory[INVENTORY_GAUNTLET] == 1)
+	                        newweaponnum = WP_GAUNTLET;
+	                if (bs->inventory[INVENTORY_MACHINEGUN] == 1)
+ 	                        newweaponnum = WP_MACHINEGUN;
+	                if (bs->inventory[INVENTORY_SHOTGUN] == 1)
+				newweaponnum = WP_SHOTGUN;
+	                if (bs->inventory[INVENTORY_GRENADELAUNCHER] == 1)
+	                        newweaponnum = WP_GRENADE_LAUNCHER;
+	                if (bs->inventory[INVENTORY_ROCKETLAUNCHER] == 1)
+	 	                newweaponnum = WP_ROCKET_LAUNCHER;
+ 	                if (bs->inventory[INVENTORY_LIGHTNING] == 1)
+          		        newweaponnum = WP_LIGHTNING;
+ 	                if (bs->inventory[INVENTORY_RAILGUN] == 1)
+				newweaponnum = WP_RAILGUN;
+	                if (bs->inventory[INVENTORY_PLASMAGUN] == 1)
+ 	                       	newweaponnum = WP_PLASMAGUN;
+	                if (bs->inventory[INVENTORY_BFG10K] == 1)
+	 	               	newweaponnum = WP_BFG;
+		} else {
+			newweaponnum = trap_BotChooseBestFightWeapon(bs->ws, bs->inventory);
+		}
 		if (bs->weaponnum != newweaponnum) bs->weaponchange_time = FloatTime();
 		bs->weaponnum = newweaponnum;
 		//BotAI_Print(PRT_MESSAGE, "bs->weaponnum = %d\n", bs->weaponnum);

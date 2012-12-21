@@ -107,7 +107,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 
 typedef enum {
 	GT_FFA,			// free for all
-    GT_FRENZY,   	      	// scoring frenzy
+    	GT_FRENZY,   	      	// scoring frenzy
 	GT_TOURNAMENT,		// one on one tournament
 	GT_RARENA,      // weapon rank game mode
 	GT_SINGLE_PLAYER,	// single player ffa
@@ -115,6 +115,7 @@ typedef enum {
 	//-- team games go after this --
 
 	GT_TEAM,			// team deathmatch
+	GT_SURVIVAL,			// wave spawning bots
 	GT_TEAM_FRENZY,			// team scoring frenzy
 	GT_CTF,				// capture the flag
 #ifdef MISSIONPACK
