@@ -338,14 +338,15 @@ static void CG_Obituary( entityState_t *ent ) {
 			message = "tried to invade";
 			message2 = "'s personal space";
 			break;
+		case MOD_SHOTOFF:
+			message = "was shot-off by";
 		default:
 			message = "was killed by";
 			break;
 		}
 
 		if (message) {
-			CG_Printf( "%s %s %s%s\n", 
-				targetName, message, attackerName, message2);
+			CG_Printf( "%s %s %s%s\n", targetName, message, attackerName, message2);
 			return;
 		}
 	}

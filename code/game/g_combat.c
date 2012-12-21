@@ -315,6 +315,7 @@ char	*modNames[] = {
 	"MOD_SUICIDE",
 	"MOD_TARGET_LASER",
 	"MOD_TRIGGER_HURT",
+	"MOD_SHOTOFF",
 #ifdef MISSIONPACK
 	"MOD_NAIL",
 	"MOD_CHAINGUN",
@@ -504,13 +505,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		killer, self->s.number, meansOfDeath, killerName, 
 		self->client->pers.netname, obit );
 
-	// broadcast the death event to everyone
-	ent = G_TempEntity( self->r.currentOrigin, EV_OBITUARY );
-	ent->s.eventParm = meansOfDeath;
-	ent->s.otherEntityNum = self->s.number;
-	ent->s.otherEntityNum2 = killer;
-	ent->r.svFlags = SVF_BROADCAST;	// send to everyone
-
 	self->enemy = attacker;
 
 	self->client->ps.persistant[PERS_KILLED]++;
@@ -562,6 +556,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	} else {
         	if ( g_gametype.integer != GT_FRENZY && g_gametype.integer != GT_TEAM_FRENZY ) {
             		if ( level.time - self->client->lasthurt_time <= 4500 && self->client->lasthurt_player != self) {
+				meansOfDeath = MOD_SHOTOFF;
+				killer = self->client->lasthurt_player->s.number;
 				AddScore( self->client->lasthurt_player, self->r.currentOrigin, 1 );
 			} else {
 				AddScore( self, self->r.currentOrigin, -1 );
@@ -571,6 +567,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
     		if ( g_gametype.integer == GT_RARENA )
     			G_NextFireType(attacker, 2);
 	}
+
+	// broadcast the death event to everyone
+        ent = G_TempEntity( self->r.currentOrigin, EV_OBITUARY );
+        ent->s.eventParm = meansOfDeath;
+        ent->s.otherEntityNum = self->s.number;
+        ent->s.otherEntityNum2 = killer;
+        ent->r.svFlags = SVF_BROADCAST; // send to everyone
 
 	// Add team bonuses
 	Team_FragBonuses(self, inflictor, attacker);
