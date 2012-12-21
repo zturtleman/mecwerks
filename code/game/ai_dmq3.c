@@ -1748,14 +1748,14 @@ void BotUpdateInventory(bot_state_t *bs) {
 	bs->inventory[INVENTORY_CHAINGUN] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_CHAINGUN)) != 0;;
 #endif
 	//ammo
-	bs->inventory[INVENTORY_SHELLS] = bs->cur_ps.ammo[WP_SHOTGUN];
-	bs->inventory[INVENTORY_BULLETS] = bs->cur_ps.ammo[WP_MACHINEGUN];
-	bs->inventory[INVENTORY_GRENADES] = bs->cur_ps.ammo[WP_GRENADE_LAUNCHER];
-	bs->inventory[INVENTORY_CELLS] = bs->cur_ps.ammo[WP_PLASMAGUN];
-	bs->inventory[INVENTORY_LIGHTNINGAMMO] = bs->cur_ps.ammo[WP_LIGHTNING];
-	bs->inventory[INVENTORY_ROCKETS] = bs->cur_ps.ammo[WP_ROCKET_LAUNCHER];
-	bs->inventory[INVENTORY_SLUGS] = bs->cur_ps.ammo[WP_RAILGUN];
-	bs->inventory[INVENTORY_BFGAMMO] = bs->cur_ps.ammo[WP_BFG];
+	bs->inventory[INVENTORY_SHELLS] = bs->cur_ps.ammo[WP_SHOTGUN] + bs->cur_ps.ammo[WP_SHOTGUN];
+	bs->inventory[INVENTORY_BULLETS] = bs->cur_ps.ammo[WP_MACHINEGUN] + bs->cur_ps.clipammo[WP_MACHINEGUN];
+	bs->inventory[INVENTORY_GRENADES] = bs->cur_ps.ammo[WP_GRENADE_LAUNCHER] + bs->cur_ps.clipammo[WP_GRENADE_LAUNCHER];
+	bs->inventory[INVENTORY_CELLS] = bs->cur_ps.ammo[WP_PLASMAGUN] + bs->cur_ps.clipammo[WP_PLASMAGUN];
+	bs->inventory[INVENTORY_LIGHTNINGAMMO] = bs->cur_ps.ammo[WP_LIGHTNING] + bs->cur_ps.clipammo[WP_LIGHTNING];
+	bs->inventory[INVENTORY_ROCKETS] = bs->cur_ps.ammo[WP_ROCKET_LAUNCHER] + bs->cur_ps.clipammo[WP_ROCKET_LAUNCHER];
+	bs->inventory[INVENTORY_SLUGS] = bs->cur_ps.ammo[WP_RAILGUN] + bs->cur_ps.clipammo[WP_RAILGUN];
+	bs->inventory[INVENTORY_BFGAMMO] = bs->cur_ps.ammo[WP_BFG] + bs->cur_ps.clipammo[WP_BFG];
 #ifdef MISSIONPACK
 	bs->inventory[INVENTORY_NAILS] = bs->cur_ps.ammo[WP_NAILGUN];
 	bs->inventory[INVENTORY_MINES] = bs->cur_ps.ammo[WP_PROX_LAUNCHER];

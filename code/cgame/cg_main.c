@@ -524,7 +524,7 @@ void CG_RemoveNotifyLine( cglc_t *localClient )
 
   //pop up the first consoleLine
   for( i = 0; i < localClient->numConsoleLines; i++ )
-    localClient->consoleLines[ i ] = localClient->consoleLines[ i + 1 ];
+    localClient->consoleLines[i] = localClient->consoleLines[i+1];
 
   localClient->numConsoleLines--;
 }

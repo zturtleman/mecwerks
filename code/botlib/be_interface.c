@@ -571,11 +571,9 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3)
 			if ( curarea == goal.areanum ) {
 				break;
 			}
-			reachnum = BotGetReachabilityToGoal(curorigin, curarea,
-										  lastgoalareanum, lastareanum,
-										  avoidreach, avoidreachtimes, avoidreachtries,
-										  &goal, TFL_DEFAULT|TFL_FUNCBOB|TFL_ROCKETJUMP, TFL_DEFAULT|TFL_FUNCBOB|TFL_ROCKETJUMP,
-										  NULL, 0, &resultFlags);
+			reachnum = BotGetReachabilityToGoal(curorigin, curarea, lastgoalareanum, lastareanum,
+				   avoidreach, avoidreachtimes, avoidreachtries, &goal, TFL_DEFAULT|TFL_FUNCBOB|TFL_ROCKETJUMP, 
+				   NULL, 0, &resultFlags);
 			AAS_ReachabilityFromNum(reachnum, &reach);
 			AAS_ShowReachability(&reach);
 			VectorCopy(reach.end, origin);

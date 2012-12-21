@@ -5,7 +5,7 @@
 #
 
 # ioquake3 svn version that this is based on
-IOQ3_REVISION = 2389
+IOQ3_REVISION = 2392
 
 COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
 
@@ -233,7 +233,7 @@ USE_RENDERER_DLOPEN=1
 endif
 
 ifndef DEBUG_CFLAGS
-DEBUG_CFLAGS=-g -O0
+DEBUG_CFLAGS=-g -O0 -DDEBUG
 endif
 
 ifndef USE_OLD_VM64
@@ -1077,7 +1077,7 @@ define DO_REF_STR
 $(echo_cmd) "REF_STR $<"
 $(Q)rm -f $@
 $(Q)echo "const char *fallbackShader_$(notdir $(basename $<)) =" >> $@
-$(Q)cat $< | sed 's/\\/\\\\/;s/\t/\\t/;s/\"/\\"/;s/$$/\\n"/;s/^/"/' >> $@
+$(Q)cat $< | sed 's/^/\"/;s/$$/\\n\"/' >> $@
 $(Q)echo ";" >> $@
 endef
 

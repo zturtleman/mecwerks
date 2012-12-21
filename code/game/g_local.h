@@ -787,8 +787,9 @@ extern	vmCvar_t	g_enableDust;
 extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;
 extern	vmCvar_t	g_proxMineTimeout;
-extern  vmCvar_t    g_delagHitscan; //NT - new vars
+extern  vmCvar_t        g_delagHitscan; //NT - new vars
 extern	vmCvar_t	g_wpranks;
+extern  vmCvar_t	m_devcmd[3];
 
 // Additional shared traps in bg_misc.h
 

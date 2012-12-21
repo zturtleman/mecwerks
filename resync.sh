@@ -181,10 +181,11 @@ do
 	then
 		echo "Updated to Spearmint $NEW_REV" >> $COMMIT_LOG
 		echo "" >> $COMMIT_LOG
+	else
+		echo "- Spearmint $i" >> $COMMIT_LOG
+		svn log $SCODE -r$i >> $COMMIT_LOG
+		echo "Added commit log message for revision $i to $COMMIT_LOG"
 	fi
-	echo "- Spearmint $i" >> $COMMIT_LOG
-	svn log $SCODE -r$i >> $COMMIT_LOG
-	echo "Added commit log message for revision $i to $COMMIT_LOG"
 done
 
 #

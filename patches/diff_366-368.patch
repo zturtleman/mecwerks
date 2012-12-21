@@ -1,0 +1,435 @@
+Index: make-macosx-ub.sh
+===================================================================
+--- make-macosx-ub.sh	(revision 366)
++++ make-macosx-ub.sh	(revision 368)
+@@ -10,37 +10,37 @@
+ MPACKDIR=missionpack
+ 
+ BIN_OBJ="
+-	build/release-darwin-ppc/spearmint.ppc
++	build/release-darwin-x86_64/spearmint.x86_64
+ 	build/release-darwin-i386/spearmint.i386
+ "
+ BIN_DEDOBJ="
+-	build/release-darwin-ppc/spearmint-server.ppc
++	build/release-darwin-x86_64/spearmint-server.x86_64
+ 	build/release-darwin-i386/spearmint-server.i386
+ "
+ BASE_OBJ="
+-	build/release-darwin-ppc/$BASEDIR/cgameppc.dylib
++	build/release-darwin-x86_64/$BASEDIR/cgamex86_64.dylib
+ 	build/release-darwin-i386/$BASEDIR/cgamei386.dylib
+-	build/release-darwin-ppc/$BASEDIR/uippc.dylib
++	build/release-darwin-x86_64/$BASEDIR/uix86_64.dylib
+ 	build/release-darwin-i386/$BASEDIR/uii386.dylib
+-	build/release-darwin-ppc/$BASEDIR/gameppc.dylib
+-	build/release-darwin-i386/$BASEDIR/gamei386.dylib
++	build/release-darwin-x86_64/$BASEDIR/qagamex86_64.dylib
++	build/release-darwin-i386/$BASEDIR/qagamei386.dylib
+ "
+ MPACK_OBJ="
+-	build/release-darwin-ppc/$MPACKDIR/cgameppc.dylib
++	build/release-darwin-x86_64/$MPACKDIR/cgamex86_64.dylib
+ 	build/release-darwin-i386/$MPACKDIR/cgamei386.dylib
+-	build/release-darwin-ppc/$MPACKDIR/uippc.dylib
++	build/release-darwin-x86_64/$MPACKDIR/uix86_64.dylib
+ 	build/release-darwin-i386/$MPACKDIR/uii386.dylib
+-	build/release-darwin-ppc/$MPACKDIR/gameppc.dylib
+-	build/release-darwin-i386/$MPACKDIR/gamei386.dylib
++	build/release-darwin-x86_64/$MPACKDIR/qagamex86_64.dylib
++	build/release-darwin-i386/$MPACKDIR/qagamei386.dylib
+ "
+ RENDER_OBJ="
+-	build/release-darwin-ppc/renderer_opengl1_smp_ppc.dylib
++	build/release-darwin-x86_64/renderer_opengl1_smp_x86_64.dylib
+ 	build/release-darwin-i386/renderer_opengl1_smp_i386.dylib
+-	build/release-darwin-ppc/renderer_opengl1_ppc.dylib
++	build/release-darwin-x86_64/renderer_opengl1_x86_64.dylib
+ 	build/release-darwin-i386/renderer_opengl1_i386.dylib
+-	build/release-darwin-ppc/renderer_rend2_smp_ppc.dylib
++	build/release-darwin-x86_64/renderer_rend2_smp_x86_64.dylib
+ 	build/release-darwin-i386/renderer_rend2_smp_i386.dylib
+-	build/release-darwin-ppc/renderer_rend2_ppc.dylib
++	build/release-darwin-x86_64/renderer_rend2_x86_64.dylib
+ 	build/release-darwin-i386/renderer_rend2_i386.dylib
+ "
+ 
+@@ -56,18 +56,23 @@
+ # "8" is the Darwin major kernel version.
+ TIGERHOST=`uname -r |perl -w -p -e 's/\A(\d+)\..*\Z/$1/; $_ = (($_ >= 8) ? "1" : "0");'`
+ 
+-# we want to use the oldest available SDK for max compatiblity
+-unset PPC_SDK
+-unset PPC_CFLAGS
+-unset PPC_LDFLAGS
++# we want to use the oldest available SDK for max compatiblity. However 10.4 and older
++# can not build 64bit binaries, making 10.5 the minimum version.   This has been tested 
++# with xcode 3.1 (xcode31_2199_developerdvd.dmg).  It contains the 10.5 SDK and a decent
++# enough gcc to actually compile ioquake3
++
++unset X86_64_SDK
++unset X86_64_CFLAGS
++unset X86_64_LDFLAGS
+ unset X86_SDK
+ unset X86_CFLAGS
+ unset X86_LDFLAGS
++
+ if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+-	PPC_SDK=/Developer/SDKs/MacOSX10.5.sdk
+-	PPC_CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk \
++	X86_64_SDK=/Developer/SDKs/MacOSX10.5.sdk
++	X86_64_CFLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk \
+ 			-DMAC_OS_X_VERSION_MIN_REQUIRED=1050"
+-	PPC_LDFLAGS=" -mmacosx-version-min=10.5"
++	X86_64_LDFLAGS=" -mmacosx-version-min=10.5"
+ 
+ 	X86_SDK=/Developer/SDKs/MacOSX10.5.sdk
+ 	X86_CFLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk \
+@@ -75,26 +80,7 @@
+ 	X86_LDFLAGS=" -mmacosx-version-min=10.5"
+ fi
+ 
+-if [ -d /Developer/SDKs/MacOSX10.4u.sdk ]; then
+-	PPC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+-	PPC_CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk \
+-			-DMAC_OS_X_VERSION_MIN_REQUIRED=1040"
+-	PPC_LDFLAGS=" -mmacosx-version-min=10.4"
+-
+-	X86_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+-	X86_CFLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk \
+-			-DMAC_OS_X_VERSION_MIN_REQUIRED=1040"
+-	X86_LDFLAGS=" -mmacosx-version-min=10.4"
+-fi
+-
+-if [ -d /Developer/SDKs/MacOSX10.3.9.sdk ] && [ $TIGERHOST ]; then
+-	PPC_SDK=/Developer/SDKs/MacOSX10.3.9.sdk
+-	PPC_CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.3.9.sdk \
+-			-DMAC_OS_X_VERSION_MIN_REQUIRED=1030"
+-	PPC_LDFLAGS=" -mmacosx-version-min=10.3"
+-fi
+-
+-if [ -z $PPC_SDK ] || [ -z $X86_SDK ]; then
++if [ -z $X86_64_SDK ] || [ -z $X86_SDK ]; then
+ 	echo "\
+ ERROR: This script is for building a Universal Binary.  You cannot build
+        for a different architecture unless you have the proper Mac OS X SDKs
+@@ -103,17 +89,18 @@
+ 	exit 1
+ fi
+ 
+-echo "Building PPC Client/Dedicated Server against \"$PPC_SDK\""
++echo "Building X86_64 Client/Dedicated Server against \"$X86_64_SDK\""
+ echo "Building X86 Client/Dedicated Server against \"$X86_SDK\""
+-if [ "$PPC_SDK" != "/Developer/SDKs/MacOSX10.3.9.sdk" ] || \
+-	[ "$X86_SDK" != "/Developer/SDKs/MacOSX10.4u.sdk" ]; then
++echo
++
++if [ "$X86_64_SDK" != "/Developer/SDKs/MacOSX10.5.sdk" ] || \
++        [ "$X86_SDK" != "/Developer/SDKs/MacOSX10.5.sdk" ]; then
+ 	echo "\
+ WARNING: in order to build a binary with maximum compatibility you must
+-         build on Mac OS X 10.4 using Xcode 2.3 or 2.5 and have the
+-         MacOSX10.3.9, and MacOSX10.4u SDKs installed from the Xcode 
+-         install disk Packages folder."
++         build on Mac OS X 10.5 using Xcode 3.1 and have the MacOSX10.5
++         SDKs installed from the Xcode install disk Packages folder."
++sleep 3
+ fi
+-sleep 3
+ 
+ if [ ! -d $DESTDIR ]; then
+ 	mkdir -p $DESTDIR
+@@ -122,13 +109,15 @@
+ # For parallel make on multicore boxes...
+ NCPU=`sysctl -n hw.ncpu`
+ 
+-# ppc client and server
+-if [ -d build/release-release-ppc ]; then
+-	rm -r build/release-darwin-ppc
++# x86_64 client and server
++if [ -d build/release-release-x86_64 ]; then
++	rm -r build/release-darwin-x86_64
+ fi
+-(ARCH=ppc CC=gcc-4.0 CFLAGS=$PPC_CFLAGS LDFLAGS=$PPC_LDFLAGS make -j$NCPU) || exit 1;
++(ARCH=x86_64 CC=gcc-4.0 CFLAGS=$X86_64_CFLAGS LDFLAGS=$X86_64_LDFLAGS make -j$NCPU) || exit 1;
+ 
+-# intel client and server
++echo;echo
++
++# i386 client and server
+ if [ -d build/release-darwin-i386 ]; then
+ 	rm -r build/release-darwin-i386
+ fi
+@@ -183,8 +172,25 @@
+ 	</plist>
+ 	" > $DESTDIR/$APPBUNDLE/Contents/Info.plist
+ 
++# Change the path of the SDL Framework in both arches for the executables and renderer dylib's
++# This removes the need for players to have the SDL.Framework installed on their machines.
++for i in $BIN_OBJ $BIN_DEDOBJ $RENDER_OBJ
++do
++        install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $i
++done
++
++# Make UB's from previous builds of 1386 and x86_64 binaries
+ lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY $BIN_OBJ
+ lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN $BIN_DEDOBJ
++
++# Embed the SDL framework into the .app so players done need to install it on their systems.
++mkdir $DESTDIR/$APPBUNDLE/Contents/Frameworks
++unzip -d $DESTDIR/$APPBUNDLE/Contents/Frameworks code/libs/macosx/SDL-1.2.15.framework.zip
++
++# Change the path in the UB, just in case
++install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY
++install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN
++
+ cp $RENDER_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/
+ cp $BASE_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR/
+ cp $MPACK_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$MPACKDIR/
+Index: code/libs/macosx/SDL-1.2.15.framework.zip
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+
+Property changes on: code/libs/macosx/SDL-1.2.15.framework.zip
+___________________________________________________________________
+Added: svn:mime-type
+   + application/octet-stream
+
+Index: code/server/sv_main.c
+===================================================================
+--- code/server/sv_main.c	(revision 366)
++++ code/server/sv_main.c	(revision 368)
+@@ -239,8 +239,11 @@
+ 	globalPrint = !strncmp( (char *)message, "print", 5 );
+ 
+ 	if ( globalPrint ) {
+-		memmove( &message[1], &message[0], (size_t)( strlen( (const char *)message ) ) );
++		int len = strlen( (const char *)message );
++
++		memmove( &message[1], &message[0], (size_t)( len - 1 ) );
+ 		message[0] = 'g'; // "gprint"
++		message[len+1] = 0;
+ 	}
+ 
+ 	// hack to echo broadcast prints to console
+Index: code/rend2/tr_local.h
+===================================================================
+--- code/rend2/tr_local.h	(revision 366)
++++ code/rend2/tr_local.h	(revision 368)
+@@ -1767,7 +1767,6 @@
+ 	qboolean framebufferBlit;
+ 
+ 	qboolean texture_srgb;
+-	qboolean framebuffer_srgb;
+ 
+ 	qboolean depthClamp;
+ } glRefConfig_t;
+Index: code/rend2/tr_init.c
+===================================================================
+--- code/rend2/tr_init.c	(revision 366)
++++ code/rend2/tr_init.c	(revision 368)
+@@ -942,11 +942,6 @@
+ 	glState.currentVBO = NULL;
+ 	glState.currentIBO = NULL;
+ 
+-	if (glRefConfig.framebuffer_srgb)
+-	{
+-		qglEnable(GL_FRAMEBUFFER_SRGB_EXT);
+-	}
+-
+ 	qglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+ 	qglDepthMask( GL_TRUE );
+ 	qglDisable( GL_DEPTH_TEST );
+@@ -1166,9 +1161,9 @@
+ 
+ 	r_toneMap = ri.Cvar_Get( "r_toneMap", "1", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_forceToneMap = ri.Cvar_Get( "r_forceToneMap", "0", CVAR_CHEAT );
+-	r_forceToneMapMin = ri.Cvar_Get( "r_forceToneMapMin", "-3.25", CVAR_CHEAT );
+-	r_forceToneMapAvg = ri.Cvar_Get( "r_forceToneMapAvg", "-1.0", CVAR_CHEAT );
+-	r_forceToneMapMax = ri.Cvar_Get( "r_forceToneMapMax", "1.0", CVAR_CHEAT );
++	r_forceToneMapMin = ri.Cvar_Get( "r_forceToneMapMin", "-8.0", CVAR_CHEAT );
++	r_forceToneMapAvg = ri.Cvar_Get( "r_forceToneMapAvg", "-2.0", CVAR_CHEAT );
++	r_forceToneMapMax = ri.Cvar_Get( "r_forceToneMapMax", "0.0", CVAR_CHEAT );
+ 
+ 	r_autoExposure = ri.Cvar_Get( "r_autoExposure", "1", CVAR_ARCHIVE );
+ 	r_forceAutoExposure = ri.Cvar_Get( "r_forceAutoExposure", "0", CVAR_CHEAT );
+Index: code/rend2/tr_bsp.c
+===================================================================
+--- code/rend2/tr_bsp.c	(revision 366)
++++ code/rend2/tr_bsp.c	(revision 368)
+@@ -3369,9 +3369,9 @@
+ 	tr.autoExposureMinMax[1] = 2.0f;
+ 
+ 	// set default tone mapping settings
+-	tr.toneMinAvgMaxLevel[0] = -3.25f;
+-	tr.toneMinAvgMaxLevel[1] = -1.0f;
+-	tr.toneMinAvgMaxLevel[2] = 1.0f;
++	tr.toneMinAvgMaxLevel[0] = -8.0f;
++	tr.toneMinAvgMaxLevel[1] = -2.0f;
++	tr.toneMinAvgMaxLevel[2] = 0.0f;
+ 
+ 	tr.worldMapLoaded = qtrue;
+ 
+Index: code/rend2/tr_extensions.c
+===================================================================
+--- code/rend2/tr_extensions.c	(revision 366)
++++ code/rend2/tr_extensions.c	(revision 368)
+@@ -616,21 +616,6 @@
+ 		ri.Printf(PRINT_ALL, result[2], extension);
+ 	}
+ 
+-	// GL_EXT_framebuffer_sRGB
+-	extension = "GL_EXT_framebuffer_sRGB";
+-	glRefConfig.framebuffer_srgb = qfalse;
+-	if (GLimp_HaveExtension(extension))
+-	{
+-		if (r_srgb->integer)
+-			glRefConfig.framebuffer_srgb = qtrue;
+-
+-		ri.Printf(PRINT_ALL, result[glRefConfig.framebuffer_srgb], extension);
+-	}
+-	else
+-	{
+-		ri.Printf(PRINT_ALL, result[2], extension);
+-	}
+-
+ 	glRefConfig.textureCompression = TCR_NONE;
+ 
+ 	// GL_EXT_texture_compression_latc
+Index: code/rend2/tr_image.c
+===================================================================
+--- code/rend2/tr_image.c	(revision 366)
++++ code/rend2/tr_image.c	(revision 368)
+@@ -2160,6 +2160,26 @@
+ 		}
+ 	}
+ 
++	// Convert to RGB if sRGB textures aren't supported in hardware
++	if (!glRefConfig.texture_srgb && (flags & IMGFLAG_SRGB))
++	{
++		byte *in = data;
++		int c = width * height;
++		while (c--)
++		{
++			for (i = 0; i < 3; i++)
++			{
++				float x = ByteToFloat(in[i]);
++				x = sRGBtoRGB(x);
++				in[i] = FloatToByte(x);
++			}
++			in += 4;
++		}
++
++		// FIXME: Probably should mark the image as non-sRGB as well
++		flags &= ~IMGFLAG_SRGB;
++	}
++
+ 	// normals are always swizzled
+ 	if (type == IMGTYPE_NORMAL || type == IMGTYPE_NORMALHEIGHT)
+ 	{
+@@ -3021,10 +3041,7 @@
+ 		{
+ 			int format;
+ 
+-			if (glRefConfig.texture_srgb && glRefConfig.framebuffer_srgb)
+-				format = GL_SRGB8_ALPHA8_EXT;
+-			else
+-				format = GL_RGBA8;
++			format = GL_RGBA8;
+ 
+ 			tr.screenScratchImage = R_CreateImage("*screenScratch", NULL, width, height, IMGTYPE_COLORALPHA, IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, format);
+ 		}
+@@ -3159,10 +3176,21 @@
+ 	}
+ 
+ 	for ( i = 0; i < 256; i++ ) {
++		int i2;
++
++		if (r_srgb->integer)
++		{
++			i2 = 255 * RGBtosRGB(i/255.0f) + 0.5f;
++		}
++		else
++		{
++			i2 = i;
++		}
++
+ 		if ( g == 1 ) {
+-			inf = i;
++			inf = i2;
+ 		} else {
+-			inf = 255 * pow ( i/255.0f, 1.0f / g ) + 0.5f;
++			inf = 255 * pow ( i2/255.0f, 1.0f / g ) + 0.5f;
+ 		}
+ 		inf <<= shift;
+ 		if (inf < 0) {
+Index: code/rend2/tr_backend.c
+===================================================================
+--- code/rend2/tr_backend.c	(revision 366)
++++ code/rend2/tr_backend.c	(revision 368)
+@@ -2033,7 +2033,7 @@
+ 			autoExposure = r_autoExposure->integer || r_forceAutoExposure->integer;
+ 			RB_ToneMap(srcFbo, autoExposure);
+ 		}
+-		else if (!glRefConfig.framebuffer_srgb && r_cameraExposure->value == 0.0f)
++		else if (r_cameraExposure->value == 0.0f)
+ 		{
+ 			FBO_FastBlit(srcFbo, NULL, tr.screenScratchFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+ 		}
+Index: Makefile
+===================================================================
+--- Makefile	(revision 366)
++++ Makefile	(revision 368)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2389
++IOQ3_REVISION = 2392
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 
+@@ -1069,7 +1069,7 @@
+ $(echo_cmd) "REF_STR $<"
+ $(Q)rm -f $@
+ $(Q)echo "const char *fallbackShader_$(notdir $(basename $<)) =" >> $@
+-$(Q)cat $< | sed 's/\\/\\\\/;s/\t/\\t/;s/\"/\\"/;s/$$/\\n"/;s/^/"/' >> $@
++$(Q)cat $< | sed 's/^/\"/;s/$$/\\n\"/' >> $@
+ $(Q)echo ";" >> $@
+ endef
+ 
+Index: make-macosx.sh
+===================================================================
+--- make-macosx.sh	(revision 366)
++++ make-macosx.sh	(revision 368)
+@@ -44,7 +44,11 @@
+ # "8" is the Darwin major kernel version.
+ TIGERHOST=`uname -r |perl -w -p -e 's/\A(\d+)\..*\Z/$1/; $_ = (($_ >= 8) ? "1" : "0");'`
+ 
+-# we want to use the oldest available SDK for max compatiblity
++# we want to use the oldest available SDK for max compatiblity. However 10.4 and older
++# can not build 64bit binaries, making 10.5 the minimum version.   This has been tested 
++# with xcode 3.1 (xcode31_2199_developerdvd.dmg).  It contains the 10.5 SDK and a decent
++# enough gcc to actually compile ioquake3
++
+ unset X86_SDK
+ unset X86_CFLAGS
+ unset X86_LDFLAGS
+@@ -122,8 +126,14 @@
+ 	</plist>
+ 	" > $DESTDIR/$APPBUNDLE/Contents/Info.plist
+ 
+-lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY $BIN_OBJ
+-lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN $BIN_DEDOBJ
++for i in $BIN_OBJ $BIN_DEDOBJ $RENDER_OBJ
++do
++        install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $i
++done
++
++
++cp $BIN_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY
++cp $BIN_DEDOBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN
+ cp $RENDER_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/
+ cp $BASE_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR/
+ cp $MPACK_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$MPACKDIR/

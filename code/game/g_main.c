@@ -93,6 +93,9 @@ vmCvar_t	g_listEntity;
 vmCvar_t	g_singlePlayer;
 vmCvar_t        g_delagHitscan; //NT - new vars
 vmCvar_t	g_wpranks; // Weapon Ranks Order
+#ifdef MEC_DEBUG // debugging commmands
+vmCvar_t	m_devcmd[3]; //0-nospawn
+#endif
 #ifdef MISSIONPACK
 vmCvar_t	g_obeliskHealth;
 vmCvar_t	g_obeliskRegenPeriod;
@@ -193,7 +196,9 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_smoothClients, "g_smoothClients", "1", 0, 0, qfalse},
 	{ &pmove_fixed, "pmove_fixed", "0", CVAR_SYSTEMINFO, 0, qfalse},
 	{ &pmove_msec, "pmove_msec", "8", CVAR_SYSTEMINFO, 0, qfalse},
-
+#ifdef MEC_DEBUG
+	{ &m_devcmd[0], "m_nospawnall", "0", CVAR_ARCHIVE, 0, qfalse},
+#endif
 	{ &g_rankings, "g_rankings", "0", 0, 0, qfalse}
 
 };

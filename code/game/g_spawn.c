@@ -277,9 +277,19 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	spawn_t	*s;
 	gitem_t	*item;
 
+#ifdef MEC_DEBUG
+	if ( m_devcmd[0].integer == 1 ) {
+	    	if ((Q_strncmp(ent->classname, "weapon", 6)==0) ||
+            	(Q_strncmp(ent->classname, "ammo", 4)==0) ||
+		(Q_strncmp(ent->classname, "holdable", 8)==0) ||
+		(Q_strncmp(ent->classname, "team", 4)==0) ||
+		(Q_strncmp(ent->classname, "item", 4)==0))
+                        return qfalse;
+	}
+#endif
 	if ( g_gametype.integer == GT_RARENA) {
-		if ((Q_strncmp(ent->classname, "weapon_", 7)==0) ||
-            (Q_strncmp(ent->classname, "ammo_", 5)==0))
+		if ((Q_strncmp(ent->classname, "weapon", 6)==0) ||
+            	(Q_strncmp(ent->classname, "ammo", 4)==0))
 			return qfalse;
 	}
 

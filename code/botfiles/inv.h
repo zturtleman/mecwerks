@@ -1,30 +1,22 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company.
+Copyright (C) 1999-2005 Id Software, Inc.
 
-This file is part of Spearmint Source Code.
+This file is part of Quake III Arena source code.
 
-Spearmint Source Code is free software; you can redistribute it
+Quake III Arena source code is free software; you can redistribute it
 and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 3 of the License,
+published by the Free Software Foundation; either version 2 of the License,
 or (at your option) any later version.
 
-Spearmint Source Code is distributed in the hope that it will be
+Quake III Arena source code is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Spearmint Source Code.  If not, see <http://www.gnu.org/licenses/>.
-
-In addition, Spearmint Source Code is also subject to certain additional terms.
-You should have received a copy of these additional terms immediately following
-the terms and conditions of the GNU General Public License.  If not, please
-request a copy in writing from id Software at the address below.
-
-If you have questions concerning this license or the applicable additional
-terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc.,
-Suite 120, Rockville, Maryland 20850 USA.
+along with Foobar; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
@@ -80,11 +72,24 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define INVENTORY_NEUTRALFLAG		47
 #define INVENTORY_REDCUBE			48
 #define INVENTORY_BLUECUBE			49
+//Elimination mod: Domination inventory
+#define INVENTORY_POINTWHITE			50
+#define INVENTORY_POINTRED			51
+#define INVENTORY_POINTBLUE			52
+
+
 //enemy stuff
 #define ENEMY_HORIZONTAL_DIST		200
 #define ENEMY_HEIGHT				201
 #define NUM_VISIBLE_ENEMIES			202
 #define NUM_VISIBLE_TEAMMATES		203
+
+// if running the mission pack
+#ifdef MISSIONPACK
+
+//#error "running mission pack"
+
+#endif
 
 //item numbers (make sure they are in sync with bg_itemlist in bg_misc.c)
 #define MODELINDEX_ARMORSHARD		1
@@ -149,6 +154,18 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define MODELINDEX_NAILGUN			49
 #define MODELINDEX_PROXLAUNCHER		50
 #define MODELINDEX_CHAINGUN			51
+
+//Elimination mod: Double Domination and Standard Domination
+
+#define MODELINDEX_POINTABLUE			52
+#define MODELINDEX_POINTBBLUE			53
+#define MODELINDEX_POINTARED			54
+#define MODELINDEX_POINTBRED			55
+#define MODELINDEX_POINTAWHITE			56
+#define MODELINDEX_POINTBWHITE			57
+#define MODELINDEX_POINTWHITE			58
+#define MODELINDEX_POINTRED			59
+#define MODELINDEX_POINTBLUE			60
 
 
 //
