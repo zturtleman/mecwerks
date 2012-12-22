@@ -72,9 +72,9 @@ NCPU=`sysctl -n hw.ncpu`
 
 
 # intel client and server
-#if [ -d build/release-darwin-x86_64 ]; then
-#	rm -r build/release-darwin-x86_64
-#fi
+if [ -d build/release-darwin-x86_64 ]; then
+	rm -r build/release-darwin-x86_64
+fi
 (ARCH=x86_64 CFLAGS=$X86_CFLAGS LDFLAGS=$X86_LDFLAGS make -j$NCPU) || exit 1;
 
 echo "Creating .app bundle $DESTDIR/$APPBUNDLE"

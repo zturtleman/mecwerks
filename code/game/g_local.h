@@ -60,6 +60,10 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define FL_NO_HUMANS			0x00004000	// spawn point just for bots
 #define FL_FORCE_GESTURE		0x00008000	// force gesture on client
 
+// these are for capping wave and round limits, a Survival game mode can have an infinite amount of sets though
+#define MAX_WAVES	4 // set this one below desired amount
+#define MAX_ROUNDS	3
+
 // movers are things like doors, plats, buttons, etc
 typedef enum {
 	MOVER_POS1,
@@ -444,6 +448,8 @@ typedef struct {
         int                     skill;                  // skill level
         int                     wave;                   // current wave
         int                     waveWarmupTime;		// time before next wave starts after finishing a wave
+	int			numrounds;		// number of rounds completed
+	int			numsets;		// number of sets completed
 #ifdef MISSIONPACK
 	int			portalSequence;
 #endif
@@ -601,6 +607,8 @@ int G_ReloadTime ( int w );
 //
 // g_client.c
 //
+void G_EndWave( void );
+qboolean IsBot(int clientNum);
 team_t TeamCount( int ignoreClientNum, int team );
 int TeamLeader( int team );
 team_t PickTeam( int ignoreClientNum );
@@ -758,7 +766,7 @@ extern	vmCvar_t	g_dmflags;
 extern	vmCvar_t	g_fraglimit;
 extern	vmCvar_t	g_timelimit;
 extern	vmCvar_t	g_capturelimit;
-extern  vmCvar_t    g_scorelimit;
+extern  vmCvar_t    	g_scorelimit;
 extern	vmCvar_t	g_friendlyFire;
 extern	vmCvar_t	g_password;
 extern	vmCvar_t	g_needpass;
@@ -800,6 +808,10 @@ extern	vmCvar_t	g_singlePlayer;
 extern	vmCvar_t	g_proxMineTimeout;
 extern  vmCvar_t        g_delagHitscan; //NT - new vars
 extern	vmCvar_t	g_wpranks;
+extern  vmCvar_t	g_wavepause;
+extern	vmCvar_t	g_maxsets;
+extern  vmCvar_t	g_wavebots[5];
+extern  vmCvar_t	g_difficulty;
 extern  vmCvar_t	m_devcmd[3];
 
 // Additional shared traps in bg_misc.h

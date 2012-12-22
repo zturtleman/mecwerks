@@ -51,7 +51,7 @@ vmCvar_t	g_dmflags;
 vmCvar_t	g_fraglimit;
 vmCvar_t	g_timelimit;
 vmCvar_t	g_capturelimit;
-vmCvar_t    g_scorelimit;
+vmCvar_t    	g_scorelimit;
 vmCvar_t	g_friendlyFire;
 vmCvar_t	g_password;
 vmCvar_t	g_needpass;
@@ -93,6 +93,10 @@ vmCvar_t	g_listEntity;
 vmCvar_t	g_singlePlayer;
 vmCvar_t        g_delagHitscan; //NT - new vars
 vmCvar_t	g_wpranks; // Weapon Ranks Order
+vmCvar_t	g_wavepause; // Amount of time between waves of survival mode in seconds
+vmCvar_t	g_maxsets; // The maximum number of sets in a survival game, 0 - Infinite
+vmCvar_t	g_wavebots[5]; // dmflag for the type/class of bots to spawn in each wave
+vmCvar_t	g_difficulty;
 #ifdef MEC_DEBUG // debugging commmands
 vmCvar_t	m_devcmd[3]; //0-nospawn
 #endif
@@ -165,7 +169,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_debugDamage, "g_debugDamage", "0", 0, 0, qfalse },
 	{ &g_debugAlloc, "g_debugAlloc", "0", 0, 0, qfalse },
 	{ &g_motd, "g_motd", "", 0, 0, qfalse },
-	{ &g_blood, "com_blood", "1", 0, 0, qfalse },
+	{ &g_blood, "com_blood", "1", CVAR_ARCHIVE, 0, qfalse },
 
 	{ &g_podiumDist, "g_podiumDist", "80", 0, 0, qfalse },
 	{ &g_podiumDrop, "g_podiumDrop", "70", 0, 0, qfalse },
@@ -177,7 +181,15 @@ static cvarTable_t		gameCvarTable[] = {
 
 	// new variables
     	{ &g_delagHitscan, "g_delagHitscan", "1", 0, 0, qtrue  }, //NT
-    	{ &g_wpranks, "g_railorder", "123123", CVAR_SERVERINFO | CVAR_ARCHIVE| CVAR_LATCH, 0, qfalse }, // rail factory
+    	{ &g_wpranks, "g_railorder", "123123", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_LATCH, 0, qfalse }, // rail factory
+	{ &g_wavepause, "g_wavepause", "10", CVAR_SERVERINFO | CVAR_ARCHIVE , 0, qfalse }, // survival pause between waves
+	{ &g_maxsets, "g_maxsets", "3", CVAR_SERVERINFO | CVAR_ARCHIVE , 0, qfalse }, // survial maximum amount of sets
+	{ &g_wavebots[0], "g_wave1bots", "3", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse }, // survial bot type/class
+	{ &g_wavebots[1], "g_wave2bots", "5", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse }, // survial bot type/class
+	{ &g_wavebots[2], "g_wave3bots", "8", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse }, // survial bot type/class
+	{ &g_wavebots[3], "g_wave4bots", "13", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse }, // survial bot type/class
+	{ &g_wavebots[4], "g_wave5bots", "15", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse }, // survial bot type/class
+	{ &g_difficulty, "g_difficulty", "1", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse }, // survial bot difficulty
 
     #ifdef MISSIONPACK
 	{ &g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse },
@@ -458,6 +470,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
         level.skill = 0;
         level.wave = 0;
+	level.numrounds = 0;
+	level.numsets = 0;
         level.waveWarmupTime = -1;
 
 	G_DPrintf ("------- Game Initialization -------\n");
@@ -572,30 +586,56 @@ G_InitWave
 =================
 */
  void G_InitNextWave( void ) {
+	if (level.wave == MAX_WAVES ) {
+                level.wave = 0;
+                level.numrounds++;
+        }
+        if (level.numrounds > MAX_ROUNDS) {
+                level.numrounds = 0;
+                level.numsets++;
+        }
+
         level.wave++; //increase wave index to next wave
 
         //TODO: if last wave is hit, set wave index to 0 and increase skill level by 1. If skill level is already maximum skill, then continue to a won-game state
 
         level.state = LS_WAVEWARMUP;
-        level.waveWarmupTime = level.time + ( g_warmup.integer - 1 ) * 1000; //TODO: make wave warmup time configurable seperate of level warmuptime?
+        level.waveWarmupTime = level.time + ( g_wavepause.integer - 1 ) * 1000; //TODO: make wave warmup time configurable seperate of level warmuptime?
 }
 
 void G_SpawnEnemiesForWave( void ) {
-        char *netname;
- 
-        switch (level.wave) {
-                case 1:
-                        Q_strncpyz(netname, "anarki", sizeof(netname));
-                        trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                        break;
-                case 2:
-                        Q_strncpyz(netname, "sarge", sizeof(netname));
-                        trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                        trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                default:
-                        break;
-        }
- 
+ 	int  skill = g_difficulty.integer;
+
+	if ( skill < 1 )
+		skill = 1;
+	if ( skill > 5 )
+		skill = 5;
+
+	// MEC TODO: Make delay a little random, also need to make the bots skills able to be multiply/divided to modify them all by a certain amount
+	if ((int)(g_wavebots[level.wave].integer) & 1) {
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+	}
+
+	if ((int)(g_wavebots[level.wave].integer) & 2) {
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot anarki %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot klesk %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot grunt %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay	
+	}
+
+	if ((int)(g_wavebots[level.wave].integer) & 4) {
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot angel %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot orbb %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+	}
+
+	if ((int)(g_wavebots[level.wave].integer) & 8) {
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+	}
+	
         level.state = LS_WAVEINPROGRESS;
 }
 
@@ -1361,7 +1401,7 @@ void LogExit( const char *string ) {
 CheckWave
 =============
 */
-void CheckWave() {
+void CheckWave( void ) {
         switch (level.state) {
                 case LS_WAVEWARMUP:
                         if (level.time >= level.waveWarmupTime) {
@@ -1369,7 +1409,7 @@ void CheckWave() {
                                 G_SpawnEnemiesForWave();
                         }
                         else
-                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n\"", level.wave) ); //TODO: see if a countdown for the last 3 secs can be implemented
+                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n Set %i, Round %i\n %i seconds left\n\"", level.wave, level.numsets + 1, level.numrounds + 1, level.waveWarmupTime - level.time) ); 
                         break;
                 case LS_WAVEFINISHED:
                         if (level.time >= level.waveWarmupTime) {

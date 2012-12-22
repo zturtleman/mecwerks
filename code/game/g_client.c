@@ -536,6 +536,13 @@ ClientRespawn
 ================
 */
 void ClientRespawn( gentity_t *ent ) {
+	if ( g_gametype.integer == GT_SURVIVAL ) 
+        	//kick fragged bots from game
+        	if (IsBot(ent->client->ps.clientNum) ) {
+        	        trap_DropClient( ent->client->ps.clientNum, "" );
+                	G_EndWave();    //check if the wave was won and handle it
+                	return;
+        	}
 
 	CopyToBodyQue (ent);
 	ClientSpawn(ent);
@@ -1087,10 +1094,23 @@ void ClientBegin( int clientNum ) {
 	CalculateRanks();
 }
 
-/*
-===========
-ClientSpawn
 
+/*
+==================
+IsBot
+==================
+*/
+qboolean IsBot(int clientNum) {
+        //return qtrue if client is a bot
+        if (g_entities[clientNum].r.svFlags & SVF_BOT)
+                return qtrue;
+        else
+                return qfalse;
+}
+
+/*
+============
+ClientSpawn
 Called every time a client is placed fresh in the world:
 after the first ClientBegin, and after each respawn
 Initializes all non-persistant parts of playerState
@@ -1111,6 +1131,7 @@ void ClientSpawn(gentity_t *ent) {
 //	char	*savedAreaBits;
 	int		accuracy_hits, accuracy_shots;
 	int		eventSequence;
+	int             weapon;
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -1217,10 +1238,29 @@ void ClientSpawn(gentity_t *ent) {
 
 
 	if ( g_gametype.integer == GT_RARENA ) {
-        	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN );
-        	client->ps.ammo[WP_RAILGUN] = -1;
-		client->ps.clipammo[WP_RAILGUN] = -1;
+		weapon = WP_RAILGUN;
+        	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
+        	client->ps.ammo[weapon] = -1;
+		client->ps.clipammo[weapon] = -1;
 		G_NextFireType( ent, 0 );
+	} else if ( g_gametype.integer == GT_SURVIVAL ) {
+ 	       if (IsBot(client->ps.clientNum)) {
+        	        weapon = WP_SHOTGUN;
+                	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
+                	client->ps.ammo[weapon] = -1;
+			client->ps.clipammo[weapon] = -1; // = G_ClipAmmoAmount( weapon ); //MEC NOTE: Later this can be changed so bots still reload but also have unlimited ammo
+        	} else {
+                	weapon = WP_MACHINEGUN;
+                	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
+                	client->ps.ammo[weapon] = 100;
+			client->ps.clipammo[weapon] = G_ClipAmmoAmount( weapon );
+
+                	client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
+                	client->ps.ammo[WP_GAUNTLET] = -1;
+			client->ps.clipammo[WP_GAUNTLET] = -1;
+                	client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
+			client->ps.clipammo[WP_GRAPPLING_HOOK] = -1;
+        	}
 	} else {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
 		if ( g_gametype.integer == GT_TEAM ) {
@@ -1265,16 +1305,12 @@ void ClientSpawn(gentity_t *ent) {
 		if (ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 			G_KillBox(ent);
             		// force the base weapon up
-			if ( g_gametype.integer == GT_RARENA ) {
-                		client->ps.weapon = WP_RAILGUN;
-            		} else {
-               	 		client->ps.weapon = WP_MACHINEGUN;
-            		}
+               	 	client->ps.weapon = weapon;
 			client->ps.weaponstate = WEAPON_READY;
 			// fire the targets of the spawn point
 			G_UseTargets(spawnPoint, ent);
 			// select the highest weapon number available, after any spawn given items have fired
-			client->ps.weapon = 1;
+			client->ps.weapon = weapon;
 
 			for (i = WP_NUM_WEAPONS - 1 ; i > 0 ; i--) {
 				if (client->ps.stats[STAT_WEAPONS] & (1 << i)) {

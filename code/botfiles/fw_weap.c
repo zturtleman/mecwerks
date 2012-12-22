@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#if 0
+#if 1
 #define GTW W_GAUNTLET
 #define SGW W_SHOTGUN
 #define MGW W_MACHINEGUN

@@ -650,6 +650,23 @@ static void CG_DrawStatusBar( void ) {
          }
 
 	//
+	// Survival mode HUD
+	//
+	if ( cgs.gametype == GT_SURVIVAL ) {
+		value = cg.time;
+		if ( value > -1 ) { // doing this as -1 and not 0 makes it show the zero before the counter disapears
+			if ( value == 1000 || value == 2000 || value == 3000 )
+				color = 1;
+			else
+				color = 2;
+			trap_R_SetColor( colors[color] );
+
+                	CG_DrawField (680, 0, 3, value);
+                	trap_R_SetColor( NULL );
+		}
+
+	}
+	//
 	// health
 	//
 	value = ps->stats[STAT_HEALTH] / 10;

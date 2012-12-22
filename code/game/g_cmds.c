@@ -528,6 +528,11 @@ Let everyone know about a team change
 */
 void BroadcastTeamChange( gclient_t *client, int oldTeam )
 {
+	//don't broadcast team change for bots in survival mode
+	if ( g_gametype.integer == GT_SURVIVAL )
+       		if (IsBot(client->ps.clientNum))
+	                return;
+
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
 			client->pers.netname) );
@@ -556,11 +561,13 @@ void SetTeam( gentity_t *ent, char *s ) {
 	int					specClient;
 	int					teamLeader;
 	int					i;
+	qboolean                        isBot;
 
 	//
 	// see what change is requested
 	//
 	client = ent->client;
+	isBot = IsBot(client->ps.clientNum);
 
 	clientNum = client - level.clients;
 	specClient = 0;
@@ -638,8 +645,20 @@ void SetTeam( gentity_t *ent, char *s ) {
 		team = TEAM_SPECTATOR;
 	} else if ( g_maxGameClients.integer > 0 && 
 		level.numNonSpectatorClients >= g_maxGameClients.integer ) {
-		team = TEAM_SPECTATOR;
+		if ( g_gametype.integer == GT_SURVIVAL)
+			if (!isBot)
+				team = TEAM_SPECTATOR;
+		else
+			team = TEAM_SPECTATOR;
 	}
+
+        if ( g_gametype.integer == GT_SURVIVAL ) {
+                if ( !isBot )
+                        team == TEAM_BLUE;
+
+                if ( isBot )
+                        team == TEAM_RED;
+        }
 
 	//
 	// decide if we will allow the change
@@ -648,7 +667,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 	if ( team == oldTeam && team != TEAM_SPECTATOR ) {
 		return;
 	}
-
+	
 	//
 	// execute the team change
 	//

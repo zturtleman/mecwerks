@@ -89,6 +89,11 @@ void TossClientItems( gentity_t *self ) {
 	int			i;
 	gentity_t	*drop;
 
+        //bots don't drop items in survival
+	if ( g_gametype.integer == GT_SURVIVAL )
+        	if (IsBot(self->client->ps.clientNum))
+                	return;
+
 	// drop the weapon if not a gauntlet or machinegun
 	weapon = self->s.weapon;
 
