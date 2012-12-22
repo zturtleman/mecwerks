@@ -191,9 +191,10 @@ done
 #
 # Clean up the commit log
 #
-grep -v - $COMMIT_LOG > $TMPCOMMIT_LOG
+grep -v -- -- $COMMIT_LOG > $TMPCOMMIT_LOG
 rm -rf $COMMIT_LOG
-mv $TMPCOMMIT_LOG $COMMIT_LOG
+grep -v ZTurtleMan $TMPCOMMIT_LOG > $COMMIT_LOG
+rm -rf $TMPCOMMIT_LOG
 
 #
 # Make the patch

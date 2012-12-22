@@ -1406,7 +1406,7 @@ typedef enum {
 typedef struct {
   int height;       // number of scan lines
   int top;          // top of glyph in buffer
-  int bottom;       // bottom of glyph in buffer
+  int left;         // left of glyph in buffer
   int pitch;        // width for copying
   int xSkip;        // x adjustment
   int imageWidth;   // width of actual image
