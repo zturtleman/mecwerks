@@ -1221,6 +1221,8 @@ static void CG_DrawCapFragLimit(rectDef_t *rect, float scale, vec4_t color, qhan
         limit = cgs.capturelimit;
     else if (cgs.gametype == GT_FRENZY || cgs.gametype == GT_TEAM_FRENZY)
         limit = cgs.scorelimit;
+    else if (cgs.gametype == GT_SURVIVAL)
+	limit = 0;
     else
         limit = cgs.fraglimit;
     
@@ -1270,8 +1272,10 @@ const char *CG_GameTypeString(void) {
 		return "Team Scoring Frenzy";
 	} else if ( cgs.gametype == GT_RARENA ) {
 		return "Rail Factory";
-    } else if ( cgs.gametype == GT_TEAM ) {
+    	} else if ( cgs.gametype == GT_TEAM ) {
 		return "Team Deathmatch";
+	} else if ( cgs.gametype == GT_SURVIVAL ) {
+		return "Survival";
 	} else if ( cgs.gametype == GT_CTF ) {
 		return "Capture the Flag";
 	} else if ( cgs.gametype == GT_1FCTF ) {

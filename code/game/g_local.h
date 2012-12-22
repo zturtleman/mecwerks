@@ -61,7 +61,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define FL_FORCE_GESTURE		0x00008000	// force gesture on client
 
 // these are for capping wave and round limits, a Survival game mode can have an infinite amount of sets though
-#define MAX_WAVES	4 // set this one below desired amount
+#define MAX_WAVES	4 
 #define MAX_ROUNDS	3
 
 // movers are things like doors, plats, buttons, etc
@@ -190,6 +190,7 @@ struct gentity_s {
 };
 
 typedef enum {
+	LS_NONE,	// used for non-survival mode games
 	LS_WAVEWARMUP,
 	LS_WAVEINPROGRESS,
 	LS_WAVEFINISHED

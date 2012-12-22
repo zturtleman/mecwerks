@@ -523,6 +523,9 @@ void CG_CheckGameSounds( void ) {
 		}
 	}
 
+	if ( cgs.gametype == GT_SURVIVAL )
+		return;
+
 	// fraglimit warnings
 	if ( cgs.fraglimit > 0 && cgs.gametype < GT_CTF && cgs.gametype != GT_FRENZY && cgs.gametype != GT_TEAM_FRENZY && cgs.gametype != GT_RARENA ) {
 		highScore = cgs.scores1;

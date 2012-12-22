@@ -1245,10 +1245,10 @@ void ClientSpawn(gentity_t *ent) {
 		G_NextFireType( ent, 0 );
 	} else if ( g_gametype.integer == GT_SURVIVAL ) {
  	       if (IsBot(client->ps.clientNum)) {
-        	        weapon = WP_SHOTGUN;
+        	        weapon = WP_GRENADE_LAUNCHER;
                 	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
                 	client->ps.ammo[weapon] = -1;
-			client->ps.clipammo[weapon] = -1; // = G_ClipAmmoAmount( weapon ); //MEC NOTE: Later this can be changed so bots still reload but also have unlimited ammo
+			client->ps.clipammo[weapon] = G_ClipAmmoAmount( weapon ); //MEC NOTE: Later this can be changed so bots still reload but also have unlimited ammo
         	} else {
                 	weapon = WP_MACHINEGUN;
                 	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );

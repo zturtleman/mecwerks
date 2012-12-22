@@ -260,6 +260,9 @@ void CG_DrawInformation( void ) {
 	case GT_TEAM:
 		s = "Team Deathmatch";
 		break;
+	case GT_SURVIVAL:
+		s = "Survival";
+		break;
 	case GT_CTF:
 		s = "Capture The Flag";
 		break;
@@ -296,7 +299,7 @@ void CG_DrawInformation( void ) {
                                       UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
 			y += PROP_HEIGHT;
 		}
-	} else if (cgs.gametype < GT_CTF ) {
+	} else if (cgs.gametype < GT_CTF && cgs.gametype != GT_SURVIVAL) {
 		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "fraglimit %i", value ),

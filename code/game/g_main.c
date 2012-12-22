@@ -468,11 +468,12 @@ G_InitGame
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 
-        level.skill = 0;
-        level.wave = 0;
+    	level.skill = 0;
+    	level.wave = 0;
 	level.numrounds = 0;
 	level.numsets = 0;
-        level.waveWarmupTime = -1;
+    	level.waveWarmupTime = -1;
+	level.state = LS_NONE;
 
 	G_DPrintf ("------- Game Initialization -------\n");
 	G_DPrintf ("gamename: %s\n", GAMEVERSION);
@@ -586,36 +587,30 @@ G_InitWave
 =================
 */
  void G_InitNextWave( void ) {
-	if (level.wave == MAX_WAVES ) {
-                level.wave = 0;
-                level.numrounds++;
-        }
-        if (level.numrounds > MAX_ROUNDS) {
-                level.numrounds = 0;
-                level.numsets++;
-        }
+     	level.wave++;
 
-        level.wave++; //increase wave index to next wave
-
-        //TODO: if last wave is hit, set wave index to 0 and increase skill level by 1. If skill level is already maximum skill, then continue to a won-game state
-
-        level.state = LS_WAVEWARMUP;
-        level.waveWarmupTime = level.time + ( g_wavepause.integer - 1 ) * 1000; //TODO: make wave warmup time configurable seperate of level warmuptime?
+	if ( level.numrounds <= 0 )
+     		level.numrounds++;
+	if ( level.numsets <= 0 )
+     		level.numsets++;
+     
+     	level.state = LS_WAVEWARMUP;
+     	level.waveWarmupTime = level.time + ( g_wavepause.integer * 1000 );
 }
 
+#define BOT_DELAYTIME 1000
 void G_SpawnEnemiesForWave( void ) {
  	int  skill = g_difficulty.integer;
 
-	if ( skill < 1 )
-		skill = 1;
-	if ( skill > 5 )
-		skill = 5;
+	if ( skill < 0 )
+		skill = 0;
+	if ( skill > 4 )
+		skill = 4;
 
-	// MEC TODO: Make delay a little random, also need to make the bots skills able to be multiply/divided to modify them all by a certain amount
 	if ((int)(g_wavebots[level.wave].integer) & 1) {
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, BOT_DELAYTIME) ); //name, skill [0-4], team [red,blue], delay
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, BOT_DELAYTIME * 2) ); //name, skill [0-4], team [red,blue], delay
+		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, BOT_DELAYTIME * 3) ); //name, skill [0-4], team [red,blue], delay
 	}
 
 	if ((int)(g_wavebots[level.wave].integer) & 2) {
@@ -636,7 +631,7 @@ void G_SpawnEnemiesForWave( void ) {
                 trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
 	}
 	
-        level.state = LS_WAVEINPROGRESS;
+    level.state = LS_WAVEINPROGRESS;
 }
 
 /*
@@ -670,7 +665,7 @@ void G_EndWave( void ) {
         //no bots were found, so end this wave
         trap_SendServerCommand( -1, va("cp \"Wave %i completed!\n\"", level.wave) );
         level.state = LS_WAVEFINISHED;
-        level.waveWarmupTime = level.time + 3000;
+        level.waveWarmupTime = level.time + 5000;
 }
 
 /*
@@ -1402,6 +1397,8 @@ CheckWave
 =============
 */
 void CheckWave( void ) {
+	if ( level.intermissiontime )
+		return; // just to make sure we are actually in game
         switch (level.state) {
                 case LS_WAVEWARMUP:
                         if (level.time >= level.waveWarmupTime) {
@@ -1409,9 +1406,17 @@ void CheckWave( void ) {
                                 G_SpawnEnemiesForWave();
                         }
                         else
-                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n Set %i, Round %i\n %i seconds left\n\"", level.wave, level.numsets + 1, level.numrounds + 1, level.waveWarmupTime - level.time) ); 
+                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n Set %i, Round %i\n %i seconds left\n\"", level.wave, level.numsets, level.numrounds, (level.waveWarmupTime - level.time) / 1000) );
                         break;
                 case LS_WAVEFINISHED:
+                        if (level.wave == MAX_WAVES ) {
+                                level.wave = 0;
+                                level.numrounds++;
+                        }
+                        if (level.numrounds == MAX_ROUNDS+1) {
+                                level.numrounds = 1;
+                                level.numsets++;
+                        }
                         if (level.time >= level.waveWarmupTime) {
                                 G_InitNextWave();
                         }
@@ -1580,9 +1585,15 @@ void CheckExitRules( void ) {
 		}
 	}
 
+    if ( level.wave == MAX_WAVES && level.numrounds == MAX_ROUNDS && level.numsets == g_maxsets.integer ) {
+        trap_SendServerCommand( -1, "print \"All Sets Have Been Completed.\n\"");
+        LogExit( "YOU SURVIVED." );
+        return;
+    }
+    
     if ( (g_gametype.integer == GT_FRENZY || g_gametype.integer == GT_TEAM_FRENZY) && g_scorelimit.integer ) {
 	
-        if ( level.teamScores[TEAM_RED] >= g_scorelimit.integer ) {
+        	if ( level.teamScores[TEAM_RED] >= g_scorelimit.integer ) {
 			trap_SendServerCommand( -1, "print \"Red hit the scorelimit.\n\"" );
 			LogExit( "Scorelimit hit." );
 			return;
@@ -1593,7 +1604,6 @@ void CheckExitRules( void ) {
 			LogExit( "Scorelimit hit." );
 			return;
 		}
-        // team frenzy not yet implemented
  
 		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
 			cl = level.clients + i;

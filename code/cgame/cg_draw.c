@@ -652,6 +652,7 @@ static void CG_DrawStatusBar( void ) {
 	//
 	// Survival mode HUD
 	//
+	/*
 	if ( cgs.gametype == GT_SURVIVAL ) {
 		value = cg.time;
 		if ( value > -1 ) { // doing this as -1 and not 0 makes it show the zero before the counter disapears
@@ -666,6 +667,7 @@ static void CG_DrawStatusBar( void ) {
 		}
 
 	}
+	*/
 	//
 	// health
 	//
@@ -1101,7 +1103,9 @@ static float CG_DrawScores( float y ) {
 	y1 = y;
 
 	// draw from the right side to left
-	if ( cgs.gametype >= GT_TEAM ) {
+	if ( cgs.gametype == GT_SURVIVAL ) {
+		// Eventually draw somethings like the current wave/rounds/set and amount of enemies left
+	} else if ( cgs.gametype >= GT_TEAM ) {
 		x = 640;
 		color[0] = 0.0f;
 		color[1] = 0.0f;
@@ -2779,6 +2783,8 @@ static void CG_DrawWarmup( void ) {
 		    	s = "Rail Factory";
 		} else if ( cgs.gametype == GT_TEAM ) {
 			s = "Team Deathmatch";
+		} else if ( cgs.gametype == GT_SURVIVAL ) {
+			s = "Survival";
 		} else if ( cgs.gametype == GT_CTF ) {
 			s = "Capture the Flag";
 #ifdef MISSIONPACK

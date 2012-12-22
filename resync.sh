@@ -66,6 +66,7 @@ do
                 echo "                                  (default: $PATCH_SUFFIX)"
                 echo "    -nopatch              Do not apply patch after it's created"
                 echo "    -noadd                Do not add patch to repo"
+		echo "    -nocommit             Do not start a new commit after patch"
                 echo "    -help                 Show this help"
                 echo "    -h"
                 echo "To permanently set a variable edit this script"
@@ -184,6 +185,7 @@ do
 	else
 		echo "- Spearmint $i" >> $COMMIT_LOG
 		svn log $SCODE -r$i >> $COMMIT_LOG
+		echo "" >> $COMMIT_LOG
 		echo "Added commit log message for revision $i to $COMMIT_LOG"
 	fi
 done
