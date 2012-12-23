@@ -1406,7 +1406,7 @@ void CheckWave( void ) {
                                 G_SpawnEnemiesForWave();
                         }
                         else
-                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n Set %i, Round %i\n %i seconds left\n\"", level.wave, level.numsets, level.numrounds, (level.waveWarmupTime - level.time) / 1000) );
+                                trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n Set %i, Round %i\n %i Seconds Left\n\"", level.wave, level.numsets, level.numrounds, (level.waveWarmupTime - level.time) / 1000) );
                         break;
                 case LS_WAVEFINISHED:
                         if (level.wave == MAX_WAVES ) {
@@ -1415,7 +1415,8 @@ void CheckWave( void ) {
                         }
                         if (level.numrounds == MAX_ROUNDS+1) {
                                 level.numrounds = 1;
-                                level.numsets++;
+                                if ( g_maxsets.integer != 0 )
+                                    level.numsets++;
                         }
                         if (level.time >= level.waveWarmupTime) {
                                 G_InitNextWave();

@@ -536,13 +536,12 @@ ClientRespawn
 ================
 */
 void ClientRespawn( gentity_t *ent ) {
-	if ( g_gametype.integer == GT_SURVIVAL ) 
-        	//kick fragged bots from game
-        	if (IsBot(ent->client->ps.clientNum) ) {
-        	        trap_DropClient( ent->client->ps.clientNum, "" );
-                	G_EndWave();    //check if the wave was won and handle it
-                	return;
-        	}
+    //kick fragged bots from game
+    if (IsBot(ent->client->ps.clientNum) ) {
+            trap_DropClient( ent->client->ps.clientNum, "" );
+            G_EndWave();    //check if the wave was won and handle it
+            return;
+    }
 
 	CopyToBodyQue (ent);
 	ClientSpawn(ent);
@@ -955,9 +954,9 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 		return "You are banned from this server.";
 	}
 
-  // we don't check password for bots and local client
-  // NOTE: local client <-> "ip" "localhost"
-  //   this means this client is not running in our current process
+    // we don't check password for bots and local client
+    // NOTE: local client <-> "ip" "localhost"
+    //   this means this client is not running in our current process
 	if ( !isBot && (strcmp(value, "localhost") != 0)) {
 		// check for a password
 		value = Info_ValueForKey (userinfo, "password");
@@ -1101,11 +1100,18 @@ IsBot
 ==================
 */
 qboolean IsBot(int clientNum) {
-        //return qtrue if client is a bot
-        if (g_entities[clientNum].r.svFlags & SVF_BOT)
-                return qtrue;
-        else
-                return qfalse;
+//    trap_SendServerCommand( -1, va("print \"Checked clientNum %i\n\"", clientNum) );
+    if (g_gametype.integer != GT_SURVIVAL) {
+//        trap_SendServerCommand( -1, va("print \"Is not survival mode\n\"") );
+            return qfalse;
+    }
+    if (g_entities[clientNum].r.svFlags & SVF_BOT) {
+//        trap_SendServerCommand( -1, va("print \"ClientNum %i is bot\n\"", clientNum) );
+        return qtrue;
+    } else {
+//        trap_SendServerCommand( -1, va("print \"ClientNum %i is human\n\"", clientNum) );
+        return qfalse;
+    }
 }
 
 /*
@@ -1248,18 +1254,18 @@ void ClientSpawn(gentity_t *ent) {
         	        weapon = WP_GRENADE_LAUNCHER;
                 	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
                 	client->ps.ammo[weapon] = -1;
-			client->ps.clipammo[weapon] = G_ClipAmmoAmount( weapon ); //MEC NOTE: Later this can be changed so bots still reload but also have unlimited ammo
+                    client->ps.clipammo[weapon] = G_ClipAmmoAmount( weapon );
         	} else {
                 	weapon = WP_MACHINEGUN;
                 	client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
                 	client->ps.ammo[weapon] = 100;
-			client->ps.clipammo[weapon] = G_ClipAmmoAmount( weapon );
+                    client->ps.clipammo[weapon] = G_ClipAmmoAmount( weapon );
 
                 	client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
                 	client->ps.ammo[WP_GAUNTLET] = -1;
-			client->ps.clipammo[WP_GAUNTLET] = -1;
+                    client->ps.clipammo[WP_GAUNTLET] = -1;
                 	client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
-			client->ps.clipammo[WP_GRAPPLING_HOOK] = -1;
+                    client->ps.clipammo[WP_GRAPPLING_HOOK] = -1;
         	}
 	} else {
 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );

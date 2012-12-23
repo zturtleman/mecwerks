@@ -114,7 +114,14 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 	sess = &client->sess;
 
 	// initial team determination
-	if ( g_gametype.integer >= GT_TEAM ) {
+	if ( g_gametype.integer == GT_SURVIVAL ) {
+		 // bots automatically join Red team and humans automaticly join blue
+		 if (g_entities[ client - level.clients ].r.svFlags & SVF_BOT) {
+                         sess->sessionTeam = TEAM_RED; 
+                 } else {
+                         sess->sessionTeam = TEAM_BLUE;
+                 }
+	} else if ( g_gametype.integer >= GT_TEAM ) {
 		if ( g_teamAutoJoin.integer && !(g_entities[ client - level.clients ].r.svFlags & SVF_BOT) ) {
 			sess->sessionTeam = PickTeam( -1 );
 			BroadcastTeamChange( client, -1 );

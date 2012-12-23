@@ -529,21 +529,20 @@ Let everyone know about a team change
 void BroadcastTeamChange( gclient_t *client, int oldTeam )
 {
 	//don't broadcast team change for bots in survival mode
-	if ( g_gametype.integer == GT_SURVIVAL )
-       		if (IsBot(client->ps.clientNum))
-	                return;
+    if (IsBot(client->ps.clientNum))
+        return;
 
 	if ( client->sess.sessionTeam == TEAM_RED ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
+		trap_SendServerCommand( -1, va("gprint \"%s" S_COLOR_WHITE " joined the red team.\n\"",
 			client->pers.netname) );
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
+		trap_SendServerCommand( -1, va("gprint \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
+		trap_SendServerCommand( -1, va("gprint \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
+		trap_SendServerCommand( -1, va("gprint \"%s" S_COLOR_WHITE " joined the battle.\n\"",
 		client->pers.netname));
 	}
 }
@@ -645,20 +644,16 @@ void SetTeam( gentity_t *ent, char *s ) {
 		team = TEAM_SPECTATOR;
 	} else if ( g_maxGameClients.integer > 0 && 
 		level.numNonSpectatorClients >= g_maxGameClients.integer ) {
-		if ( g_gametype.integer == GT_SURVIVAL)
-			if (!isBot)
-				team = TEAM_SPECTATOR;
-		else
-			team = TEAM_SPECTATOR;
+        team = TEAM_SPECTATOR;
 	}
 
-        if ( g_gametype.integer == GT_SURVIVAL ) {
-                if ( !isBot )
-                        team == TEAM_BLUE;
+    if ( g_gametype.integer == GT_SURVIVAL && team != TEAM_SPECTATOR ) {
+            if ( !isBot )
+                    team = TEAM_BLUE;
 
-                if ( isBot )
-                        team == TEAM_RED;
-        }
+            if ( isBot )
+                    team = TEAM_RED;
+    }
 
 	//
 	// decide if we will allow the change
@@ -773,7 +768,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 	}
 
 	if ( ent->client->switchTeamTime > level.time ) {
-		trap_SendServerCommand( ent-g_entities, "print \"May not switch teams more than once per 5 seconds.\n\"" );
+		trap_SendServerCommand( ent-g_entities, "print \"May not switch teams more than once every 4 seconds.\n\"" );
 		return;
 	}
 
@@ -787,7 +782,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	SetTeam( ent, s );
 
-	ent->client->switchTeamTime = level.time + 5000;
+	ent->client->switchTeamTime = level.time + 4000;
 }
 
 
