@@ -536,13 +536,13 @@ ClientRespawn
 ================
 */
 void ClientRespawn( gentity_t *ent ) {
-    //kick fragged bots from game
-    if (IsBot(ent->client->ps.clientNum) ) {
-            trap_DropClient( ent->client->ps.clientNum, "" );
-            G_EndWave();    //check if the wave was won and handle it
-            return;
-    }
-
+	// MEC NOTE: Later an effect can be added to the bots spawning out
+    	//kick fragged bots from game
+    	if (IsBot(ent->client->ps.clientNum) ) {
+            	trap_DropClient( ent->client->ps.clientNum, "" );
+        	G_EndWave();    //check if the wave was won and handle it
+            	return;
+   	 }
 	CopyToBodyQue (ent);
 	ClientSpawn(ent);
 }

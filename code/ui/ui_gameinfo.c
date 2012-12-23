@@ -191,15 +191,18 @@ void UI_LoadArenas( void ) {
 			if( strstr( type, "ffa" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_FFA);
 			}
-            if( strstr( type, "frenzy" ) ) {
-                uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_FRENZY);
-            }
-            if( strstr( type, "teamfrenzy" ) ) {
-                uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_TEAM_FRENZY);
-            } 
-           if( strstr( type, "rarena" ) ) {
-                uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_RARENA);
-            }
+            		if( strstr( type, "frenzy" ) ) {
+                		uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_FRENZY);
+            		}
+            		if( strstr( type, "teamfrenzy" ) ) {
+                		uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_TEAM_FRENZY);
+            		} 
+           		if( strstr( type, "rarena" ) ) {
+                		uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_RARENA);
+            		}
+			if ( strstr( type, "survival" ) ) {
+                                uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_SURVIVAL);
+                        }
 			if( strstr( type, "tourney" ) ) {
 				uiInfo.mapList[uiInfo.mapCount].typeBits |= (1 << GT_TOURNAMENT);
 			}

@@ -844,7 +844,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	int			asave;
 	int			knockback;
 	int			max;
-	int			okaytoknock = 1;
+	int			okaytotake = 1;
 #ifdef MISSIONPACK
 	vec3_t		bouncedir, impactpoint;
 #endif
@@ -935,18 +935,18 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		if ( targ != attacker && OnSameTeam (targ, attacker)  ) {
 #endif
 			if ( !g_friendlyFire.integer ) {
-				okaytoknock = 0;
+				okaytotake = 0;
 				goto knockknock;
 			}
 		}
 #ifdef MISSIONPACK
 		if (mod == MOD_PROXIMITY_MINE) {
 			if (inflictor && inflictor->parent && OnSameTeam(targ, inflictor->parent)) {
-				okaytoknock = 0;
+				okaytotake = 0;
 				goto knockknock;
 			}
 			if (targ == attacker) {
-				okaytoknock = 0;
+				okaytotake = 0;
 				goto knockknock;
 			}
 		}
@@ -954,7 +954,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 		// check for godmode
 		if ( targ->flags & FL_GODMODE ) {
-			okaytoknock = 0;
+			okaytotake = 0;
 			goto knockknock;
 		}
 	}
@@ -964,7 +964,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( client && client->ps.powerups[PW_BATTLESUIT] ) {
 		G_AddEvent( targ, EV_POWERUP_BATTLESUIT, 0 );
 		if ( ( dflags & DAMAGE_RADIUS ) || ( mod == MOD_FALLING ) ) {
-			okaytoknock = 0;
+			okaytotake = 0;
 			goto knockknock;
 		}
 		damage *= 0.5;
@@ -975,7 +975,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			&& targ != attacker && targ->health > 9
 			&& targ->s.eType != ET_MISSILE
 			&& targ->s.eType != ET_GENERAL
-			&& okaytoknock == 1) {
+			&& okaytotake == 1) {
 		if ( OnSameTeam( targ, attacker ) ) {
 			attacker->client->ps.persistant[PERS_HITS]--;
 		} else {
@@ -1026,10 +1026,12 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
                         targ->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
                 }
         }
-
-	if ( okaytoknock == 0 ) {
+    if ( g_gametype.integer == GT_SURVIVAL && targ->client && attacker->client )
+        if (IsBot(targ->client->ps.clientNum) && IsBot(attacker->client->ps.clientNum))
+            okaytotake = 0;
+        
+	if ( okaytotake == 0 ) 
 		return;
-	}
 
 	if ( g_debugDamage.integer ) {
 		G_Printf( "%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->s.number,
