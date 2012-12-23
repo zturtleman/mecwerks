@@ -694,6 +694,7 @@ typedef struct {
 	menufield_s			fraglimit;
 	menufield_s			setlimit;
 	menufield_s			scorelimit;
+    int scorelimitnum;
 	menufield_s			flaglimit;
 	menuradiobutton_s	friendlyfire;
 	menufield_s			hostname;
@@ -903,7 +904,7 @@ static void ServerOptions_Start( void ) {
 	trap_Cvar_SetValue ("timelimit", Com_Clamp( 0, timelimit, timelimit ) );
 	trap_Cvar_SetValue ("fraglimit", Com_Clamp( 0, fraglimit, fraglimit ) );
 	trap_Cvar_SetValue ("g_maxsets", setlimit );
-	trap_Cvar_SetValue ("scorelimit", scorelimit );
+	trap_Cvar_SetValue ("scorelimit", Com_Clamp( 0, scorelimit, scorelimit ) );
 	trap_Cvar_SetValue ("capturelimit", Com_Clamp( 0, flaglimit, flaglimit ) );
 	trap_Cvar_SetValue( "g_friendlyfire", friendlyfire );
 	trap_Cvar_SetValue( "sv_pure", pure );
@@ -1303,7 +1304,7 @@ static void ServerOptions_SetMenuItems( void ) {
                 break;
 	
     case GT_FRENZY:
-        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 99999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
+        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 8, "%i", (int)Com_Clamp( 0, 99999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
         Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
         break;
 
@@ -1323,7 +1324,7 @@ static void ServerOptions_SetMenuItems( void ) {
 		break;
 
     case GT_TEAM_FRENZY:
-        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 99999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
+        Com_sprintf( s_serveroptions.scorelimit.field.buffer, 8, "%i", (int)Com_Clamp( 0, 99999, trap_Cvar_VariableValue( "ui_ffa_scorelimit" ) ) );
         Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ffa_timelimit" ) ) );
         break;
 
@@ -1487,8 +1488,8 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 		s_serveroptions.scorelimit.generic.x	         = OPTIONS_X;
 		s_serveroptions.scorelimit.generic.y	         = y;
 		s_serveroptions.scorelimit.generic.statusbar  = ServerOptions_StatusBar;
-		s_serveroptions.scorelimit.field.widthInChars = 6;
-        	s_serveroptions.scorelimit.field.maxchars     = 6;
+		s_serveroptions.scorelimit.field.widthInChars = 8;
+        	s_serveroptions.scorelimit.field.maxchars     = 8;
 	} else if( s_serveroptions.gametype <= GT_TEAM ) {
 		s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
 		s_serveroptions.fraglimit.generic.name       = "Frag Limit:";
