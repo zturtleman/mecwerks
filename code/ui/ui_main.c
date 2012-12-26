@@ -1059,20 +1059,6 @@ int UI_SourceForLAN(void) {
 }
 
 
-static const char *handicapValues[] = {"None","95","90","85","80","75","70","65","60","55","50","45","40","35","30","25","20","15","10","5",NULL};
-#ifndef MISSIONPACK
-static int numHandicaps = ARRAY_LEN(handicapValues);
-#endif
-
-static void UI_DrawHandicap(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
-  int i, h;
-
-  h = Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") );
-  i = 20 - h / 5;
-
-  Text_Paint(rect->x, rect->y, scale, color, handicapValues[i], 0, 0, textStyle);
-}
-
 static void UI_DrawClanName(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
   Text_Paint(rect->x, rect->y, scale, color, UI_Cvar_VariableString("ui_teamName"), 0, 0, textStyle);
 }
@@ -1692,11 +1678,6 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 	const char *s = NULL;
 
   switch (ownerDraw) {
-    case UI_HANDICAP:
-			  h = Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") );
-				i = 20 - h / 5;
-				s = handicapValues[i];
-      break;
     case UI_CLANNAME:
 				s = UI_Cvar_VariableString("ui_teamName");
       break;
@@ -2008,9 +1989,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
   rect.h = h;
 
   switch (ownerDraw) {
-    case UI_HANDICAP:
-      UI_DrawHandicap(&rect, scale, color, textStyle);
-      break;
     case UI_EFFECTS:
       UI_DrawEffects(&rect, scale, color);
       break;
@@ -2276,26 +2254,6 @@ static qboolean UI_OwnerDrawVisible(int flags) {
 		}
 	}
   return vis;
-}
-
-static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
-  if (key == K_MOUSE1 || key == K_MOUSE2 || key == K_ENTER || key == K_KP_ENTER) {
-    int h;
-    h = Com_Clamp( 5, 100, trap_Cvar_VariableValue("handicap") );
-		if (key == K_MOUSE2) {
-	    h -= 5;
-		} else {
-	    h += 5;
-		}
-    if (h > 100) {
-      h = 5;
-    } else if (h < 5) {
-			h = 100;
-		}
-  	trap_Cvar_Set( "handicap", va( "%i", h * 10) );
-    return qtrue;
-  }
-  return qfalse;
 }
 
 static qboolean UI_Effects_HandleKey(int flags, float *special, int key) {
@@ -2701,9 +2659,6 @@ static qboolean UI_SelectedPlayer_HandleKey(int flags, float *special, int key) 
 
 static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key) {
   switch (ownerDraw) {
-    case UI_HANDICAP:
-      return UI_Handicap_HandleKey(flags, special, key);
-      break;
     case UI_EFFECTS:
       return UI_Effects_HandleKey(flags, special, key);
       break;

@@ -1072,19 +1072,18 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 			return qfalse;
 		}
 
-		// we also clamp armor to the maxhealth for handicapping
 		if( bg_itemlist[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD ) {
-			upperBound = ps->stats[STAT_MAX_HEALTH];
+			upperBound = MAX_ARMOR;
 		}
 		else {
-			upperBound = ps->stats[STAT_MAX_HEALTH] * 2;
+			upperBound = MAX_ARMOR * 2;
 		}
 
 		if ( ps->stats[STAT_ARMOR] >= upperBound ) {
 			return qfalse;
 		}
 #else
-		if ( ps->stats[STAT_ARMOR] >= ps->stats[STAT_MAX_HEALTH] * 2 ) {
+		if ( ps->stats[STAT_ARMOR] >= MAX_ARMOR * 2 ) {
 			return qfalse;
 		}
 #endif
@@ -1095,18 +1094,18 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 		// don't pick up if already at max
 #ifdef MISSIONPACK
 		if( bg_itemlist[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD ) {
-			upperBound = ps->stats[STAT_MAX_HEALTH];
+			upperBound = MAX_HEALTH;
 		}
 		else
 #endif
 		if ( item->quantity == 50 || item->quantity == 1000 ) {
-			if ( ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH] * 2 ) {
+			if ( ps->stats[STAT_HEALTH] >= MAX_HEALTH * 2 ) {
 				return qfalse;
 			}
 			return qtrue;
 		}
 
-		if ( ps->stats[STAT_HEALTH] >= ps->stats[STAT_MAX_HEALTH] ) {
+		if ( ps->stats[STAT_HEALTH] >= MAX_HEALTH ) {
 			return qfalse;
 		}
 		return qtrue;
@@ -1677,8 +1676,6 @@ void BG_RegisterClientCvars(int maxSplitview) {
 
 		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "color1"), va("%d", DEFAULT_CLIENT_COLOR1), userInfo[i] | CVAR_ARCHIVE );
 		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "color2"), va("%d", DEFAULT_CLIENT_COLOR2), userInfo[i] | CVAR_ARCHIVE );
-
-		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "handicap"), "1000", userInfo[i] | CVAR_ARCHIVE );
 
 		trap_Cvar_Register(NULL, Com_LocalClientCvarName(i, "teamtask"), "0", userInfo[i] );
 

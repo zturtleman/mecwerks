@@ -65,7 +65,6 @@ typedef struct {
 	menubitmap_s		player;
 
 	menufield_s			name;
-	menulist_s			handicap;
 	menulist_s			effects;
 
 	menubitmap_s		back;
@@ -278,7 +277,7 @@ static void PlayerSettings_SaveChanges( void ) {
 	// name
 	trap_Cvar_Set( Com_LocalClientCvarName(s_playersettings.localClient, "name"), s_playersettings.name.field.buffer );
 
-	// handicap
+	// crosshair
 	trap_Cvar_SetValue( Com_LocalClientCvarName(s_playersettings.localClient, "cg_drawCrosshair"), s_playersettings.crosshair.curvalue );
 
 	// effects color

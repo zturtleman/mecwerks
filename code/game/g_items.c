@@ -133,7 +133,7 @@ int Pickup_PersistantPowerup( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.stats[STAT_PERSISTANT_POWERUP] = ent->item - bg_itemlist;
 	other->client->persistantPowerup = ent;
 
-	handicap = ClientHandicap( other->client );
+	handicap = 1000;
 
 	switch( ent->item->giTag ) {
 	case PW_GUARD:
@@ -141,24 +141,19 @@ int Pickup_PersistantPowerup( gentity_t *ent, gentity_t *other ) {
 
 		other->health = max;
 		other->client->ps.stats[STAT_HEALTH] = max;
-		other->client->ps.stats[STAT_MAX_HEALTH] = max;
 		other->client->ps.stats[STAT_ARMOR] = max;
-		other->client->pers.maxHealth = max;
 		break;
 
 	case PW_SCOUT:
-		other->client->pers.maxHealth = handicap;
 		other->client->ps.stats[STAT_ARMOR] = 0;
 		break;
 
 	case PW_AMMOREGEN:
-		other->client->pers.maxHealth = handicap;
 		memset(other->client->ammoTimes, 0, sizeof(other->client->ammoTimes));
 		break;
 
 	case PW_DOUBLER:
 	default:
-		other->client->pers.maxHealth = handicap;
 		break;
 	}
 
@@ -273,14 +268,14 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 	// small and mega healths will go over the max
 #ifdef MISSIONPACK
 	if( bg_itemlist[other->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD ) {
-		max = other->client->ps.stats[STAT_MAX_HEALTH];
+		max = MAX_HEALTH;
 	}
 	else
 #endif
 	if ( ent->item->quantity != 50 && ent->item->quantity != 1000 ) {
-		max = other->client->ps.stats[STAT_MAX_HEALTH];
+		max = MAX_HEALTH;
 	} else {
-		max = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
+		max = MAX_HEALTH * 2;
 	}
 
 	if ( ent->count ) {
@@ -312,10 +307,10 @@ int Pickup_Armor( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
 
 	if( other->client && bg_itemlist[other->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD ) {
-		upperBound = other->client->ps.stats[STAT_MAX_HEALTH];
+		upperBound = MAX_ARMOR;
 	}
 	else {
-		upperBound = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
+		upperBound = MAX_ARMOR * 2;
 	}
 
 	if ( other->client->ps.stats[STAT_ARMOR] > upperBound ) {
@@ -323,8 +318,8 @@ int Pickup_Armor( gentity_t *ent, gentity_t *other ) {
 	}
 #else
 	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
-	if ( other->client->ps.stats[STAT_ARMOR] > other->client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
-		other->client->ps.stats[STAT_ARMOR] = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
+	if ( other->client->ps.stats[STAT_ARMOR] > MAX_ARMOR * 2 ) {
+		other->client->ps.stats[STAT_ARMOR] = MAX_ARMOR * 2;
 	}
 #endif
 

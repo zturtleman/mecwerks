@@ -42,6 +42,7 @@ Turret code. for spawning and seting the spawn location of turrets
 #define UARC 45
 
 #define TURRET_FIREDELAY 800 // miliseconds
+#define TURRET_HEALTH 3000 // 3x the amount of a normal player
 
 qboolean checktarget(gentity_t *firer, gentity_t *target){
 	vec3_t 		distance;
@@ -117,8 +118,6 @@ void turret_findenemy( gentity_t *ent) {
 	ent->enemy = NULL;
 }
 
-
-
 void turret_trackenemy( gentity_t *ent){
 	vec3_t dir;
 
@@ -135,8 +134,6 @@ void turret_trackenemy( gentity_t *ent){
 }
 
 void turret_fireonenemy( gentity_t *ent){
-	if (!ent->enemy)
-		return;
 
 	if ( ent->firetime <= level.time ) {
 		fire_rocket( ent->parent, ent->r.currentOrigin, ent->turloc );
@@ -151,8 +148,6 @@ void turret_fireonenemy( gentity_t *ent){
 	}
 	//trap_SendServerCommand( ent->parent-g_entities, "print \"Turret Fired at Enemy.\n\"");
 }
-
-
 
 
 void turret_think( gentity_t *ent){
@@ -176,7 +171,7 @@ void Base_think(gentity_t *ent){
 		ent->health += 1;
 		ent->nextthink = level.time + 100;
 		//recloaks a turret without a valid target. checks once a second
-		if ((ent->s.time2==3)&(!ent->chain->enemy))
+		if ((ent->s.time2 == 3) & (!ent->chain->enemy))
 		{
 			ent->s.time2 = 2;
 			ent->chain->s.time2 = 2;
@@ -205,7 +200,7 @@ void createturretgun(gentity_t *ent){
 	ent->nextthink = level.time + 100; // sets up the thinking for the cloaking or regeneration/
 	ent->think = Base_think; // handles cloaking or regeneration
 	ent->clipmask = CONTENTS_SOLID | CONTENTS_PLAYERCLIP;
-	//ent->s.contents = CONTENTS_SOLID;
+	ent->s.contents = CONTENTS_SOLID;
 	turret = G_Spawn();
 	turret->parent = ent->parent;
 	turret->chain = ent;
@@ -214,7 +209,7 @@ void createturretgun(gentity_t *ent){
 	turret->s.time2 = 0;
 	turret->eventTime = 200;
 	turret->s.number = turret - g_entities;
-	turret->s.weapon = WP_PLASMAGUN;;
+	turret->s.weapon = WP_ROCKET_LAUNCHER;
 	turret->classname = "turret";	
 	turret->s.modelindex = G_ModelIndex("models/weapons2/railgun/railgun.md3");
 	turret->model = "models/weapons2/railgun/railgun.md3";
@@ -279,13 +274,13 @@ void Cmd_SpawnTurret_f( gentity_t *ent ){
         G_SetOrigin(base, ent->r.currentOrigin);
         VectorSet(base->s.apos.trBase, 0, ent->s.apos.trBase[1], 0);
         base->think = createturretgun;
-        base->health = 300; // change this to make the turrets tougher or weaker
+        base->health = TURRET_HEALTH; // change this to make the turrets tougher or weaker
         base->s.eType = ET_TURRET;
         base->s.time2 = 0;
         base->takedamage = qtrue; // so they can be destoryed
         base->die = turret_explode; // so they actually explode when destroyed
         base->pain = turret_retaliate; // if they are damaged they switch target to the person attacking (if its a valid target)
-        base->nextthink = level.time+5000;
+        base->nextthink = level.time + 5000;
         VectorSet( base->r.absmin, -15, -15, -20 );
         VectorSet( base->r.absmax, 35, 15, -5);
         trap_LinkEntity (base);

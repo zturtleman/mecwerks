@@ -702,30 +702,6 @@ static void ClientCleanName(const char *in, char *out, int outSize)
 		Q_strncpyz(out, DEFAULT_CLIENT_NAME, outSize );
 }
 
-/*
-===========
-ClientHandicap
-============
-*/
-float ClientHandicap( gclient_t *client ) {
-	//char	userinfo[MAX_INFO_STRING];
-	//float	handicap;
-
-	//if (!client) {
-	//	return 1000;
-	//}
-	
-	/*
-	trap_GetUserinfo( client - level.clients, userinfo, sizeof(userinfo) );
-
-	handicap = atof( Info_ValueForKey( userinfo, "handicap" ) );
-	if ( handicap < 10 || handicap > 1000) {
-		handicap = 1000;
-	}*/
-
-	return 1000;
-}
-
 
 /*
 ===========
@@ -793,18 +769,6 @@ void ClientUserinfoChanged( int clientNum ) {
 				client->pers.netname) );
 		}
 	}
-
-	// set max health
-#ifdef MISSIONPACK
-	if (client->ps.powerups[PW_GUARD]) {
-		client->pers.maxHealth = 2000;
-	} else {
-		client->pers.maxHealth = ClientHandicap( client );
-	}
-#else
-	client->pers.maxHealth = ClientHandicap( client );
-#endif
-	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 
 	// set model
 	if( g_gametype.integer >= GT_TEAM ) {
@@ -895,16 +859,16 @@ void ClientUserinfoChanged( int clientNum ) {
 	// print scoreboards, display models, and play custom sounds
 	if (ent->r.svFlags & SVF_BOT)
 	{
-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
+		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
 			client->pers.netname, team, model, headModel, c1, c2, 
-			client->pers.maxHealth, client->sess.wins, client->sess.losses,
+			client->sess.wins, client->sess.losses,
 			Info_ValueForKey( userinfo, "skill" ), teamTask, teamLeader );
 	}
 	else
 	{
-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
+		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
 			client->pers.netname, client->sess.sessionTeam, model, headModel, c1, c2, 
-			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamTask, teamLeader);
+			client->sess.wins, client->sess.losses, teamTask, teamLeader);
 	}
 
 	trap_SetConfigstring( CS_PLAYERS+clientNum, s );
@@ -1218,10 +1182,7 @@ void ClientSpawn(gentity_t *ent) {
 
 	client->airOutTime = level.time + 12000;
 
-	// set max health
-	client->pers.maxHealth = ClientHandicap( client );
 	// clear entity values
-	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 	client->ps.eFlags = flags;
 	client->ps.contents = CONTENTS_BODY;
 	client->ps.capsule = qtrue;
@@ -1285,7 +1246,7 @@ void ClientSpawn(gentity_t *ent) {
 	}
 
 	// health will count down towards max_health
-	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 250;
+	ent->health = client->ps.stats[STAT_HEALTH] = MAX_HEALTH + 250;
 
 	G_SetOrigin( ent, spawn_origin );
 	VectorCopy( spawn_origin, client->ps.origin );

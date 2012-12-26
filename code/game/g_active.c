@@ -420,10 +420,10 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 		// regenerate
 #ifdef MISSIONPACK
 		if( bg_itemlist[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD ) {
-			maxHealth = client->ps.stats[STAT_MAX_HEALTH] / 2;
+			maxHealth = MAX_HEALTH / 2;
 		}
 		else if ( client->ps.powerups[PW_REGEN] ) {
-			maxHealth = client->ps.stats[STAT_MAX_HEALTH];
+			maxHealth = MAX_HEALTH;
 		}
 		else {
 			maxHealth = 0;
@@ -444,30 +444,20 @@ void ClientTimerActions( gentity_t *ent, int msec ) {
 			}
 #else
 		if ( client->ps.powerups[PW_REGEN] ) {
-			if ( ent->health < client->ps.stats[STAT_MAX_HEALTH]) {
+			if ( ent->health < MAX_HEALTH) {
 				ent->health += 1500;
-				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 1.1 ) {
-					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 1.1;
+				if ( ent->health > MAX_HEALTH * 1.1 ) {
+					ent->health = MAX_HEALTH * 1.1;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
-			} else if ( ent->health < client->ps.stats[STAT_MAX_HEALTH] * 2) {
+			} else if ( ent->health < MAX_HEALTH * 2) {
 				ent->health += 500;
-				if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
-					ent->health = client->ps.stats[STAT_MAX_HEALTH] * 2;
+				if ( ent->health > MAX_HEALTH * 2 ) {
+					ent->health = MAX_HEALTH * 2;
 				}
 				G_AddEvent( ent, EV_POWERUP_REGEN, 0 );
 			}
 #endif
-		} else {
-			// count down health when over max
-			//if ( ent->health > client->ps.stats[STAT_MAX_HEALTH] ) {
-                        //        ent->health -= 1;
-			//}
-		}
-
-		// count down armor when over max
-		if ( client->ps.stats[STAT_ARMOR] > client->ps.stats[STAT_MAX_HEALTH] ) {
-			client->ps.stats[STAT_ARMOR]--;
 		}
 	}
 #ifdef MISSIONPACK
@@ -635,7 +625,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			break;
 
 		case EV_USE_ITEM2:		// medkit
-			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH] + 250;
+			ent->health = MAX_HEALTH + 250;
 
 			break;
 
