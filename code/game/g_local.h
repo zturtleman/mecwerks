@@ -187,6 +187,10 @@ struct gentity_s {
 	float		random;
 
 	gitem_t		*item;			// for bonus items
+	
+	// turrets
+	vec3_t		centerpoint;
+	vec3_t		turloc;
 };
 
 typedef enum {
@@ -653,6 +657,11 @@ void G_StartKamikaze( gentity_t *ent );
 //
 void DeathmatchScoreboardMessage( gentity_t *ent );
 char *ConcatArgs( int start );
+
+//
+// g_turrets.c
+//
+void Cmd_SpawnTurret_f( gentity_t *ent );
 
 //
 // g_main.c

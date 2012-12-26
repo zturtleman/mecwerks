@@ -101,7 +101,7 @@ static const char *gametype_items[] = {
 	"Team Deathmatch",
 	"Tournament",
 	"Capture the Flag",
-    	"Scoring Frenzy",
+    "Scoring Frenzy",
 	"Team Scoring Frenzy",
 	"Rail Factory",
 	"Survival",

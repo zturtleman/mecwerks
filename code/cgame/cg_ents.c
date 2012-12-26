@@ -974,6 +974,7 @@ static void CG_AddCEntity( centity_t *cent ) {
 	default:
 		CG_Error( "Bad entity type: %i", cent->currentState.eType );
 		break;
+	case ET_TURRET: // MEC NOTE: Do something here later?
 	case ET_INVISIBLE:
 	case ET_PUSH_TRIGGER:
 	case ET_TELEPORT_TRIGGER:

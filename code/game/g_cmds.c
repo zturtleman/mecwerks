@@ -1938,6 +1938,8 @@ void ClientCommand( int clientNum ) {
 		Cmd_Stats_f( ent );
 	else if (Q_stricmp (cmd, "reload") == 0)
 		Cmd_Reload( ent );
+	else if (Q_stricmp (cmd, "turret") == 0)
+		Cmd_SpawnTurret_f( ent );
 	else
 		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", buf ) );
 }
