@@ -1163,7 +1163,7 @@ endef
 # MAIN TARGETS
 #############################################################################
 
-default: release
+default: release 
 all: debug release
 
 debug:

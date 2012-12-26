@@ -189,6 +189,7 @@ struct gentity_s {
 	gitem_t		*item;			// for bonus items
 	
 	// turrets
+	int		firetime;
 	vec3_t		centerpoint;
 	vec3_t		turloc;
 };

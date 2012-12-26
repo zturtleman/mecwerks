@@ -41,11 +41,10 @@ Turret code. for spawning and seting the spawn location of turrets
 #define DARC 10
 #define UARC 45
 
-#define TURRET_BASE "models/weapons2/railgun/railgun.md3"
-#define TURRET_GUN  "models/weapons2/machinegun/machinegun.md3"
+#define TURRET_FIREDELAY 800 // miliseconds
 
 qboolean checktarget(gentity_t *firer, gentity_t *target){
-	vec3_t 		distance,forward;
+	vec3_t 		distance;
 	trace_t         trace;
 	int		angle;
 
@@ -66,7 +65,7 @@ qboolean checktarget(gentity_t *firer, gentity_t *target){
 	if (OnSameTeam(firer->parent, target)) // is the target one of us?
 		return qfalse;
 
-	if (target->health < 0) // is the target still alive?
+	if (target->health < 10) // is the target still alive?
 		return qfalse;
 
 	VectorSubtract(target->r.currentOrigin, firer->r.currentOrigin,distance);
@@ -132,18 +131,25 @@ void turret_trackenemy( gentity_t *ent){
 	VectorCopy(dir, ent->r.currentAngles);
 	VectorCopy( dir, ent->s.apos.trBase );
 	trap_LinkEntity (ent);
-
+	//trap_SendServerCommand( ent->parent-g_entities, "print \"Turret Tracking Enemy.\n\"");
 }
 
 void turret_fireonenemy( gentity_t *ent){
-	fire_rocket( ent->activator, ent->r.currentOrigin, ent->turloc );
-	G_AddEvent( ent, EV_FIRE_WEAPON, 0 );
-	ent->count = level.time + 200;
-	// decloaks a cloaked turret when firing.
-	if (ent->s.time2 == 2){
-		ent->s.time2 = 3;
-		ent->chain->s.time2 = 3;
+	if (!ent->enemy)
+		return;
+
+	if ( ent->firetime <= level.time ) {
+		fire_rocket( ent->parent, ent->r.currentOrigin, ent->turloc );
+		G_AddEvent( ent, EV_FIRE_WEAPON, 0 );
+		ent->count = level.time + 200;
+		// decloaks a cloaked turret when firing.
+		if (ent->s.time2 == 2){
+			ent->s.time2 = 3;
+			ent->chain->s.time2 = 3;
+		}
+		ent->firetime = level.time + TURRET_FIREDELAY;
 	}
+	//trap_SendServerCommand( ent->parent-g_entities, "print \"Turret Fired at Enemy.\n\"");
 }
 
 
@@ -199,7 +205,7 @@ void createturretgun(gentity_t *ent){
 	ent->nextthink = level.time + 100; // sets up the thinking for the cloaking or regeneration/
 	ent->think = Base_think; // handles cloaking or regeneration
 	ent->clipmask = CONTENTS_SOLID | CONTENTS_PLAYERCLIP;
-	ent->s.contents = CONTENTS_SOLID;
+	//ent->s.contents = CONTENTS_SOLID;
 	turret = G_Spawn();
 	turret->parent = ent->parent;
 	turret->chain = ent;
@@ -210,15 +216,16 @@ void createturretgun(gentity_t *ent){
 	turret->s.number = turret - g_entities;
 	turret->s.weapon = WP_PLASMAGUN;;
 	turret->classname = "turret";	
-	turret->s.modelindex = G_ModelIndex(TURRET_GUN);
-	turret->model = TURRET_GUN;
-	turret->s.modelindex2 = G_ModelIndex(TURRET_GUN);
+	turret->s.modelindex = G_ModelIndex("models/weapons2/railgun/railgun.md3");
+	turret->model = "models/weapons2/railgun/railgun.md3";
+	turret->s.modelindex2 = G_ModelIndex("models/weapons2/railgun/railgun.md3");
 	turret->think = turret_think;
 	turret->nextthink = level.time + 100;
 	G_SetOrigin( turret, ent->r.currentOrigin );
 	VectorCopy(ent->s.apos.trBase, turret->s.apos.trBase);
 	VectorCopy(turret->s.apos.trBase, turret->centerpoint);
 	trap_LinkEntity (turret);
+	trap_SendServerCommand( ent->parent-g_entities, "print \"Turret Active.\n\"");
 }
 
 void turret_retaliate(gentity_t *self, gentity_t *attacker, int damage){
@@ -234,6 +241,8 @@ void turret_retaliate(gentity_t *self, gentity_t *attacker, int damage){
 				self->chain->s.time2 = 0;
 		}
 	}
+
+	//trap_SendServerCommand( self->parent-g_entities, "print \"Turret Retaliate.\n\"");
 }
 
 
@@ -251,6 +260,7 @@ void turret_explode(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, 
 	self->s.weapon = WP_ROCKET_LAUNCHER; // to tell it what kind of explosion to use
 	G_AddEvent( self, EV_MISSILE_MISS, DirToByte( dir ) ); // to tell it to spawn an explosion here
 	self->freeAfterEvent = qtrue; // so the base goes away after the explosion
+	//trap_SendServerCommand( self->parent-g_entities, "print \"Turret Exploded.\n\"");
 }
 
 /*
@@ -260,13 +270,12 @@ Cmd_SpawnTurret_f
 */
 void Cmd_SpawnTurret_f( gentity_t *ent ){
         gentity_t       *base;
-        vec3_t          forward,up;
 
         base = G_Spawn();
         base->parent = ent;
-        base->s.modelindex = G_ModelIndex(TURRET_BASE);
-        base->model = TURRET_BASE;
-        base->s.modelindex2 = G_ModelIndex(TURRET_BASE);
+        base->s.modelindex = G_ModelIndex("models/weapons2/bfg/bfg.md3");
+        base->model = "models/weapons2/bfg/bfg.md3";
+        base->s.modelindex2 = G_ModelIndex("models/weapons2/bfg/bfg.md3");
         G_SetOrigin(base, ent->r.currentOrigin);
         VectorSet(base->s.apos.trBase, 0, ent->s.apos.trBase[1], 0);
         base->think = createturretgun;
@@ -281,4 +290,5 @@ void Cmd_SpawnTurret_f( gentity_t *ent ){
         VectorSet( base->r.absmax, 35, 15, -5);
         trap_LinkEntity (base);
 
+	//trap_SendServerCommand( ent-g_entities, "print \"Turret Base Created.\n\"");
 }
