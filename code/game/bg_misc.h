@@ -36,7 +36,7 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define	GAME_VERSION		BASEGAME "-1"
 
 #define MAX_HEALTH 		1000
-#define MAX_ARMOR		1000
+#define MAX_ARMOR		100 // still uses base 100 not upscaled like health and damage
 #define	DEFAULT_GRAVITY		800
 #define	GIB_HEALTH			-400
 #define	ARMOR_PROTECTION	0.66
