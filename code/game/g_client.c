@@ -866,7 +866,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	}
 	else
 	{
-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
+		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
 			client->pers.netname, client->sess.sessionTeam, model, headModel, c1, c2, 
 			client->sess.wins, client->sess.losses, teamTask, teamLeader);
 	}

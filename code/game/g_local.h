@@ -608,6 +608,7 @@ void Weapon_HookFree (gentity_t *ent);
 void Weapon_HookThink (gentity_t *ent);
 int G_ClipAmmoAmount ( int w );
 int G_ReloadTime ( int w );
+void TurretFire ( gentity_t *ent, gentity_t *currentOrigin, gentity_t *turloc );
 
 //
 // g_client.c
