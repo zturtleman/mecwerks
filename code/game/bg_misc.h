@@ -40,6 +40,10 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define	DEFAULT_GRAVITY		800
 #define	GIB_HEALTH			-400
 #define	ARMOR_PROTECTION	0.66
+// these are for capping wave and round limits, a Survival game mode can have an infinite amount of sets though
+#define MAX_WAVEBOTS	12
+#define MAX_WAVES       5 
+#define MAX_ROUNDS      3
 
 #define	MAX_ITEMS			256
 

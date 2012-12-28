@@ -60,10 +60,6 @@ Suite 120, Rockville, Maryland 20850 USA.
 #define FL_NO_HUMANS			0x00004000	// spawn point just for bots
 #define FL_FORCE_GESTURE		0x00008000	// force gesture on client
 
-// these are for capping wave and round limits, a Survival game mode can have an infinite amount of sets though
-#define MAX_WAVES	4 
-#define MAX_ROUNDS	3
-
 // movers are things like doors, plats, buttons, etc
 typedef enum {
 	MOVER_POS1,
@@ -728,6 +724,7 @@ void Svcmd_AbortPodium_f( void );
 //
 // g_bot.c
 //
+void G_AddRandomBot( int team );
 void G_InitBots( qboolean restart );
 char *G_GetBotInfoByNumber( int num );
 char *G_GetBotInfoByName( const char *name );
@@ -823,7 +820,6 @@ extern	vmCvar_t	g_maxsets;
 extern  vmCvar_t	g_wavebots[5];
 extern  vmCvar_t	g_difficulty;
 extern  vmCvar_t	m_devcmd[3];
-
 // Additional shared traps in bg_misc.h
 
 void	trap_LocateGameData( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *gameClients, int sizeofGameClient );

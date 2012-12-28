@@ -600,38 +600,29 @@ G_InitWave
 
 #define BOT_DELAYTIME 1000
 void G_SpawnEnemiesForWave( void ) {
- 	int  skill = g_difficulty.integer;
+	int i, x, total;
+	char num[16];
 
-	if ( skill < 0 )
-		skill = 0;
-	if ( skill > 4 )
-		skill = 4;
+	x = rand();
+	total = x;
 
-	if ((int)(g_wavebots[level.wave].integer) & 1) {
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, BOT_DELAYTIME) ); //name, skill [0-4], team [red,blue], delay
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, BOT_DELAYTIME * 2) ); //name, skill [0-4], team [red,blue], delay
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, BOT_DELAYTIME * 3) ); //name, skill [0-4], team [red,blue], delay
-	}
+        /* Do this loop at least one (do/while) */
+        do {
+                /* Create a string of the number */
+                Com_sprintf(num, sizeof(num), "%d", total);
 
-	if ((int)(g_wavebots[level.wave].integer) & 2) {
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot anarki %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot klesk %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot grunt %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay	
-	}
+                /* Start back at 0 */
+                total = 0;
 
-	if ((int)(g_wavebots[level.wave].integer) & 4) {
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot angel %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot orbb %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot sarge %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-	}
-
-	if ((int)(g_wavebots[level.wave].integer) & 8) {
-		trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-                trap_Cmd_ExecuteText( EXEC_INSERT, va("addbot doom %i red %i\n", skill, 0) ); //name, skill [0-4], team [red,blue], delay
-	}
+                /* Loop over each digit in num, adding it to total */
+                for (i = 0; num[i]; i++)
+                        /* ASCII subtraction here gives us an integer */
+                        total += num[i] - '0';
+        } while (total >= MAX_WAVEBOTS);
 	
-    level.state = LS_WAVEINPROGRESS;
+	for (i = 0; i <= total; i++)
+		G_AddRandomBot( TEAM_RED );
+	level.state = LS_WAVEINPROGRESS;
 }
 
 /*
