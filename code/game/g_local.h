@@ -207,8 +207,7 @@ typedef enum {
 	SPECTATOR_NOT,
 	SPECTATOR_FREE,
 	SPECTATOR_FOLLOW,
-	SPECTATOR_SCOREBOARD,
-	SPECTATOR_LOCAL_HIDE
+	SPECTATOR_SCOREBOARD
 } spectatorState_t;
 
 typedef enum {
@@ -254,6 +253,8 @@ typedef struct {
 // client data that stays across multiple respawns, but is cleared
 // on each level change or team change at ClientBegin()
 typedef struct {
+	int			connectionNum;		// index in level.connections
+	int			localPlayerNum;		// client's local player number in range of 0 to MAX_SPLITVIEW-1
 	clientConnected_t	connected;	
 	usercmd_t	cmd;				// we would lose angles if not persistant
 	qboolean	localClient;		// true if "ip" info key is "localhost"
@@ -358,6 +359,13 @@ struct gclient_s {
 };
 
 
+// A single client can have multiple players, for splitscreen.
+typedef struct gconnection_s {
+	int			numLocalPlayers;				// for quick access, the players could be any indexes in localPlayers[].
+	int			localPlayerNums[MAX_SPLITVIEW];
+} gconnection_t;
+
+
 //
 // this structure is cleared as each map is entered
 //
@@ -371,12 +379,15 @@ typedef struct {
 	int			gentitySize;
 	int			num_entities;		// MAX_CLIENTS <= num_entities <= ENTITYNUM_MAX_NORMAL
 
+	gconnection_t	*connections;
+
 	int			warmupTime;			// restart match at this time
 
 	fileHandle_t	logFile;
 
 	// store latched cvars here that we want to get at often
 	int			maxclients;
+	int			maxconnections;
 
 	int			framenum;
 	int			time;					// in msec
@@ -505,6 +516,7 @@ void SaveRegisteredItems( void );
 //
 int G_ModelIndex( char *name );
 int		G_SoundIndex( char *name );
+void	trap_SendServerCommand( int clientNum, char *cmd );
 void	G_TeamCommand( team_t team, char *cmd );
 void	G_KillBox (gentity_t *ent);
 gentity_t *G_Find (gentity_t *from, int fieldofs, const char *match);
@@ -678,7 +690,7 @@ void QDECL G_Error( const char *fmt, ... ) __attribute__ ((noreturn, format (pri
 //
 // g_client.c
 //
-char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
+char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot, int connectionNum, int localPlayerNum );
 void ClientUserinfoChanged( int clientNum );
 void ClientDisconnect( int clientNum );
 void ClientBegin( int clientNum );
@@ -824,7 +836,7 @@ extern  vmCvar_t	m_devcmd[3];
 
 void	trap_LocateGameData( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *gameClients, int sizeofGameClient );
 void	trap_DropClient( int clientNum, const char *reason );
-void	trap_SendServerCommand( int clientNum, const char *text );
+void	trap_SendServerCommandEx( int connectionNum, int localPlayerNum, const char *text );
 void	trap_SetConfigstring( int num, const char *string );
 void	trap_GetConfigstring( int num, char *buffer, int bufferSize );
 void	trap_GetUserinfo( int num, char *buffer, int bufferSize );

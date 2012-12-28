@@ -1,0 +1,3990 @@
+Index: code/q3_ui/ui_ingame.c
+===================================================================
+--- code/q3_ui/ui_ingame.c	(revision 372)
++++ code/q3_ui/ui_ingame.c	(revision 375)
+@@ -114,22 +114,10 @@
+ void UI_TogglePlayerIngame(int localClientNum)
+ {
+ 	uiClientState_t	cs;
+-	char	info[MAX_INFO_STRING];
+-	int		team;
+ 
+ 	trap_GetClientState( &cs );
+ 
+-	if (localClientNum == 0) {
+-		trap_GetConfigString( CS_PLAYERS + cs.clientNums[localClientNum], info, MAX_INFO_STRING );
+-
+-		team = atoi( Info_ValueForKey( info, "t" ) );
+-		if( team == TEAM_SPECTATOR ) {
+-			// ZTM: FIXME: There is no way to know if client is hiding or just spectating.
+-			trap_Cmd_ExecuteText( EXEC_APPEND, "cmd team auto\n" );
+-		} else {
+-			trap_Cmd_ExecuteText( EXEC_APPEND, "cmd team hide\n" );
+-		}
+-	} else if (cs.clientNums[localClientNum] == -1) {
++	if (cs.clientNums[localClientNum] == -1) {
+ 		trap_Cmd_ExecuteText( EXEC_APPEND, va("%s\n", Com_LocalClientCvarName(localClientNum, "dropin")) );
+ 	} else {
+ 		trap_Cmd_ExecuteText( EXEC_APPEND, va("%s\n", Com_LocalClientCvarName(localClientNum, "dropout")) );
+Index: code/server/sv_game.c
+===================================================================
+--- code/server/sv_game.c	(revision 372)
++++ code/server/sv_game.c	(revision 375)
+@@ -82,30 +82,30 @@
+ Sends a command string to a client
+ ===============
+ */
+-void SV_GameSendServerCommand( int clientNum, const char *text ) {
++void SV_GameSendServerCommand( int clientNum, int localPlayerNum, const char *text ) {
+ 	if ( clientNum == -1 ) {
+-		SV_SendServerCommand( NULL, "%s", text );
++		SV_SendServerCommand( NULL, -1, "%s", text );
+ 	} else {
+ 		if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+ 			return;
+ 		}
+-		SV_SendServerCommand( svs.clients + clientNum, "%s", text );	
++		SV_SendServerCommand( svs.clients + clientNum, localPlayerNum, "%s", text );	
+ 	}
+ }
+ 
+ 
+ /*
+ ===============
+-SV_GameDropClient
++SV_GameDropPlayer
+ 
+-Disconnects the client with a message
++Disconnects the player with a message
+ ===============
+ */
+-void SV_GameDropClient( int clientNum, const char *reason ) {
+-	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
++void SV_GameDropPlayer( int playerNum, const char *reason ) {
++	if ( playerNum < 0 || playerNum >= sv_maxclients->integer ) {
+ 		return;
+ 	}
+-	SV_DropClient( svs.clients + clientNum, reason );	
++	SV_DropPlayer( svs.players + playerNum, reason );	
+ }
+ 
+ 
+@@ -275,11 +275,11 @@
+ 
+ ===============
+ */
+-void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
+-	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+-		Com_Error( ERR_DROP, "SV_GetUsercmd: bad clientNum:%i", clientNum );
++void SV_GetUsercmd( int playerNum, usercmd_t *cmd ) {
++	if ( playerNum < 0 || playerNum >= sv_maxclients->integer ) {
++		Com_Error( ERR_DROP, "SV_GetUsercmd: bad playerNum:%i", playerNum );
+ 	}
+-	*cmd = svs.clients[clientNum].lastUsercmd;
++	*cmd = svs.players[playerNum].lastUsercmd;
+ }
+ 
+ //==============================================
+@@ -434,10 +434,10 @@
+ 		SV_LocateGameData( VMA(1), args[2], args[3], VMA(4), args[5] );
+ 		return 0;
+ 	case G_DROP_CLIENT:
+-		SV_GameDropClient( args[1], VMA(2) );
++		SV_GameDropPlayer( args[1], VMA(2) );
+ 		return 0;
+ 	case G_SEND_SERVER_COMMAND:
+-		SV_GameSendServerCommand( args[1], VMA(2) );
++		SV_GameSendServerCommand( args[1], args[2], VMA(3) );
+ 		return 0;
+ 	case G_LINKENTITY:
+ 		SV_LinkEntity( VMA(1) );
+@@ -541,7 +541,7 @@
+ 	case BOTLIB_GET_CONSOLE_MESSAGE:
+ 		return SV_BotGetConsoleMessage( args[1], VMA(2), args[3] );
+ 	case BOTLIB_USER_COMMAND:
+-		SV_ClientThink( &svs.clients[args[1]], VMA(2) );
++		SV_PlayerThink( &svs.players[args[1]], VMA(2) );
+ 		return 0;
+ 
+ 	case BOTLIB_AAS_BBOX_AREAS:
+@@ -927,7 +927,7 @@
+ 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=522
+ 	//   now done before GAME_INIT call
+ 	for ( i = 0 ; i < sv_maxclients->integer ; i++ ) {
+-		svs.clients[i].gentity = NULL;
++		svs.players[i].gentity = NULL;
+ 	}
+ 	
+ 	// use the current msec count for a random seed
+Index: code/server/sv_ccmds.c
+===================================================================
+--- code/server/sv_ccmds.c	(revision 372)
++++ code/server/sv_ccmds.c	(revision 375)
+@@ -47,8 +47,8 @@
+ Returns the player with player id or name from Cmd_Argv(1)
+ ==================
+ */
+-static client_t *SV_GetPlayerByHandle( void ) {
+-	client_t	*cl;
++static player_t *SV_GetPlayerByHandle( void ) {
++	player_t	*player;
+ 	int			i;
+ 	char		*s;
+ 	char		cleanName[64];
+@@ -75,26 +75,26 @@
+ 		// Check for numeric playerid match
+ 		if(plid >= 0 && plid < sv_maxclients->integer)
+ 		{
+-			cl = &svs.clients[plid];
++			player = &svs.players[plid];
+ 			
+-			if(cl->state)
+-				return cl;
++			if(player->inUse)
++				return player;
+ 		}
+ 	}
+ 
+ 	// check for a name match
+-	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
+-		if ( !cl->state ) {
++	for ( i=0, player=svs.players ; i < sv_maxclients->integer ; i++,player++ ) {
++		if ( !player->inUse ) {
+ 			continue;
+ 		}
+-		if ( !Q_stricmp( cl->name, s ) ) {
+-			return cl;
++		if ( !Q_stricmp( player->name, s ) ) {
++			return player;
+ 		}
+ 
+-		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
++		Q_strncpyz( cleanName, player->name, sizeof(cleanName) );
+ 		Q_CleanStr( cleanName );
+ 		if ( !Q_stricmp( cleanName, s ) ) {
+-			return cl;
++			return player;
+ 		}
+ 	}
+ 
+@@ -110,8 +110,8 @@
+ Returns the player with idnum from Cmd_Argv(1)
+ ==================
+ */
+-static client_t *SV_GetPlayerByNum( void ) {
+-	client_t	*cl;
++static player_t *SV_GetPlayerByNum( void ) {
++	player_t	*player;
+ 	int			i;
+ 	int			idnum;
+ 	char		*s;
+@@ -140,12 +140,12 @@
+ 		return NULL;
+ 	}
+ 
+-	cl = &svs.clients[idnum];
+-	if ( !cl->state ) {
++	player = &svs.players[idnum];
++	if ( !player->inUse ) {
+ 		Com_Printf( "Client %i is not active\n", idnum );
+ 		return NULL;
+ 	}
+-	return cl;
++	return player;
+ }
+ 
+ //=========================================================
+@@ -217,8 +217,9 @@
+ ================
+ */
+ static void SV_MapRestart_f( void ) {
+-	int			i;
++	int			i, j;
+ 	client_t	*client;
++	player_t	*player;
+ 	char		*denied;
+ 	qboolean	isBot;
+ 	int			delay;
+@@ -316,31 +317,38 @@
+ 		}
+ 
+ 		// add the map_restart command
+-		SV_AddServerCommand( client, "map_restart\n" );
++		SV_AddServerCommand( client, -1, "map_restart\n" );
+ 
+-		// setup entity before connecting
+-		SV_SetupClientEntity(&svs.clients[i]);
++		for ( j = 0; j < MAX_SPLITVIEW; j++ ) {
++			player = client->localPlayers[j];
+ 
+-		// connect the client again, without the firstTime flag
+-		denied = VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );
+-		if ( denied ) {
+-			// this generally shouldn't happen, because the client
+-			// was connected before the level change
+-			SV_DropClient( client, denied );
+-			Com_Printf( "SV_MapRestart_f(%d): dropped client %i - denied!\n", delay, i );
+-			continue;
+-		}
++			if ( !player )
++				continue;
+ 
+-		if(client->state == CS_ACTIVE)
+-			SV_ClientEnterWorld(client, &client->lastUsercmd);
+-		else
+-		{
+-			// If we don't reset client->lastUsercmd and are restarting during map load,
+-			// the client will hang because we'll use the last Usercmd from the previous map,
+-			// which is wrong obviously.
+-			SV_ClientEnterWorld(client, NULL);
++			// setup entity before connecting
++			SV_SetupPlayerEntity( player );
++
++			// connect the client again, without the firstTime flag
++			denied = VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, player - svs.players, qfalse, isBot, client - svs.clients, j ) );
++			if ( denied ) {
++				// this generally shouldn't happen, because the player
++				// was connected before the level change
++				SV_DropPlayer( player, denied );
++				Com_Printf( "SV_MapRestart_f(%d): dropped client %i - denied!\n", delay, i );
++				continue;
++			}
++
++			if(client->state == CS_ACTIVE)
++				SV_PlayerEnterWorld( player, &player->lastUsercmd );
++			else
++			{
++				// If we don't reset player->lastUsercmd and are restarting during map load,
++				// the client will hang because we'll use the last Usercmd from the previous map,
++				// which is wrong obviously.
++				SV_PlayerEnterWorld( player, NULL );
++			}
+ 		}
+-	}	
++	}
+ 
+ 	// run another frame to allow things to look at all the players
+ 	VM_Call (gvm, GAME_RUN_FRAME, sv.time);
+@@ -358,7 +366,7 @@
+ ==================
+ */
+ static void SV_Kick_f( void ) {
+-	client_t	*cl;
++	player_t	*player;
+ 
+ 	// make sure server is running
+ 	if ( !com_sv_running->integer ) {
+@@ -371,17 +379,17 @@
+ 		return;
+ 	}
+ 
+-	cl = SV_GetPlayerByHandle();
+-	if ( !cl ) {
++	player = SV_GetPlayerByHandle();
++	if ( !player ) {
+ 		return;
+ 	}
+-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
++	if( player->client->netchan.remoteAddress.type == NA_LOOPBACK ) {
+ 		Com_Printf("Cannot kick host player\n");
+ 		return;
+ 	}
+ 
+-	SV_DropClient( cl, "was kicked" );
+-	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
++	SV_DropPlayer( player, "was kicked" );
++	player->client->lastPacketTime = svs.time;	// in case there is a funny zombie
+ }
+ 
+ /*
+@@ -453,7 +461,7 @@
+ ==================
+ */
+ static void SV_KickNum_f( void ) {
+-	client_t	*cl;
++	player_t	*player;
+ 
+ 	// make sure server is running
+ 	if ( !com_sv_running->integer ) {
+@@ -466,17 +474,17 @@
+ 		return;
+ 	}
+ 
+-	cl = SV_GetPlayerByNum();
+-	if ( !cl ) {
++	player = SV_GetPlayerByNum();
++	if ( !player ) {
+ 		return;
+ 	}
+-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
++	if( player->client->netchan.remoteAddress.type == NA_LOOPBACK ) {
+ 		Com_Printf("Cannot kick host player\n");
+ 		return;
+ 	}
+ 
+-	SV_DropClient( cl, "was kicked" );
+-	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
++	SV_DropPlayer( player, "was kicked" );
++	player->client->lastPacketTime = svs.time;	// in case there is a funny zombie
+ }
+ 
+ /*
+@@ -720,19 +728,19 @@
+ 	}
+ 	else
+ 	{
+-		client_t *cl;
++		player_t *player;
+ 		
+ 		// client num.
+ 		
+-		cl = SV_GetPlayerByNum();
++		player = SV_GetPlayerByNum();
+ 
+-		if(!cl)
++		if(!player)
+ 		{
+ 			Com_Printf("Error: Playernum %s does not exist.\n", Cmd_Argv(1));
+ 			return;
+ 		}
+ 		
+-		ip = cl->netchan.remoteAddress;
++		ip = player->client->netchan.remoteAddress;
+ 		
+ 		if(argc == 3)
+ 		{
+@@ -1002,6 +1010,7 @@
+ */
+ static void SV_Status_f( void ) {
+ 	int			i, j, l;
++	player_t	*player;
+ 	client_t	*cl;
+ 	playerState_t	*ps;
+ 	const char		*s;
+@@ -1017,8 +1026,11 @@
+ 
+ 	Com_Printf ("num score ping name            lastmsg address               qport rate\n");
+ 	Com_Printf ("--- ----- ---- --------------- ------- --------------------- ----- -----\n");
+-	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++)
++	for (i=0,player=svs.players ; i < sv_maxclients->integer ; i++,player++)
+ 	{
++		if (!player->inUse)
++			continue;
++		cl = player->client;
+ 		if (!cl->state)
+ 			continue;
+ 		Com_Printf ("%3i ", i);
+@@ -1035,12 +1047,12 @@
+ 			Com_Printf ("%4i ", ping);
+ 		}
+ 
+-		Com_Printf ("%s", cl->name);
++		Com_Printf ("%s", player->name);
+ 		
+ 		// TTimo adding a ^7 to reset the color
+ 		// NOTE: colored names in status breaks the padding (WONTFIX)
+ 		Com_Printf ("^7");
+-		l = 14 - strlen(cl->name);
++		l = 14 - strlen(player->name);
+ 		j = 0;
+ 		
+ 		do
+@@ -1100,7 +1112,7 @@
+ 
+ 	strcat(text, p);
+ 
+-	SV_SendServerCommand(NULL, "chat \"%s\"", text);
++	SV_SendServerCommand(NULL, -1, "chat \"%s\"", text);
+ }
+ 
+ /*
+@@ -1111,7 +1123,7 @@
+ static void SV_ConTell_f(void) {
+ 	char	*p;
+ 	char	text[1024];
+-	client_t	*cl;
++	player_t	*player;
+ 
+ 	// make sure server is running
+ 	if ( !com_sv_running->integer ) {
+@@ -1124,8 +1136,8 @@
+ 		return;
+ 	}
+ 
+-	cl = SV_GetPlayerByNum();
+-	if ( !cl ) {
++	player = SV_GetPlayerByNum();
++	if ( !player ) {
+ 		return;
+ 	}
+ 
+@@ -1139,7 +1151,7 @@
+ 
+ 	strcat(text, p);
+ 
+-	SV_SendServerCommand(cl, "chat \"%s\"", text);
++	SV_SendServerCommand( player->client, SV_LocalPlayerNum( player ), "chat \"%s\"", text );
+ }
+ 
+ 
+@@ -1201,7 +1213,7 @@
+ ===========
+ */
+ static void SV_DumpUser_f( void ) {
+-	client_t	*cl;
++	player_t	*player;
+ 
+ 	// make sure server is running
+ 	if ( !com_sv_running->integer ) {
+@@ -1214,14 +1226,14 @@
+ 		return;
+ 	}
+ 
+-	cl = SV_GetPlayerByHandle();
+-	if ( !cl ) {
++	player = SV_GetPlayerByHandle();
++	if ( !player ) {
+ 		return;
+ 	}
+ 
+ 	Com_Printf( "userinfo\n" );
+ 	Com_Printf( "--------\n" );
+-	Info_Print( cl->userinfo );
++	Info_Print( player->userinfo );
+ }
+ 
+ 
+Index: code/server/sv_client.c
+===================================================================
+--- code/server/sv_client.c	(revision 372)
++++ code/server/sv_client.c	(revision 375)
+@@ -173,22 +173,26 @@
+ 
+ /*
+ ==================
+-SV_AddExtraLocalClient
++SV_AddPlayer
+ 
+-Add extra local client, either at connect or mid-game.
++Add a player, either at connect or mid-game.
+ ==================
+ */
+-void SV_AddExtraLocalClient(client_t *owner, int lc, const char *infoString) {
++void SV_AddPlayer( client_t *client, int localPlayerNum, const char *infoString ) {
+ 	char		userinfo[MAX_INFO_STRING];
+ 	int			i;
+-	client_t	*cl, *newcl;
+-	//client_t	temp;
+-	int			clientNum;
++	player_t	*player, *newplayer;
++	player_t	temp;
++	int			playerNum;
+ 	char		*ip;
+ 	char		*password;
+ 	int			startIndex;
+-	intptr_t		denied;
++	intptr_t	denied;
+ 
++	if ( client->localPlayers[localPlayerNum] ) {
++		return;
++	}
++
+ 	if ( strlen(infoString) <= 0 ) {
+ 		// Ignore dummy userinfo string.
+ 		return;
+@@ -197,13 +201,14 @@
+ 	Q_strncpyz( userinfo, infoString, sizeof(userinfo) );
+ 
+ 	// don't let "ip" overflow userinfo string
+-	if ( NET_IsLocalAddress ( owner->netchan.remoteAddress ) )
++	if ( NET_IsLocalAddress ( client->netchan.remoteAddress ) )
+ 		ip = "localhost";
+ 	else
+-		ip = (char *)NET_AdrToString( owner->netchan.remoteAddress );
++		ip = (char *)NET_AdrToString( client->netchan.remoteAddress );
+ 	if( ( strlen( ip ) + strlen( userinfo ) + 4 ) >= MAX_INFO_STRING ) {
+-		SV_SendServerCommand( owner, "print \"Userinfo string length exceeded.  "
+-			"Try removing setu%d cvars from your config.\n\"", lc+1 );
++		NET_OutOfBandPrint( NS_SERVER, client->netchan.remoteAddress,
++				"print \"Userinfo string length exceeded.  "
++				"Try removing setu%s cvars from your config.\n\"", (localPlayerNum == 0 ? "" : va( "%d", localPlayerNum+1 ) ) );
+ 		return;
+ 	}
+ 	Info_SetValueForKey( userinfo, "ip", ip );
+@@ -227,114 +232,66 @@
+ 		startIndex = sv_privateClients->integer;
+ 	}
+ 
+-	newcl = NULL;
++	newplayer = NULL;
+ 	for ( i = startIndex; i < sv_maxclients->integer ; i++ ) {
+-		cl = &svs.clients[i];
+-		if (cl->state == CS_FREE) {
+-			newcl = cl;
++		player = &svs.players[i];
++		if (!player->inUse) {
++			newplayer = player;
+ 			break;
+ 		}
+ 	}
+ 
+-	if (!newcl) {
+-		SV_SendServerCommand( owner, "print \"Couldn't add local client %d, no free client slots!\n\"", lc+1 );
++	if (!newplayer) {
++		NET_OutOfBandPrint( NS_SERVER, client->netchan.remoteAddress, "print \"Couldn't add local player %d, no free player slots!\n\"", localPlayerNum + 1 );
+ 		return;
+ 	}
+ 
+ 	// build a new connection
+ 	// accept the new client
+ 	// this is the only place a client_t is ever initialized
+-	//Com_Memset (&temp, 0, sizeof(client_t));
+-	//*newcl = temp;
+-	*newcl = *owner;
+-	clientNum = newcl - svs.clients;
++	Com_Memset (&temp, 0, sizeof(player_t));
++	*newplayer = temp;
++	playerNum = newplayer - svs.players;
+ 
+-	newcl->mainClient = owner;
+-	for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-		newcl->localClients[i] = NULL;
+-	}
++	newplayer->inUse = qtrue;
+ 
+-	// Update owner
+-	owner->localClients[lc-1] = newcl;
+-	owner->gentity->r.localClientNums[lc-1] = clientNum;
++	newplayer->client = client;
++	client->localPlayers[localPlayerNum] = newplayer;
+ 
+-	// save the challenge
+-	newcl->challenge = owner->challenge;
+-
+-	// save the address
+-#ifdef LEGACY_PROTOCOL
+-	newcl->compat = owner->compat;
+-	Netchan_Setup(NS_SERVER, &newcl->netchan, owner->netchan.remoteAddress,
+-			owner->netchan.qport, owner->challenge, owner->compat);
+-#else
+-	Netchan_Setup(NS_SERVER, &newcl->netchan, owner->netchan.remoteAddress,
+-			owner->netchan.qport, owner->challenge, qfalse);
+-#endif
+-
+-	// init the netchan queue
+-	newcl->netchan_end_queue = &newcl->netchan_start_queue;
+-
+ 	// save the userinfo
+-	Q_strncpyz( newcl->userinfo, userinfo, sizeof(newcl->userinfo) );
++	Q_strncpyz( newplayer->userinfo, userinfo, sizeof(newplayer->userinfo) );
+ 
+ 	// setup entity before connecting
+-	SV_SetupClientEntity(newcl);
++	SV_SetupPlayerEntity( newplayer );
+ 
+ 	// get the game a chance to reject this connection or modify the userinfo
+-	denied = VM_Call( gvm, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
++	denied = VM_Call( gvm, GAME_CLIENT_CONNECT, playerNum, qtrue, qfalse, client - svs.clients, localPlayerNum ); // firstTime = qtrue
+ 	if ( denied ) {
+ 		// we can't just use VM_ArgPtr, because that is only valid inside a VM_Call
+ 		char *str = VM_ExplicitArgPtr( gvm, denied );
+ 
+-		SV_SendServerCommand( owner, "print \"Rejected local client %d: %s\n\"", lc+1, str );
+-		Com_DPrintf ("Game rejected an extra local client: %s.\n", str);
++		NET_OutOfBandPrint( NS_SERVER, client->netchan.remoteAddress, "print \"Rejected player: %s\n\"", str );
++		Com_DPrintf ("Game rejected a player: %s.\n", str);
+ 
+ 		// Free all allocated data on the client structure
+-		SV_FreeClient(newcl);
++		SV_FreePlayer( newplayer );
+ 
+ 		// Nuke user info
+-		SV_SetUserinfo( clientNum, "" );
++		SV_SetUserinfo( playerNum, "" );
+ 
+-		// Shouldn't need to go to zombie state,
+-		// extra local clients piggyback on main client's net connection, instead of using their own.
+-		newcl->state = CS_FREE;
++		// No longer in use
++		newplayer->inUse = qfalse;
+ 
+-		// Update owner
+-		owner->localClients[lc-1] = NULL;
+-		owner->gentity->r.localClientNums[lc-1] = -1;
++		// Update connection
++		client->localPlayers[localPlayerNum] = NULL;
+ 		return;
+ 	}
+ 
+-	SV_UserinfoChanged( newcl );
++	SV_UserinfoChanged( newplayer );
+ 
+-	// send the connect packet to the client
+-	//NET_OutOfBandPrint(NS_SERVER, owner->netchan.remoteAddress, "connectResponse %d", newcl->challenge);
+-
+-	if (owner->state >= CS_PRIMED) {
+-		Com_DPrintf( "Going from CS_FREE to CS_PRIMED for %s\n", newcl->name );
+-		newcl->state = CS_PRIMED;
+-
+-		// when we receive the first packet from the client, we will
+-		// notice that it is from a different serverid and that the
+-		// gamestate message was not just sent, forcing a retransmit
+-		newcl->gamestateMessageNum = newcl->netchan.outgoingSequence;
+-
+-		// Owner is already active, so go active now!
+-		if (owner->state == CS_ACTIVE) {
+-			SV_ClientEnterWorld( newcl, NULL );
+-		}
+-	} else {
+-		Com_DPrintf( "Going from CS_FREE to CS_CONNECTED for %s\n", newcl->name );
+-		newcl->state = CS_CONNECTED;
++	if ( client->state == CS_ACTIVE ) {
++		SV_PlayerEnterWorld( newplayer, NULL );
+ 	}
+-	newcl->lastSnapshotTime = 0;
+-	newcl->lastPacketTime = svs.time;
+-	newcl->lastConnectTime = svs.time;
+-
+-	// when we receive the first packet from the client, we will
+-	// notice that it is from a different serverid and that the
+-	// gamestate message was not just sent, forcing a retransmit
+-	newcl->gamestateMessageNum = -1;
+ }
+ 
+ /*
+@@ -350,15 +307,14 @@
+ 	int			i;
+ 	client_t	*cl, *newcl;
+ 	client_t	temp;
+-	int			clientNum;
+ 	int			version;
+ 	int			qport;
+ 	int			challenge;
+ 	char		*password;
+ 	int			startIndex;
+-	intptr_t		denied;
+ 	int			count;
+-	char		*ip;
++	int			playerCount;
++	int			maxLocalPlayers;
+ #ifdef LEGACY_PROTOCOL
+ 	qboolean	compat = qfalse;
+ #endif
+@@ -372,8 +328,18 @@
+ 		return;
+ 	}
+ 
+-	Q_strncpyz( userinfo, Cmd_Argv(1), sizeof(userinfo) );
++	// Client sends a userinfo string for each local player they want.
++	// However, empty userinfos can be sent to skip a local player.
++	maxLocalPlayers = Com_Clamp( 1, MAX_SPLITVIEW, Cmd_Argc()-1 );
+ 
++	// skip blank userinfos
++	for ( i = 0; i < maxLocalPlayers; i++ ) {
++		Q_strncpyz( userinfo, Cmd_Argv( 1 + i ), sizeof(userinfo) );
++		if ( strlen( userinfo ) > 0 ) {
++			break;
++		}
++	}
++
+ 	version = atoi(Info_ValueForKey(userinfo, "protocol"));
+ 	
+ #ifdef LEGACY_PROTOCOL
+@@ -411,19 +377,6 @@
+ 		}
+ 	}
+ 	
+-	// don't let "ip" overflow userinfo string
+-	if ( NET_IsLocalAddress (from) )
+-		ip = "localhost";
+-	else
+-		ip = (char *)NET_AdrToString( from );
+-	if( ( strlen( ip ) + strlen( userinfo ) + 4 ) >= MAX_INFO_STRING ) {
+-		NET_OutOfBandPrint( NS_SERVER, from,
+-			"print\nUserinfo string length exceeded.  "
+-			"Try removing setu cvars from your config.\n" );
+-		return;
+-	}
+-	Info_SetValueForKey( userinfo, "ip", ip );
+-
+ 	// see if the challenge is valid (LAN clients don't need to challenge)
+ 	if (!NET_IsLocalAddress(from))
+ 	{
+@@ -489,11 +442,6 @@
+ 			Com_Printf ("%s:reconnect\n", NET_AdrToString (from));
+ 			newcl = cl;
+ 
+-			// this doesn't work because it nukes the players userinfo
+-
+-//			// disconnect the client from the game first so any flags the
+-//			// player might have are dropped
+-//			VM_Call( gvm, GAME_CLIENT_DISCONNECT, newcl - svs.clients );
+ 			//
+ 			goto gotnewcl;
+ 		}
+@@ -518,10 +466,9 @@
+ 		startIndex = sv_privateClients->integer;
+ 	}
+ 
+-	newcl = NULL;
+-	for ( i = startIndex; i < sv_maxclients->integer ; i++ ) {
+-		cl = &svs.clients[i];
+-		if (cl->state == CS_FREE) {
++	// find a client slot
++	for ( i = startIndex, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
++		if ( cl->state == CS_FREE ) {
+ 			newcl = cl;
+ 			break;
+ 		}
+@@ -530,8 +477,7 @@
+ 	if ( !newcl ) {
+ 		if ( NET_IsLocalAddress( from ) ) {
+ 			count = 0;
+-			for ( i = startIndex; i < sv_maxclients->integer ; i++ ) {
+-				cl = &svs.clients[i];
++			for ( i = startIndex, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
+ 				if (cl->netchan.remoteAddress.type == NA_BOT) {
+ 					count++;
+ 				}
+@@ -562,16 +508,7 @@
+ 	// accept the new client
+ 	// this is the only place a client_t is ever initialized
+ 	*newcl = temp;
+-	clientNum = newcl - svs.clients;
+ 
+-	// Not an extra splitscreen client.
+-	newcl->mainClient = NULL;
+-
+-	// No extra splitscreen clients.
+-	for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-		newcl->localClients[i] = NULL;
+-	}
+-
+ 	// save the challenge
+ 	newcl->challenge = challenge;
+ 
+@@ -585,29 +522,20 @@
+ 	// init the netchan queue
+ 	newcl->netchan_end_queue = &newcl->netchan_start_queue;
+ 
+-	// save the userinfo
+-	Q_strncpyz( newcl->userinfo, userinfo, sizeof(newcl->userinfo) );
++	// add the players
++	for (i = 0; i < maxLocalPlayers; i++) {
++		SV_AddPlayer( newcl, i, Cmd_Argv( 1 + i ) );
++	}
+ 
+-	// setup entity before connecting
+-	SV_SetupClientEntity(newcl);
+-
+-	// get the game a chance to reject this connection or modify the userinfo
+-	denied = VM_Call( gvm, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
+-	if ( denied ) {
+-		// we can't just use VM_ArgPtr, because that is only valid inside a VM_Call
+-		char *str = VM_ExplicitArgPtr( gvm, denied );
+-
+-		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", str );
+-		Com_DPrintf ("Game rejected a connection: %s.\n", str);
++	// check if all players were rejected
++	if ( SV_ClientNumLocalPlayers( newcl ) < 1 ) {
+ 		return;
+ 	}
+ 
+-	SV_UserinfoChanged( newcl );
+-
+ 	// send the connect packet to the client
+ 	NET_OutOfBandPrint(NS_SERVER, from, "connectResponse %d", challenge);
+ 
+-	Com_DPrintf( "Going from CS_FREE to CS_CONNECTED for %s\n", newcl->name );
++	Com_DPrintf( "Going from CS_FREE to CS_CONNECTED for %s\n", SV_ClientName( newcl ) );
+ 
+ 	newcl->state = CS_CONNECTED;
+ 	newcl->lastSnapshotTime = 0;
+@@ -619,28 +547,34 @@
+ 	// gamestate message was not just sent, forcing a retransmit
+ 	newcl->gamestateMessageNum = -1;
+ 
+-	// Client sends a userinfo string for each client they want.
+-	count = Com_Clamp(1, MAX_SPLITVIEW, Cmd_Argc()-1);
+-
+-	for (i = 1; i < count; i++) {
+-		SV_AddExtraLocalClient(newcl, i, Cmd_Argv(1+i));
+-	}
+-
+ 	// if this was the first client on the server, or the last client
+ 	// the server can hold, send a heartbeat to the master.
+-	count = 0;
++	count = playerCount = 0;
+ 	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+ 		if ( svs.clients[i].state >= CS_CONNECTED ) {
+ 			count++;
++			playerCount += SV_ClientNumLocalPlayers( &svs.clients[i] );
+ 		}
+ 	}
+-	if ( count == 1 || count == sv_maxclients->integer ) {
++	if ( count == 1 || playerCount == sv_maxclients->integer ) {
+ 		SV_Heartbeat_f();
+ 	}
+ }
+ 
+ /*
+ =====================
++SV_FreePlayer
++
++Destructor for data allocated in a player structure
++=====================
++*/
++void SV_FreePlayer( player_t *player )
++{
++
++}
++
++/*
++=====================
+ SV_FreeClient
+ 
+ Destructor for data allocated in a client structure
+@@ -667,28 +601,91 @@
+ 
+ /*
+ =====================
+-SV_DropClient
++SV_ClientNumLocalPlayers
++=====================
++*/
++int SV_ClientNumLocalPlayers( client_t *client ) {
++	int i, numPlayers = 0;
+ 
++	for ( i = 0 ; i < MAX_SPLITVIEW ; i++ ) {
++		if ( client->localPlayers[i] ) {
++			numPlayers++;
++		}
++	}
++	
++	return numPlayers;
++}
++
++/*
++==================
++SV_ClientNumLocalPlayersInWorld
++==================
++*/
++int SV_ClientNumLocalPlayersInWorld( client_t *client ) {
++	int i, numPlayers = 0;
++
++	for ( i = 0 ; i < MAX_SPLITVIEW ; i++ ) {
++		if ( client->localPlayers[i] && client->localPlayers[i]->inWorld ) {
++			numPlayers++;
++		}
++	}
++	
++	return numPlayers;
++}
++
++/*
++==================
++SV_ClientName
++==================
++*/
++const char *SV_ClientName( client_t *client ) {
++	static char name[MAX_NAME_LENGTH];
++	int i;
++
++	for ( i = 0; i < MAX_SPLITVIEW; i++ ) {
++		if ( client->localPlayers[i] && client->localPlayers[i]->name[0] != '\0' )
++			return client->localPlayers[i]->name;
++	}
++
++	Com_sprintf( name, sizeof (name), "client %d", (int)(client - svs.clients) );
++	return name;
++}
++
++/*
++==================
++SV_LocalPlayerNum
++==================
++*/
++int	SV_LocalPlayerNum( player_t *player ) {
++	int i;
++
++	for ( i = 0; i < MAX_SPLITVIEW; i++ ) {
++		if ( player == player->client->localPlayers[i])
++			return i;
++	}
++
++	Com_Error(ERR_FATAL, "player not found in client's localPlayers list" );
++	return -1;
++}
++
++/*
++=====================
++SV_DropPlayer
++
+ Called when the player is totally leaving the server, either willingly
+ or unwillingly.  This is NOT called if the entire server is quiting
+ or crashing -- SV_FinalMessage() will handle that
+ =====================
+ */
+-void SV_DropClient( client_t *drop, const char *reason ) {
+-	int		i;
++void SV_DropPlayer( player_t *drop, const char *reason ) {
++	int			i;
+ 	challenge_t	*challenge;
+-	const qboolean isBot = drop->netchan.remoteAddress.type == NA_BOT;
++	int			numLocalPlayers;
++	int			playerNum = drop - svs.players;
++	client_t	*client = drop->client;
++	const qboolean isBot = client->netchan.remoteAddress.type == NA_BOT;
+ 
+-	// Kick client's extra local clients
+-	if (!drop->mainClient) {
+-		for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-			if (drop->localClients[i]) {
+-				SV_DropClient( drop->localClients[i], reason );
+-			}
+-		}
+-	}
+-
+-	if ( drop->state == CS_ZOMBIE ) {
++	if ( client->state == CS_ZOMBIE ) {
+ 		return;		// already dropped
+ 	}
+ 
+@@ -698,7 +695,7 @@
+ 
+ 		for (i = 0 ; i < MAX_CHALLENGES ; i++, challenge++)
+ 		{
+-			if(NET_CompareAdr(drop->netchan.remoteAddress, challenge->adr))
++			if(NET_CompareAdr(client->netchan.remoteAddress, challenge->adr))
+ 			{
+ 				Com_Memset(challenge, 0, sizeof(*challenge));
+ 				break;
+@@ -706,48 +703,49 @@
+ 		}
+ 	}
+ 
++	numLocalPlayers = SV_ClientNumLocalPlayers( client );
++
+ 	// Free all allocated data on the client structure
+-	SV_FreeClient(drop);
++	SV_FreePlayer( drop );
+ 
++	if ( numLocalPlayers == 1 )
++		SV_FreeClient( client );
++
+ 	// tell everyone why they got dropped
+-	SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
++	SV_SendServerCommand( NULL, -1, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
+ 
+ 	// call the prog function for removing a client
+ 	// this will remove the body, among other things
+-	VM_Call( gvm, GAME_CLIENT_DISCONNECT, drop - svs.clients );
++	VM_Call( gvm, GAME_CLIENT_DISCONNECT, playerNum );
+ 
+-	// Check if client is a extra local client
+-	if (drop->mainClient) {
+-		client_t *cl = drop->mainClient;
+-		int clientNum = drop - svs.clients;
+-
+-		for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-			if (cl->localClients[i] == drop) {
+-				cl->localClients[i] = NULL;
++	// Check if player is a extra local player
++	if ( numLocalPlayers > 1 ) {
++		for (i = 0; i < MAX_SPLITVIEW; i++) {
++			if ( client->localPlayers[i] == drop ) {
++				client->localPlayers[i] = NULL;
+ 			}
+-			if (cl->gentity && cl->gentity->r.localClientNums[i] == clientNum) {
+-				cl->gentity->r.localClientNums[i] = -1;
+-			}
+ 		}
+ 	} else {
+ 		// add the disconnect command
+-		SV_SendServerCommand( drop, "disconnect \"%s\"", reason);
++		SV_SendServerCommand( client, -1, "disconnect \"%s\"", reason);
+ 	}
+ 
+ 	if ( isBot ) {
+-		SV_BotFreeClient( drop - svs.clients );
++		SV_BotFreeClient( playerNum );
+ 	}
+ 
+ 	// nuke user info
+-	SV_SetUserinfo( drop - svs.clients, "" );
+-	
+-	if ( isBot || drop->mainClient ) {
++	SV_SetUserinfo( playerNum, "" );
++
++	//
++	drop->inUse = qfalse;
++
++	if ( isBot ) {
+ 		// bots shouldn't go zombie, as there's no real net connection.
+-		// extra local clients piggyback on main client's net connection, instead of using their own.
+-		drop->state = CS_FREE;
+-	} else {
++		client->state = CS_FREE;
++	} else if ( numLocalPlayers == 1 ) {
+ 		Com_DPrintf( "Going to CS_ZOMBIE for %s\n", drop->name );
+-		drop->state = CS_ZOMBIE;		// become free in a few seconds
++		client->state = CS_ZOMBIE;		// become free in a few seconds
+ 	}
+ 
+ 	// if this was the last client on the server, send a heartbeat
+@@ -766,6 +764,27 @@
+ 
+ /*
+ ================
++SV_DropClient
++================
++*/
++void SV_DropClient( client_t *cl, const char *reason ) {
++	int i;
++
++	if ( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
++		return;
++	}
++
++	for ( i = 0; i < MAX_SPLITVIEW; i++ ) {
++		if ( !cl->localPlayers[i] ) {
++			continue;
++		}
++
++		SV_DropPlayer( cl->localPlayers[i], reason );
++	}
++}
++
++/*
++================
+ SV_SendClientGameState
+ 
+ Sends the first message from the server to a connected client.
+@@ -781,10 +800,9 @@
+ 	msg_t		msg;
+ 	byte		msgBuffer[MAX_MSGLEN];
+ 	int			i;
+-	client_t	*lc;
+ 
+- 	Com_DPrintf ("SV_SendClientGameState() for %s\n", client->name);
+-	Com_DPrintf( "Going from CS_CONNECTED to CS_PRIMED for %s\n", client->name );
++	Com_DPrintf ("SV_SendClientGameState() for %s\n", SV_ClientName(client));
++	Com_DPrintf( "Going from CS_CONNECTED to CS_PRIMED for %s\n", SV_ClientName(client));
+ 	client->state = CS_PRIMED;
+ 
+ 	// when we receive the first packet from the client, we will
+@@ -792,23 +810,6 @@
+ 	// gamestate message was not just sent, forcing a retransmit
+ 	client->gamestateMessageNum = client->netchan.outgoingSequence;
+ 
+-	for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-		if (!client->localClients[i]) {
+-			continue;
+-		}
+-
+-		lc = client->localClients[i];
+-
+-		Com_DPrintf ("SV_SendClientGameState() for %s\n", lc->name);
+-		Com_DPrintf( "Going from CS_CONNECTED to CS_PRIMED for %s\n", lc->name );
+-		lc->state = CS_PRIMED;
+-
+-		// when we receive the first packet from the client, we will
+-		// notice that it is from a different serverid and that the
+-		// gamestate message was not just sent, forcing a retransmit
+-		lc->gamestateMessageNum = lc->netchan.outgoingSequence;
+-	}
+-
+ 	MSG_Init( &msg, msgBuffer, sizeof( msgBuffer ) );
+ 
+ 	// NOTE, MRE: all server->client messages now acknowledge
+@@ -847,11 +848,9 @@
+ 
+ 	MSG_WriteByte( &msg, svc_EOF );
+ 
+-	MSG_WriteLong( &msg, client - svs.clients);
+-
+-	for ( i = 0; i < MAX_SPLITVIEW-1; i++ ) {
+-		if (client->localClients[i]) {
+-			MSG_WriteLong( &msg, client->localClients[i] - svs.clients);
++	for ( i = 0; i < MAX_SPLITVIEW; i++ ) {
++		if (client->localPlayers[i]) {
++			MSG_WriteLong( &msg, client->localPlayers[i] - svs.players );
+ 		} else {
+ 			MSG_WriteLong( &msg, -1);
+ 		}
+@@ -864,52 +863,54 @@
+ 
+ /*
+ ==================
+-SV_SetupClientEntity
++SV_SetupPlayerEntity
+ 
+-Must call before GAME_CLIENT_CONNECT
++Call before GAME_CLIENT_CONNECT
+ ==================
+ */
+-void SV_SetupClientEntity( client_t *client ) {
+-	int		clientNum;
++void SV_SetupPlayerEntity( player_t *player ) {
++	int		playerNum;
+ 	sharedEntity_t *ent;
+-	int		i;
+ 
+-	// set up the entity for the client
+-	clientNum = client - svs.clients;
+-	ent = SV_GentityNum( clientNum );
+-	ent->s.number = clientNum;
+-	client->gentity = ent;
++	player->inWorld = qfalse;
+ 
+-	// Set client indexes (must be done after game resets ent->r).
+-	client->gentity->r.mainClientNum = client->mainClient ? client->mainClient - svs.clients : -1;
+-	for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-		client->gentity->r.localClientNums[i] = client->localClients[i] ? client->localClients[i] - svs.clients : -1;
+-	}
++	// set up the entity for the client
++	playerNum = player - svs.players;
++	ent = SV_GentityNum( playerNum );
++	ent->s.number = playerNum;
++	player->gentity = ent;
+ }
+ 
+ /*
+ ==================
+-SV_ClientEnterWorld
++SV_PlayerEnterWorld
+ ==================
+ */
+-void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
+-	Com_DPrintf( "Going from CS_PRIMED to CS_ACTIVE for %s\n", client->name );
+-	client->state = CS_ACTIVE;
++void SV_PlayerEnterWorld( player_t *player, usercmd_t *cmd ) {
++	client_t *client = player->client;
+ 
+-	// resend all configstrings using the cs commands since these are
+-	// no longer sent when the client is CS_PRIMED
+-	SV_UpdateConfigstrings( client );
++	if ( client->state == CS_PRIMED )
++	{
++		Com_DPrintf( "Going from CS_PRIMED to CS_ACTIVE for %s\n", player->name );
++		client->state = CS_ACTIVE;
+ 
+-	client->deltaMessage = -1;
+-	client->lastSnapshotTime = 0;	// generate a snapshot immediately
++		// resend all configstrings using the cs commands since these are
++		// no longer sent when the client is CS_PRIMED
++		SV_UpdateConfigstrings( client );
+ 
++		client->deltaMessage = -1;
++		client->lastSnapshotTime = 0;	// generate a snapshot immediately
++	}
++
++	player->inWorld = qtrue;
++
+ 	if(cmd)
+-		memcpy(&client->lastUsercmd, cmd, sizeof(client->lastUsercmd));
++		memcpy(&player->lastUsercmd, cmd, sizeof(player->lastUsercmd));
+ 	else
+-		memset(&client->lastUsercmd, '\0', sizeof(client->lastUsercmd));
++		memset(&player->lastUsercmd, '\0', sizeof(player->lastUsercmd));
+ 
+ 	// call the game begin function
+-	VM_Call( gvm, GAME_CLIENT_BEGIN, client - svs.clients );
++	VM_Call( gvm, GAME_CLIENT_BEGIN, player - svs.players );
+ }
+ 
+ /*
+@@ -972,7 +973,7 @@
+ 	if ( cl->state == CS_ACTIVE )
+ 		return;
+ 
+-	Com_DPrintf( "clientDownload: %s Done\n", cl->name);
++	Com_DPrintf( "clientDownload: %s Done\n", SV_ClientName( cl ) );
+ 	// resend the game state to update any clients that entered during the download
+ 	SV_SendClientGameState(cl);
+ }
+@@ -1312,14 +1313,17 @@
+ into a more C friendly form.
+ =================
+ */
+-void SV_UserinfoChanged( client_t *cl ) {
++void SV_UserinfoChanged( player_t *player ) {
++	client_t *cl;
+ 	char	*val;
+ 	char	*ip;
+ 	int		i;
+ 	int	len;
+ 
++	cl = player->client;
++
+ 	// name for C code
+-	Q_strncpyz( cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof(cl->name) );
++	Q_strncpyz( player->name, Info_ValueForKey (player->userinfo, "name"), sizeof(player->name) );
+ 
+ 	// rate command
+ 
+@@ -1328,7 +1332,7 @@
+ 	if ( Sys_IsLANAddress( cl->netchan.remoteAddress ) && com_dedicated->integer != 2 && sv_lanForceRate->integer == 1) {
+ 		cl->rate = 99999;	// lans should not rate limit
+ 	} else {
+-		val = Info_ValueForKey (cl->userinfo, "rate");
++		val = Info_ValueForKey (player->userinfo, "rate");
+ 		if (strlen(val)) {
+ 			i = atoi(val);
+ 			cl->rate = i;
+@@ -1343,7 +1347,7 @@
+ 	}
+ 
+ 	// snaps command
+-	val = Info_ValueForKey (cl->userinfo, "snaps");
++	val = Info_ValueForKey (player->userinfo, "snaps");
+ 	
+ 	if(strlen(val))
+ 	{
+@@ -1365,7 +1369,7 @@
+ 		cl->lastSnapshotTime = 0;
+ 		cl->snapshotMsec = i;		
+ 	}
+-	
++
+ #ifdef USE_VOIP
+ #ifdef LEGACY_PROTOCOL
+ 	if(cl->compat)
+@@ -1373,7 +1377,7 @@
+ 	else
+ #endif
+ 	{
+-		val = Info_ValueForKey(cl->userinfo, "cl_voip");
++		val = Info_ValueForKey(player->userinfo, "cl_voip");
+ 		cl->hasVoip = atoi(val);
+ 	}
+ #endif
+@@ -1386,16 +1390,16 @@
+ 	else
+ 		ip = (char*)NET_AdrToString( cl->netchan.remoteAddress );
+ 
+-	val = Info_ValueForKey( cl->userinfo, "ip" );
++	val = Info_ValueForKey( player->userinfo, "ip" );
+ 	if( val[0] )
+-		len = strlen( ip ) - strlen( val ) + strlen( cl->userinfo );
++		len = strlen( ip ) - strlen( val ) + strlen( player->userinfo );
+ 	else
+-		len = strlen( ip ) + 4 + strlen( cl->userinfo );
++		len = strlen( ip ) + 4 + strlen( player->userinfo );
+ 
+ 	if( len >= MAX_INFO_STRING )
+-		SV_DropClient( cl, "userinfo string length exceeded" );
++		SV_DropPlayer( player, "userinfo string length exceeded" );
+ 	else
+-		Info_SetValueForKey( cl->userinfo, "ip", ip );
++		Info_SetValueForKey( player->userinfo, "ip", ip );
+ 
+ }
+ 
+@@ -1405,54 +1409,64 @@
+ SV_UpdateUserinfo_f
+ ==================
+ */
+-static void SV_UpdateUserinfo_f( client_t *cl ) {
+-	Q_strncpyz( cl->userinfo, Cmd_Argv(1), sizeof(cl->userinfo) );
++static void SV_UpdateUserinfo_f( client_t *client, int localPlayerNum ) {
++	player_t *player;
+ 
+-	SV_UserinfoChanged( cl );
++	player = client->localPlayers[localPlayerNum];
++
++	if ( !player ) {
++		return;
++	}
++
++	Q_strncpyz( player->userinfo, Cmd_Argv(1), sizeof(player->userinfo) );
++
++	SV_UserinfoChanged( player );
+ 	// call prog code to allow overrides
+-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients );
++	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, player - svs.players );
+ }
+ 
+ /*
+ ==================
+-SV_UpdateUserinfo2_f
++SV_DropOut_f
+ ==================
+ */
+-static void SV_UpdateUserinfo2_f( client_t *cl ) {
+-	client_t *lc;
++void SV_DropOut_f( client_t *client, int localPlayerNum ) {
++	player_t *player;
+ 
+-	lc = cl->localClients[0];
++	player = client->localPlayers[localPlayerNum];
+ 
+-	if (!lc) {
++	if (!player) {
+ 		return;
+ 	}
+ 
+-	Q_strncpyz( lc->userinfo, Cmd_Argv(1), sizeof(lc->userinfo) );
++	SV_DropPlayer( player, "dropped out" );
++}
+ 
+-	SV_UserinfoChanged( lc );
+-	// call prog code to allow overrides
+-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, lc - svs.clients );
++/*
++==================
++SV_UpdateUserinfo1_f
++==================
++*/
++static void SV_UpdateUserinfo1_f( client_t *client ) {
++	SV_UpdateUserinfo_f( client, 0 );
+ }
+ 
+ /*
+ ==================
+-SV_UpdateUserinfo3_f
++SV_UpdateUserinfo2_f
+ ==================
+ */
+-static void SV_UpdateUserinfo3_f( client_t *cl ) {
+-	client_t *lc;
++static void SV_UpdateUserinfo2_f( client_t *client ) {
++	SV_UpdateUserinfo_f( client, 1 );
++}
+ 
+-	lc = cl->localClients[1];
+-
+-	if (!lc) {
+-		return;
+-	}
+-
+-	Q_strncpyz( lc->userinfo, Cmd_Argv(1), sizeof(lc->userinfo) );
+-
+-	SV_UserinfoChanged( lc );
+-	// call prog code to allow overrides
+-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, lc - svs.clients );
++/*
++==================
++SV_UpdateUserinfo3_f
++==================
++*/
++static void SV_UpdateUserinfo3_f( client_t *client ) {
++	SV_UpdateUserinfo_f( client, 2 );
+ }
+ 
+ /*
+@@ -1460,20 +1474,17 @@
+ SV_UpdateUserinfo4_f
+ ==================
+ */
+-static void SV_UpdateUserinfo4_f( client_t *cl ) {
+-	client_t *lc;
++static void SV_UpdateUserinfo4_f( client_t *client ) {
++	SV_UpdateUserinfo_f( client, 3 );
++}
+ 
+-	lc = cl->localClients[2];
+-
+-	if (!lc) {
+-		return;
+-	}
+-
+-	Q_strncpyz( lc->userinfo, Cmd_Argv(1), sizeof(lc->userinfo) );
+-
+-	SV_UserinfoChanged( lc );
+-	// call prog code to allow overrides
+-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, lc - svs.clients );
++/*
++==================
++SV_DropOut1_f
++==================
++*/
++void SV_DropOut1_f( client_t *client ) {
++	SV_DropOut_f( client, 0 );
+ }
+ 
+ /*
+@@ -1481,16 +1492,8 @@
+ SV_DropOut2_f
+ ==================
+ */
+-void SV_DropOut2_f( client_t *cl ) {
+-	client_t *lc;
+-
+-	lc = cl->localClients[0];
+-
+-	if (!lc) {
+-		return;
+-	}
+-
+-	SV_DropClient(lc, "dropped out");
++void SV_DropOut2_f( client_t *client ) {
++	SV_DropOut_f( client, 1 );
+ }
+ 
+ /*
+@@ -1498,16 +1501,8 @@
+ SV_DropOut3_f
+ ==================
+ */
+-void SV_DropOut3_f( client_t *cl ) {
+-	client_t *lc;
+-
+-	lc = cl->localClients[1];
+-
+-	if (!lc) {
+-		return;
+-	}
+-
+-	SV_DropClient(lc, "dropped out");
++void SV_DropOut3_f( client_t *client ) {
++	SV_DropOut_f( client, 2 );
+ }
+ 
+ /*
+@@ -1515,16 +1510,17 @@
+ SV_DropOut4_f
+ ==================
+ */
+-void SV_DropOut4_f( client_t *cl ) {
+-	client_t *lc;
++void SV_DropOut4_f( client_t *client ) {
++	SV_DropOut_f( client, 3 );
++}
+ 
+-	lc = cl->localClients[2];
+-
+-	if (!lc) {
+-		return;
+-	}
+-
+-	SV_DropClient(lc, "dropped out");
++/*
++==================
++SV_DropIn1_f
++==================
++*/
++void SV_DropIn1_f( client_t *client ) {
++	SV_AddPlayer( client, 0, Cmd_Argv(1) );
+ }
+ 
+ /*
+@@ -1532,12 +1528,8 @@
+ SV_DropIn2_f
+ ==================
+ */
+-void SV_DropIn2_f( client_t *cl ) {
+-	if (cl->localClients[0]) {
+-		return;
+-	}
+-
+-	SV_AddExtraLocalClient(cl, 1, Cmd_Argv(1));
++void SV_DropIn2_f( client_t *client ) {
++	SV_AddPlayer( client, 1, Cmd_Argv(1) );
+ }
+ 
+ /*
+@@ -1545,25 +1537,17 @@
+ SV_DropIn3_f
+ ==================
+ */
+-void SV_DropIn3_f( client_t *cl ) {
+-	if (cl->localClients[1]) {
+-		return;
+-	}
+-
+-	SV_AddExtraLocalClient(cl, 2, Cmd_Argv(1));
++void SV_DropIn3_f( client_t *client ) {
++	SV_AddPlayer( client, 2, Cmd_Argv(1) );
+ }
+ 
+ /*
+ ==================
+-SV_DropIn3_f
++SV_DropIn4_f
+ ==================
+ */
+-void SV_DropIn4_f( client_t *cl ) {
+-	if (cl->localClients[2]) {
+-		return;
+-	}
+-
+-	SV_AddExtraLocalClient(cl, 3, Cmd_Argv(1));
++void SV_DropIn4_f( client_t *client ) {
++	SV_AddPlayer( client, 3, Cmd_Argv(1) );
+ }
+ 
+ 
+@@ -1605,13 +1589,15 @@
+ } ucmd_t;
+ 
+ static ucmd_t ucmds[] = {
+-	{"userinfo", SV_UpdateUserinfo_f},
++	{"userinfo1", SV_UpdateUserinfo1_f},
+ 	{"userinfo2", SV_UpdateUserinfo2_f},
+ 	{"userinfo3", SV_UpdateUserinfo3_f},
+ 	{"userinfo4", SV_UpdateUserinfo4_f},
++	{"dropout1", SV_DropOut1_f},
+ 	{"dropout2", SV_DropOut2_f},
+ 	{"dropout3", SV_DropOut3_f},
+ 	{"dropout4", SV_DropOut4_f},
++	{"dropin1", SV_DropIn1_f},
+ 	{"dropin2", SV_DropIn2_f},
+ 	{"dropin3", SV_DropIn3_f},
+ 	{"dropin4", SV_DropIn4_f},
+@@ -1658,7 +1644,7 @@
+ 		}
+ 	}
+ 	else if (!bProcessed)
+-		Com_DPrintf( "client text ignored for %s: %s\n", cl->name, Cmd_Argv(0) );
++		Com_DPrintf( "client text ignored for %s: %s\n", SV_ClientName( cl ), Cmd_Argv(0) );
+ }
+ 
+ /*
+@@ -1679,11 +1665,11 @@
+ 		return qtrue;
+ 	}
+ 
+-	Com_DPrintf( "clientCommand: %s : %i : %s\n", cl->name, seq, s );
++	Com_DPrintf( "clientCommand: %s : %i : %s\n", SV_ClientName( cl ), seq, s );
+ 
+ 	// drop the connection if we have somehow lost commands
+ 	if ( seq > cl->lastClientCommand + 1 ) {
+-		Com_Printf( "Client %s lost %i clientCommands\n", cl->name, 
++		Com_Printf( "Client %s lost %i clientCommands\n", SV_ClientName( cl ), 
+ 			seq - cl->lastClientCommand + 1 );
+ 		SV_DropClient( cl, "Lost reliable commands" );
+ 		return qfalse;
+@@ -1722,19 +1708,19 @@
+ 
+ /*
+ ==================
+-SV_ClientThink
++SV_PlayerThink
+ 
+ Also called by bot code
+ ==================
+ */
+-void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
+-	cl->lastUsercmd = *cmd;
++void SV_PlayerThink (player_t *player, usercmd_t *cmd) {
++	player->lastUsercmd = *cmd;
+ 
+-	if ( cl->state != CS_ACTIVE ) {
++	if ( !player->inUse ) {
+ 		return;		// may have been kicked during the last usercmd
+ 	}
+ 
+-	VM_Call( gvm, GAME_CLIENT_THINK, cl - svs.clients );
++	VM_Call( gvm, GAME_CLIENT_THINK, player - svs.players );
+ }
+ 
+ /*
+@@ -1749,27 +1735,25 @@
+ each of the backup packets.
+ ==================
+ */
+-static void SV_UserMove( client_t *encoder, msg_t *msg, qboolean delta ) {
++static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
+ 	int			i, key;
+ 	int			cmdCount;
+ 	int			lc, localClientBits;
+ 	usercmd_t	nullcmd;
+ 	usercmd_t	cmds[MAX_PACKET_USERCMDS];
+ 	usercmd_t	*cmd, *oldcmd;
+-	client_t	*cl;
++	player_t	*player;
+ 
+ 	if ( delta ) {
+-		encoder->deltaMessage = encoder->messageAcknowledge;
++		cl->deltaMessage = cl->messageAcknowledge;
+ 	} else {
+-		encoder->deltaMessage = -1;
++		cl->deltaMessage = -1;
+ 	}
+ 
+ 	localClientBits = MSG_ReadByte( msg );
+ 	cmdCount = MSG_ReadByte( msg );
+ 
+ 	if ( localClientBits == 0 ) {
+-		// save time for ping calculation
+-		encoder->frames[ encoder->messageAcknowledge & PACKET_MASK ].messageAcked = svs.time;
+ 		return;
+ 	}
+ 
+@@ -1784,9 +1768,9 @@
+ 	}
+ 
+ 	// use the message acknowledge in the key
+-	key = encoder->messageAcknowledge;
++	key = cl->messageAcknowledge;
+ 	// also use the last acknowledged server command in the key
+-	key ^= MSG_HashKey(encoder->reliableCommands[ encoder->reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ], 32);
++	key ^= MSG_HashKey(cl->reliableCommands[ cl->reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ], 32);
+ 
+ 	for (lc = 0; lc < MAX_SPLITVIEW; ++lc) {
+ 		if (!(localClientBits & (1<<lc))) {
+@@ -1801,14 +1785,11 @@
+ 			oldcmd = cmd;
+ 		}
+ 
+-		if (lc == 0) {
+-			cl = encoder;
+-		} else {
+-			cl = encoder->localClients[lc-1];
+-			if (!cl) {
+-				Com_DPrintf( S_COLOR_YELLOW "WARNING: move cmd for non-existant local client %d from client %i\n", lc, (int) (encoder - svs.clients) );
+-				continue;
+-			}
++		player = cl->localPlayers[lc];
++
++		if (!player) {
++			Com_DPrintf( S_COLOR_YELLOW "WARNING: got move cmd for non-existant local player %d from %s\n", lc, SV_ClientName( cl ) );
++			continue;
+ 		}
+ 
+ 		// save time for ping calculation
+@@ -1816,15 +1797,12 @@
+ 
+ 		// if this is the first usercmd we have received
+ 		// this gamestate, put the client into the world
+-		if ( cl->state == CS_PRIMED ) {
+-			SV_ClientEnterWorld( cl, &cmds[0] );
++		if ( !player->inWorld ) {
++			SV_PlayerEnterWorld( player, &cmds[0] );
+ 			// the moves can be processed normaly
+ 		}
+ 
+-		if ( cl->state != CS_ACTIVE ) {
+-			cl->deltaMessage = -1;
+-			continue;
+-		}
++		assert( cl->state == CS_ACTIVE );
+ 
+ 		// usually, the first couple commands will be duplicates
+ 		// of ones we have previously received, but the servertimes
+@@ -1840,10 +1818,10 @@
+ 			//}
+ 			// don't execute if this is an old cmd which is already executed
+ 			// these old cmds are included when cl_packetdup > 0
+-			if ( cmds[i].serverTime <= cl->lastUsercmd.serverTime ) {
++			if ( cmds[i].serverTime <= player->lastUsercmd.serverTime ) {
+ 				continue;
+ 			}
+-			SV_ClientThink (cl, &cmds[ i ]);
++			SV_PlayerThink( player, &cmds[ i ] );
+ 		}
+ 	}
+ }
+@@ -1858,30 +1836,50 @@
+ ==================
+ */
+ 
+-static qboolean SV_ShouldIgnoreVoipSender(const client_t *cl)
++static qboolean SV_ShouldIgnoreVoipSender(const client_t *cl, int localPlayerNum)
+ {
+ 	if (!sv_voip->integer)
+ 		return qtrue;  // VoIP disabled on this server.
+ 	else if (!cl->hasVoip)  // client doesn't have VoIP support?!
+ 		return qtrue;
+-    
++	else if (localPlayerNum >= MAX_SPLITVIEW || !cl->localPlayers[localPlayerNum])
++		return qtrue; // local player doesn't exist
++
+ 	// !!! FIXME: implement player blacklist.
+ 
+ 	return qfalse;  // don't ignore.
+ }
+ 
++/*
++==================
++SV_ClientIgnoreVoipTalker
++
++Blocking of voip packets based on target client's opinion of source player
++==================
++*/
++
++static qboolean SV_ClientIgnoreVoipTalker(const client_t *client, const player_t *player)
++{
++	if ( client->ignoreVoipFromClient[ player - svs.players ] )
++		return qtrue;
++
++	return qfalse;  // don't ignore.
++}
++
+ static
+ void SV_UserVoip(client_t *cl, msg_t *msg)
+ {
+-	int sender, generation, sequence, frames, packetsize;
++	int sender, localPlayerNum, generation, sequence, frames, packetsize;
+ 	uint8_t recips[(MAX_CLIENTS + 7) / 8];
+ 	int flags;
+ 	byte encoded[sizeof(cl->voipPacket[0]->data)];
+ 	client_t *client = NULL;
++	player_t *player = NULL;
+ 	voipServerPacket_t *packet = NULL;
+ 	int i;
+ 
+ 	sender = cl - svs.clients;
++	localPlayerNum = MSG_ReadByte(msg);
+ 	generation = MSG_ReadByte(msg);
+ 	sequence = MSG_ReadLong(msg);
+ 	frames = MSG_ReadByte(msg);
+@@ -1906,7 +1904,7 @@
+ 
+ 	MSG_ReadData(msg, encoded, packetsize);
+ 
+-	if (SV_ShouldIgnoreVoipSender(cl))
++	if (SV_ShouldIgnoreVoipSender(cl, localPlayerNum))
+ 		return;   // Blacklisted, disabled, etc.
+ 
+ 	// !!! FIXME: see if we read past end of msg...
+@@ -1914,19 +1912,19 @@
+ 	// !!! FIXME: reject if not speex narrowband codec.
+ 	// !!! FIXME: decide if this is bogus data?
+ 
++	player = cl->localPlayers[localPlayerNum];
++
+ 	// decide who needs this VoIP packet sent to them...
+ 	for (i = 0, client = svs.clients; i < sv_maxclients->integer ; i++, client++) {
+ 		if (client->state != CS_ACTIVE)
+ 			continue;  // not in the game yet, don't send to this guy.
+ 		else if (i == sender)
+ 			continue;  // don't send voice packet back to original author.
+-		else if (client->mainClient != NULL)
+-			continue;  // don't send voice packet to splitscreen clients
+ 		else if (!client->hasVoip)
+ 			continue;  // no VoIP support, or unsupported protocol
+ 		else if (client->muteAllVoip)
+ 			continue;  // client is ignoring everyone.
+-		else if (client->ignoreVoipFromClient[sender])
++		else if (SV_ClientIgnoreVoipTalker(client, player))
+ 			continue;  // client is ignoring this talker.
+ 		else if (*cl->downloadName)   // !!! FIXME: possible to DoS?
+ 			continue;  // no VoIP allowed if downloading, to save bandwidth.
+@@ -1946,7 +1944,7 @@
+ 		}
+ 
+ 		packet = Z_Malloc(sizeof(*packet));
+-		packet->sender = sender;
++		packet->sender = player - svs.players;
+ 		packet->frames = frames;
+ 		packet->len = packetsize;
+ 		packet->generation = generation;
+@@ -2024,13 +2022,13 @@
+ 	if ( serverId != sv.serverId && !*cl->downloadName && !strstr(cl->lastClientCommandString, "nextdl") ) {
+ 		if ( serverId >= sv.restartedServerId && serverId < sv.serverId ) { // TTimo - use a comparison here to catch multiple map_restart
+ 			// they just haven't caught the map_restart yet
+-			Com_DPrintf("%s : ignoring pre map_restart / outdated client message\n", cl->name);
++			Com_DPrintf("%s : ignoring pre map_restart / outdated client message\n", SV_ClientName( cl ) );
+ 			return;
+ 		}
+ 		// if we can tell that the client has dropped the last
+ 		// gamestate we sent them, resend it
+ 		if ( cl->messageAcknowledge > cl->gamestateMessageNum ) {
+-			Com_DPrintf( "%s : dropped gamestate, resending\n", cl->name );
++			Com_DPrintf( "%s : dropped gamestate, resending\n", SV_ClientName( cl ) );
+ 			SV_SendClientGameState( cl );
+ 		}
+ 		return;
+@@ -2039,7 +2037,7 @@
+ 	// this client has acknowledged the new gamestate so it's
+ 	// safe to start sending it the real time again
+ 	if( cl->oldServerTime && serverId == sv.serverId ){
+-		Com_DPrintf( "%s acknowledged gamestate\n", cl->name );
++		Com_DPrintf( "%s acknowledged gamestate\n", SV_ClientName( cl ) );
+ 		cl->oldServerTime = 0;
+ 	}
+ 
+Index: code/server/sv_snapshot.c
+===================================================================
+--- code/server/sv_snapshot.c	(revision 372)
++++ code/server/sv_snapshot.c	(revision 375)
+@@ -149,7 +149,7 @@
+ 	} else if ( client->netchan.outgoingSequence - client->deltaMessage 
+ 		>= (PACKET_BACKUP - 3) ) {
+ 		// client hasn't gotten a good message through in a long time
+-		Com_DPrintf ("%s: Delta request from out of date packet.\n", client->name);
++		Com_DPrintf ("%s: Delta request from out of date packet.\n", SV_ClientName( client ));
+ 		oldframe = NULL;
+ 		lastframe = 0;
+ 	} else {
+@@ -159,7 +159,7 @@
+ 
+ 		// the snapshot's entities may still have rolled off the buffer, though
+ 		if ( oldframe->first_entity <= svs.nextSnapshotEntities - svs.numSnapshotEntities ) {
+-			Com_DPrintf ("%s: Delta request from out of date entities.\n", client->name);
++			Com_DPrintf ("%s: Delta request from out of date entities.\n", SV_ClientName( client ));
+ 			oldframe = NULL;
+ 			lastframe = 0;
+ 		}
+@@ -211,7 +211,7 @@
+ 		frame->numPSs = MAX_SPLITVIEW;
+ 	}
+ 
+-	// send number of playerstates and local client indexes if needed
++	// send number of playerstates and local player indexes if needed
+ 	if (snapFlags & SNAPFLAG_MULTIPLE_PSS) {
+ 		MSG_WriteByte (msg, frame->numPSs);
+ 		for (i = 0; i < MAX_SPLITVIEW; i++) {
+@@ -503,8 +503,6 @@
+ 
+ This properly handles multiple recursive portals, but the render
+ currently doesn't.
+-
+-For viewing through other player's eyes, clent can be something other than client->gentity
+ =============
+ */
+ static void SV_BuildClientSnapshot( client_t *client ) {
+@@ -515,7 +513,6 @@
+ 	sharedEntity_t				*ent;
+ 	entityState_t				*state;
+ 	svEntity_t					*svEnt;
+-	sharedEntity_t				*clent;
+ 	int							clientNum;
+ 	playerState_t				*ps;
+ 
+@@ -532,29 +529,26 @@
+   // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=62
+ 	frame->num_entities = 0;
+ 	
+-	clent = client->gentity;
+-	if ( !clent || client->state == CS_ZOMBIE ) {
++	if ( client->state == CS_ZOMBIE ) {
+ 		return;
+ 	}
+ 
+-	// grab the current playerState_t
+-	ps = SV_GameClientNum( client - svs.clients );
+-	frame->pss[0] = *ps;
+-	frame->numPSs = 1;
+-	frame->lcIndex[0] = 0;
+-
+-	// Add splitscreen clients
+-	for (i = 1; i < MAX_SPLITVIEW; i++) {
+-		if (!client->localClients[i-1]) {
++	// grab the current player states
++	for (i = 0, frame->numPSs = 0; i < MAX_SPLITVIEW; i++) {
++		if ( !client->localPlayers[i] || !client->localPlayers[i]->gentity ) {
+ 			frame->lcIndex[i] = -1;
+ 			continue;
+ 		}
+-		ps = SV_GameClientNum( client->localClients[i-1] - svs.clients );
++		ps = SV_GameClientNum( client->localPlayers[i] - svs.players );
+ 		frame->pss[frame->numPSs] = *ps;
+ 		frame->lcIndex[i] = frame->numPSs;
+ 		frame->numPSs++;
+ 	}
+ 
++	if ( !frame->numPSs ) {
++		return;
++	}
++
+ 	// never send client's own entity, because it can
+ 	// be regenerated from the playerstate
+ 	for (i = 0; i < frame->numPSs; i++) {
+@@ -567,7 +561,7 @@
+ 		svEnt->snapshotCounter = sv.snapshotCounter;
+ 	}
+ 
+-	// Now that local clients have been marked as no send, add visible entities.
++	// Now that local players have been marked as no send, add visible entities.
+ 	for (i = 0; i < frame->numPSs; i++) {
+ 		// find the client's viewpoint
+ 		VectorCopy( frame->pss[i].origin, org );
+@@ -685,17 +679,12 @@
+ 	byte		msg_buf[MAX_MSGLEN];
+ 	msg_t		msg;
+ 
+-	// Splitscreen clients are sent with main client.
+-	if (client->mainClient) {
+-		return;
+-	}
+-
+ 	// build the snapshot
+ 	SV_BuildClientSnapshot( client );
+ 
+ 	// bots need to have their snapshots build, but
+ 	// the query them directly without needing to be sent
+-	if ( client->gentity && client->gentity->r.svFlags & SVF_BOT ) {
++	if ( client->netchan.remoteAddress.type == NA_BOT ) {
+ 		return;
+ 	}
+ 
+@@ -719,7 +708,7 @@
+ 
+ 	// check for overflow
+ 	if ( msg.overflowed ) {
+-		Com_Printf ("WARNING: msg overflowed for %s\n", client->name);
++		Com_Printf ("WARNING: msg overflowed for %s\n", SV_ClientName( client ));
+ 		MSG_Clear (&msg);
+ 	}
+ 
+Index: code/server/server.h
+===================================================================
+--- code/server/server.h	(revision 372)
++++ code/server/server.h	(revision 375)
+@@ -134,9 +134,22 @@
+ 	struct netchan_buffer_s *next;
+ } netchan_buffer_t;
+ 
++typedef struct player_s {
++	qboolean		inUse;
++	qboolean		inWorld;
++
++	char			userinfo[MAX_INFO_STRING];		// name, etc
++
++	usercmd_t		lastUsercmd;
++	sharedEntity_t	*gentity;			// SV_GentityNum(playerNum)
++	char			name[MAX_NAME_LENGTH];			// extracted from userinfo, high bits masked
++
++	struct client_s	*client;
++} player_t;
++
+ typedef struct client_s {
+ 	clientState_t	state;
+-	char			userinfo[MAX_INFO_STRING];		// name, etc
++	player_t		*localPlayers[MAX_SPLITVIEW];
+ 
+ 	char			reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
+ 	int				reliableSequence;		// last added reliable message, not necesarily sent or acknowledged yet
+@@ -147,12 +160,9 @@
+ 	int				gamestateMessageNum;	// netchan->outgoingSequence of gamestate
+ 	int				challenge;
+ 
+-	usercmd_t		lastUsercmd;
+ 	int				lastMessageNum;		// for delta compression
+ 	int				lastClientCommand;	// reliable client message sequence
+ 	char			lastClientCommandString[MAX_STRING_CHARS];
+-	sharedEntity_t	*gentity;			// SV_GentityNum(clientnum)
+-	char			name[MAX_NAME_LENGTH];			// extracted from userinfo, high bits masked
+ 
+ 	// downloading
+ 	char			downloadName[MAX_QPATH]; // if not empty string, we are downloading
+@@ -202,9 +212,6 @@
+ 	qboolean		compat;
+ #endif
+ 
+-	struct client_s *mainClient;
+-	struct client_s *localClients[MAX_SPLITVIEW-1]; // If any are not NULL this client is splitscreen main client,
+-										// localClients are their splitscreen players.
+ } client_t;
+ 
+ //=============================================================================
+@@ -238,6 +245,7 @@
+ 	int			snapFlagServerBit;			// ^= SNAPFLAG_SERVERCOUNT every SV_SpawnServer()
+ 
+ 	client_t	*clients;					// [sv_maxclients->integer];
++	player_t	*players;					// [sv_maxclients->integer]; // a single client can have multiple players
+ 	int			numSnapshotEntities;		// sv_maxclients->integer*PACKET_BACKUP*MAX_PACKET_ENTITIES
+ 	int			nextSnapshotEntities;		// next snapshotEntities to use
+ 	entityState_t	*snapshotEntities;		// [numSnapshotEntities]
+@@ -308,7 +316,7 @@
+ // sv_main.c
+ //
+ void SV_FinalMessage (char *message);
+-void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
++void QDECL SV_SendServerCommand( client_t *cl, int localPlayerNum, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
+ 
+ 
+ void SV_AddOperatorCommands (void);
+@@ -343,15 +351,22 @@
+ void SV_DirectConnect( netadr_t from );
+ 
+ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg );
+-void SV_UserinfoChanged( client_t *cl );
++void SV_UserinfoChanged( player_t *cl );
+ 
+-void SV_SetupClientEntity( client_t *client );
+-void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd );
+-void SV_FreeClient(client_t *client);
++void SV_SetupPlayerEntity( player_t *player );
++void SV_PlayerEnterWorld( player_t *player, usercmd_t *cmd );
++void SV_FreePlayer( player_t *player );
++void SV_DropPlayer( player_t *drop, const char *reason );
++void SV_FreeClient( client_t *client );
+ void SV_DropClient( client_t *drop, const char *reason );
+ 
++const char *SV_ClientName( client_t *client );
++int SV_ClientNumLocalPlayers( client_t *client );
++int SV_ClientNumLocalPlayersInWorld( client_t *client );
++int	SV_LocalPlayerNum( player_t *player );
++
+ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK );
+-void SV_ClientThink (client_t *cl, usercmd_t *cmd);
++void SV_PlayerThink( player_t *player, usercmd_t *cmd );
+ 
+ int SV_WriteDownloadToClient(client_t *cl , msg_t *msg);
+ int SV_SendDownloadMessages(void);
+@@ -366,7 +381,7 @@
+ //
+ // sv_snapshot.c
+ //
+-void SV_AddServerCommand( client_t *client, const char *cmd );
++void SV_AddServerCommand( client_t *client, int localPlayerNum, const char *cmd );
+ void SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg );
+ void SV_WriteFrameToClient (client_t *client, msg_t *msg);
+ void SV_SendMessageToClient( msg_t *msg, client_t *client );
+Index: code/server/sv_init.c
+===================================================================
+--- code/server/sv_init.c	(revision 372)
++++ code/server/sv_init.c	(revision 375)
+@@ -65,7 +65,7 @@
+ 			Q_strncpyz( buf, &sv.configstrings[index][sent],
+ 				maxChunkSize );
+ 
+-			SV_SendServerCommand( client, "%s %i \"%s\"\n", cmd,
++			SV_SendServerCommand( client, -1, "%s %i \"%s\"\n", cmd,
+ 				index, buf );
+ 
+ 			sent += (maxChunkSize - 1);
+@@ -73,7 +73,7 @@
+ 		}
+ 	} else {
+ 		// standard cs, just send it
+-		SV_SendServerCommand( client, "cs %i \"%s\"\n", index,
++		SV_SendServerCommand( client, -1, "cs %i \"%s\"\n", index,
+ 			sv.configstrings[index] );
+ 	}
+ }
+@@ -95,11 +95,6 @@
+ 		if(!client->csUpdated[index])
+ 			continue;
+ 
+-		// do not always send server info to all clients
+-		if ( index == CS_SERVERINFO && client->gentity &&
+-			(client->gentity->r.svFlags & SVF_NOSERVERINFO) ) {
+-			continue;
+-		}
+ 		SV_SendConfigstring(client, index);
+ 		client->csUpdated[index] = qfalse;
+ 	}
+@@ -143,11 +138,7 @@
+ 					client->csUpdated[ index ] = qtrue;
+ 				continue;
+ 			}
+-			// do not always send server info to all clients
+-			if ( index == CS_SERVERINFO && client->gentity && (client->gentity->r.svFlags & SVF_NOSERVERINFO) ) {
+-				continue;
+-			}
+-		
++
+ 			SV_SendConfigstring(client, index);
+ 		}
+ 	}
+@@ -190,8 +181,8 @@
+ 		val = "";
+ 	}
+ 
+-	Q_strncpyz( svs.clients[index].userinfo, val, sizeof( svs.clients[ index ].userinfo ) );
+-	Q_strncpyz( svs.clients[index].name, Info_ValueForKey( val, "name" ), sizeof(svs.clients[index].name) );
++	Q_strncpyz( svs.players[index].userinfo, val, sizeof( svs.players[ index ].userinfo ) );
++	Q_strncpyz( svs.players[index].name, Info_ValueForKey( val, "name" ), sizeof(svs.players[index].name) );
+ }
+ 
+ 
+@@ -209,7 +200,7 @@
+ 	if ( index < 0 || index >= sv_maxclients->integer ) {
+ 		Com_Error (ERR_DROP, "SV_GetUserinfo: bad index %i", index);
+ 	}
+-	Q_strncpyz( buffer, svs.clients[ index ].userinfo, bufferSize );
++	Q_strncpyz( buffer, svs.players[ index ].userinfo, bufferSize );
+ }
+ 
+ 
+@@ -278,6 +269,7 @@
+ 	SV_BoundMaxClients( 1 );
+ 
+ 	svs.clients = Z_Malloc (sizeof(client_t) * sv_maxclients->integer );
++	svs.players = Z_Malloc (sizeof(player_t) * sv_maxclients->integer );
+ 	if ( com_dedicated->integer ) {
+ 		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * 64;
+ 	} else {
+@@ -307,12 +299,13 @@
+ 	int		oldMaxClients;
+ 	int		i, j;
+ 	client_t	*oldClients;
++	player_t	*oldPlayers;
+ 	int		count;
+ 
+-	// get the highest client number in use
++	// get the highest client or player number in use
+ 	count = 0;
+ 	for ( i = 0 ; i < sv_maxclients->integer ; i++ ) {
+-		if ( svs.clients[i].state >= CS_CONNECTED ) {
++		if ( svs.clients[i].state >= CS_CONNECTED || svs.players[i].inUse ) {
+ 			if (i > count)
+ 				count = i;
+ 		}
+@@ -328,55 +321,64 @@
+ 	}
+ 
+ 	oldClients = Hunk_AllocateTempMemory( count * sizeof(client_t) );
+-	// copy the clients to hunk memory
++	oldPlayers = Hunk_AllocateTempMemory( count * sizeof(player_t) );
++	// copy the clients and players to hunk memory
+ 	for ( i = 0 ; i < count ; i++ ) {
+-		if ( svs.clients[i].state >= CS_CONNECTED ) {
+-			oldClients[i] = svs.clients[i];
++		if ( svs.players[i].inUse && oldPlayers[i].client->state >= CS_CONNECTED ) {
++			oldPlayers[i] = svs.players[i];
++			oldPlayers[i].client = NULL; // client pointer gets restored using localPlayers pointers.
+ 		}
+ 		else {
+-			Com_Memset(&oldClients[i], 0, sizeof(client_t));
++			Com_Memset(&oldPlayers[i], 0, sizeof(player_t));
+ 		}
+ 
+-		// save main clientNum
+-		if (svs.clients[i].mainClient) {
+-			oldClients[i].mainClient = (void*)(svs.clients[i].mainClient - svs.clients + 1);
+-		}
++		if ( svs.clients[i].state >= CS_CONNECTED ) {
++			oldClients[i] = svs.clients[i];
+ 
+-		// save splitscreen clientNums
+-		for ( j = 0; j < MAX_SPLITVIEW-1; j++) {
+-			if (svs.clients[i].localClients[j]) {
+-				oldClients[i].localClients[j] = (void*)(svs.clients[i].localClients[j] - svs.clients + 1);
++			// save player indexes
++			for ( j = 0; j < MAX_SPLITVIEW; j++ ) {
++				if (svs.clients[i].localPlayers[j]) {
++					oldClients[i].localPlayers[j] = (void*)((svs.clients[i].localPlayers[j] - svs.players) + 1);
++				}
+ 			}
+ 		}
++		else {
++			Com_Memset(&oldClients[i], 0, sizeof(client_t));
++		}
+ 	}
+ 
+-	// free old clients arrays
++	// free old clients and players arrays
+ 	Z_Free( svs.clients );
++	Z_Free( svs.players );
+ 
+-	// allocate new clients
++	// allocate new clients and players
+ 	svs.clients = Z_Malloc ( sv_maxclients->integer * sizeof(client_t) );
+ 	Com_Memset( svs.clients, 0, sv_maxclients->integer * sizeof(client_t) );
+ 
+-	// copy the clients over
++	svs.players = Z_Malloc ( sv_maxclients->integer * sizeof(player_t) );
++	Com_Memset( svs.players, 0, sv_maxclients->integer * sizeof(player_t) );
++
++	// copy the clients and players over
+ 	for ( i = 0 ; i < count ; i++ ) {
++		if ( oldPlayers[i].inUse ) {
++			svs.players[i] = oldPlayers[i];
++		}
++
+ 		if ( oldClients[i].state >= CS_CONNECTED ) {
+ 			svs.clients[i] = oldClients[i];
+-		}
+ 
+-		// restore main client pointer
+-		if (oldClients[i].mainClient) {
+-			svs.clients[i].mainClient = &svs.clients[(intptr_t)oldClients[i].mainClient - 1];
+-		}
+-
+-		// restore splitscreen pointers
+-		for ( j = 0; j < MAX_SPLITVIEW-1; j++) {
+-			if (oldClients[i].localClients[j]) {
+-				svs.clients[i].localClients[j] = &svs.clients[(intptr_t)oldClients[i].localClients[j] - 1];
++			// restore pointers
++			for ( j = 0; j < MAX_SPLITVIEW; j++ ) {
++				if (oldClients[i].localPlayers[j]) {
++					svs.clients[i].localPlayers[j] = &svs.players[ (intptr_t)oldClients[i].localPlayers[j] - 1 ];
++					svs.clients[i].localPlayers[j]->client = &svs.clients[i];
++				}
+ 			}
+ 		}
+ 	}
+ 
+-	// free the old clients on the hunk
++	// free the old playes and clients on the hunk
++	Hunk_FreeTempMemory( oldPlayers );
+ 	Hunk_FreeTempMemory( oldClients );
+ 	
+ 	// allocate new snapshot entities
+@@ -550,6 +552,8 @@
+ 		// send the new gamestate to all connected clients
+ 		if (svs.clients[i].state >= CS_CONNECTED) {
+ 			char	*denied;
++			player_t *player;
++			int j;
+ 
+ 			if ( svs.clients[i].netchan.remoteAddress.type == NA_BOT ) {
+ 				if ( killBots ) {
+@@ -562,32 +566,43 @@
+ 				isBot = qfalse;
+ 			}
+ 
+-			// setup entity before connecting
+-			SV_SetupClientEntity(&svs.clients[i]);
++			for ( j = 0; j < MAX_SPLITVIEW; j++ ) {
++				player = svs.clients[i].localPlayers[j];
+ 
+-			// connect the client again
+-			denied = VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );	// firstTime = qfalse
+-			if ( denied ) {
+-				// this generally shouldn't happen, because the client
+-				// was connected before the level change
+-				SV_DropClient( &svs.clients[i], denied );
+-			} else {
+-				if( !isBot ) {
+-					// when we get the next packet from a connected client,
+-					// the new gamestate will be sent
+-					svs.clients[i].state = CS_CONNECTED;
++				if ( !player )
++					continue;
++
++				// setup entity before connecting
++				SV_SetupPlayerEntity( player );
++
++				// connect the client again
++				denied = VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, player - svs.players, qfalse, isBot, i, j ) );	// firstTime = qfalse
++				if ( denied ) {
++					// this generally shouldn't happen, because the client
++					// was connected before the level change
++					SV_DropPlayer( player, denied );
+ 				}
+-				else {
+-					client_t		*client;
++			}
+ 
+-					client = &svs.clients[i];
+-					client->state = CS_ACTIVE;
++			// check if client was dropped
++			if ( svs.clients[i].state < CS_CONNECTED ) {
++				continue;
++			}
+ 
+-					client->deltaMessage = -1;
+-					client->lastSnapshotTime = 0;	// generate a snapshot immediately
++			if( !isBot ) {
++				// when we get the next packet from a connected client,
++				// the new gamestate will be sent
++				svs.clients[i].state = CS_CONNECTED;
++			} else {
++				client_t		*client;
+ 
+-					VM_Call( gvm, GAME_CLIENT_BEGIN, i );
+-				}
++				client = &svs.clients[i];
++				client->state = CS_ACTIVE;
++
++				client->deltaMessage = -1;
++				client->lastSnapshotTime = 0;	// generate a snapshot immediately
++
++				VM_Call( gvm, GAME_CLIENT_BEGIN, i );
+ 			}
+ 		}
+ 	}	
+@@ -758,8 +773,8 @@
+ 			if (cl->state >= CS_CONNECTED) {
+ 				// don't send a disconnect to a local client
+ 				if ( cl->netchan.remoteAddress.type != NA_LOOPBACK ) {
+-					SV_SendServerCommand( cl, "print \"%s\n\"\n", message );
+-					SV_SendServerCommand( cl, "disconnect \"%s\"", message );
++					SV_SendServerCommand( cl, -1, "print \"%s\n\"\n", message );
++					SV_SendServerCommand( cl, -1, "disconnect \"%s\"", message );
+ 				}
+ 				// force a snapshot to be sent
+ 				cl->lastSnapshotTime = 0;
+@@ -799,6 +814,15 @@
+ 	SV_ClearServer();
+ 
+ 	// free server static data
++	if(svs.players)
++	{
++		int index;
++		
++		for(index = 0; index < sv_maxclients->integer; index++)
++			SV_FreePlayer(&svs.players[index]);
++		
++		Z_Free(svs.players);
++	}
+ 	if(svs.clients)
+ 	{
+ 		int index;
+Index: code/server/sv_main.c
+===================================================================
+--- code/server/sv_main.c	(revision 372)
++++ code/server/sv_main.c	(revision 375)
+@@ -146,22 +146,9 @@
+ not have future snapshot_t executed before it is executed
+ ======================
+ */
+-void SV_AddServerCommand( client_t *client, const char *cmd ) {
++void SV_AddServerCommand( client_t *client, int localPlayerNum, const char *cmd ) {
+ 	int		index, i;
+-	int 	lc = 0;
+ 
+-	// Send command to main client, but prepend it with "lc# "
+-	if (client->mainClient) {
+-		for (i = 0; i < MAX_SPLITVIEW-1; i++) {
+-			if (client->mainClient->localClients[i] == client) {
+-				lc = i+1;
+-				break;
+-			}
+-		}
+-
+-		client = client->mainClient;
+-	}
+-
+ 	// this is very ugly but it's also a waste to for instance send multiple config string updates
+ 	// for the same config string index in one snapshot
+ //	if ( SV_ReplacePendingServerCommands( client, cmd ) ) {
+@@ -183,8 +170,8 @@
+ 			Com_Printf( "cmd %5d: %s\n", i, client->reliableCommands[ i & (MAX_RELIABLE_COMMANDS-1) ] );
+ 		}
+ 
+-		if (lc != 0) {
+-			Com_Printf( "cmd %5d: lc%d %s\n", i, lc, cmd );
++		if ( client->netchan.remoteAddress.type != NA_BOT && localPlayerNum >= 0 && localPlayerNum < MAX_SPLITVIEW ) {
++			Com_Printf( "cmd %5d: lc%d %s\n", i, localPlayerNum, cmd );
+ 		} else {
+ 			Com_Printf( "cmd %5d: %s\n", i, cmd );
+ 		}
+@@ -194,8 +181,8 @@
+ 	}
+ 	index = client->reliableSequence & ( MAX_RELIABLE_COMMANDS - 1 );
+ 
+-	if (lc != 0) {
+-		Com_sprintf(client->reliableCommands[ index ], sizeof( client->reliableCommands[ index ] ), "lc%d %s", lc, cmd);
++	if ( client->netchan.remoteAddress.type != NA_BOT && localPlayerNum >= 0 && localPlayerNum < MAX_SPLITVIEW ) {
++		Com_sprintf( client->reliableCommands[ index ], sizeof( client->reliableCommands[ index ] ), "lc%d %s", localPlayerNum, cmd );
+ 	} else {
+ 		Q_strncpyz( client->reliableCommands[ index ], cmd, sizeof( client->reliableCommands[ index ] ) );
+ 	}
+@@ -211,11 +198,10 @@
+ A NULL client will broadcast to all clients
+ =================
+ */
+-void QDECL SV_SendServerCommand(client_t *cl, const char *fmt, ...) {
++void QDECL SV_SendServerCommand(client_t *cl, int localPlayerNum, const char *fmt, ...) {
+ 	va_list		argptr;
+ 	byte		message[MAX_MSGLEN];
+ 	client_t	*client;
+-	qboolean	globalPrint;
+ 	int			j;
+ 	
+ 	va_start (argptr,fmt);
+@@ -231,34 +217,18 @@
+ 	}
+ 
+ 	if ( cl != NULL ) {
+-		SV_AddServerCommand( cl, (char *)message );
++		SV_AddServerCommand( cl, localPlayerNum, (char *)message );
+ 		return;
+ 	}
+ 
+-	// hack so client knows message is for all local clients.
+-	globalPrint = !strncmp( (char *)message, "print", 5 );
+-
+-	if ( globalPrint ) {
+-		int len = strlen( (const char *)message );
+-
+-		memmove( &message[1], &message[0], (size_t)( len - 1 ) );
+-		message[0] = 'g'; // "gprint"
+-		message[len+1] = 0;
+-	}
+-
+ 	// hack to echo broadcast prints to console
+-	if ( com_dedicated->integer && globalPrint ) {
++	if ( com_dedicated->integer && !strncmp( (char *)message, "print", 5 ) ) {
+ 		Com_Printf ("broadcast: %s\n", SV_ExpandNewlines((char *)message) );
+ 	}
+ 
+ 	// send the data to all relevent clients
+ 	for (j = 0, client = svs.clients; j < sv_maxclients->integer ; j++, client++) {
+-		// Don't sent print for extra local clients
+-		if ( client->mainClient && globalPrint ) {
+-			continue;
+-		}
+-
+-		SV_AddServerCommand( client, (char *)message );
++		SV_AddServerCommand( client, -1, (char *)message );
+ 	}
+ }
+ 
+@@ -656,6 +626,7 @@
+ 	char	status[MAX_MSGLEN];
+ 	int		i;
+ 	client_t	*cl;
++	player_t	*pl;
+ 	playerState_t	*ps;
+ 	int		statusLength;
+ 	int		playerLength;
+@@ -699,11 +670,14 @@
+ 	statusLength = 0;
+ 
+ 	for (i=0 ; i < sv_maxclients->integer ; i++) {
+-		cl = &svs.clients[i];
++		pl = &svs.players[i];
++		if (!pl->inUse)
++			continue;
++		cl = pl->client;
+ 		if ( cl->state >= CS_CONNECTED ) {
+ 			ps = SV_GameClientNum( i );
+ 			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n", 
+-				ps->persistant[PERS_SCORE], cl->ping, cl->name);
++				ps->persistant[PERS_SCORE], cl->ping, pl->name);
+ 			playerLength = strlen(player);
+ 			if (statusLength + playerLength >= sizeof(status) ) {
+ 				break;		// can't hold any more
+@@ -784,9 +758,9 @@
+ 	count = humans = 0;
+ 	for ( i = sv_privateClients->integer ; i < sv_maxclients->integer ; i++ ) {
+ 		if ( svs.clients[i].state >= CS_CONNECTED ) {
+-			count++;
++			count += SV_ClientNumLocalPlayers( &svs.clients[i] );
+ 			if (svs.clients[i].netchan.remoteAddress.type != NA_BOT) {
+-				humans++;
++				humans += SV_ClientNumLocalPlayers( &svs.clients[i] );
+ 			}
+ 		}
+ 	}
+@@ -977,7 +951,6 @@
+ */
+ void SV_PacketEvent( netadr_t from, msg_t *msg ) {
+ 	int			i;
+-	int			j;
+ 	client_t	*cl;
+ 	int			qport;
+ 
+@@ -1006,10 +979,6 @@
+ 		if (cl->netchan.qport != qport) {
+ 			continue;
+ 		}
+-		// ignore splitscreen players, they have the same qport as their main client and never send any packets.
+-		if (cl->mainClient) {
+-			continue;
+-		}
+ 
+ 		// the IP port can't be used to differentiate them, because
+ 		// some address translating routers periodically change UDP
+@@ -1026,13 +995,6 @@
+ 			// reliable message, but they don't do any other processing
+ 			if (cl->state != CS_ZOMBIE) {
+ 				cl->lastPacketTime = svs.time;	// don't timeout
+-
+-				for (j = 0; j < MAX_SPLITVIEW-1; j++) {
+-					if (cl->localClients[j]) {
+-						cl->localClients[j]->lastPacketTime = svs.time;	// don't timeout
+-					}
+-				}
+-
+ 				SV_ExecuteClientMessage( cl, msg );
+ 			}
+ 		}
+@@ -1058,19 +1020,11 @@
+ 	for (i=0 ; i < sv_maxclients->integer ; i++) {
+ 		cl = &svs.clients[i];
+ 
+-		// Splitscreen client's ping is set by main client.
+-		if (cl->mainClient) {
+-			continue;
+-		}
+ 		if ( cl->state != CS_ACTIVE ) {
+ 			cl->ping = 999;
+ 			continue;
+ 		}
+-		if ( !cl->gentity ) {
+-			cl->ping = 999;
+-			continue;
+-		}
+-		if ( cl->gentity->r.svFlags & SVF_BOT ) {
++		if ( cl->netchan.remoteAddress.type == NA_BOT ) {
+ 			cl->ping = 0;
+ 			continue;
+ 		}
+@@ -1095,16 +1049,12 @@
+ 		}
+ 
+ 		// let the game dll know about the ping
+-		ps = SV_GameClientNum( i );
+-		ps->ping = cl->ping;
+-
+-		// Splitscreen clients' ping is set by main client.
+-		for ( j = 0 ; j < MAX_SPLITVIEW-1 ; j++ ) {
+-			if (!cl->localClients[j]) {
++		for ( j = 0 ; j < MAX_SPLITVIEW ; j++ ) {
++			if ( !cl->localPlayers[j] ) {
+ 				continue;
+ 			}
+ 
+-			ps = SV_GameClientNum( cl->localClients[j] - svs.clients );
++			ps = SV_GameClientNum( cl->localPlayers[j] - svs.players );
+ 			ps->ping = cl->ping;
+ 		}
+ 	}
+@@ -1176,10 +1126,6 @@
+ 	// only pause if there is just a single client connected
+ 	count = 0;
+ 	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+-		if (cl->mainClient) {
+-			// Don't count extra local clients (allows pausing in splitscreen).
+-			continue;
+-		}
+ 		if ( cl->state >= CS_CONNECTED && cl->netchan.remoteAddress.type != NA_BOT ) {
+ 			count++;
+ 		}
+Index: code/server/sv_bot.c
+===================================================================
+--- code/server/sv_bot.c	(revision 372)
++++ code/server/sv_bot.c	(revision 375)
+@@ -55,8 +55,9 @@
+ ==================
+ */
+ int SV_BotAllocateClient(void) {
+-	int			i, j;
++	int			i;
+ 	client_t	*cl;
++	player_t	*player;
+ 
+ 	// find a client slot
+ 	for ( i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
+@@ -69,22 +70,29 @@
+ 		return -1;
+ 	}
+ 
++	// find a player slot
++	for ( i = 0, player = svs.players; i < sv_maxclients->integer; i++, player++ ) {
++		if ( !player->inUse ) {
++			break;
++		}
++	}
++
++	if ( i == sv_maxclients->integer ) {
++		return -1;
++	}
++
++	player->inUse = qtrue;
++	player->client = cl;
++
+ 	cl->state = CS_ACTIVE;
++	cl->localPlayers[0] = player;
+ 	cl->lastPacketTime = svs.time;
+ 	cl->netchan.remoteAddress.type = NA_BOT;
+ 	cl->rate = 16384;
+ 
+-	// Not an extra splitscreen client.
+-	cl->mainClient = NULL;
++	SV_SetupPlayerEntity( player );
+ 
+-	// No extra splitscreen clients.
+-	for (j = 0; j < MAX_SPLITVIEW-1; j++) {
+-		cl->localClients[j] = NULL;
+-	}
+-
+-	SV_SetupClientEntity(cl);
+-
+-	return i;
++	return ( (int)( cl - svs.clients ) & 0xFFFF ) | ( (int)( player - svs.players ) << 16 );
+ }
+ 
+ /*
+@@ -92,17 +100,24 @@
+ SV_BotFreeClient
+ ==================
+ */
+-void SV_BotFreeClient( int clientNum ) {
+-	client_t	*cl;
++void SV_BotFreeClient( int playerNum ) {
++	client_t	*client;
++	player_t	*player;
+ 
+-	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+-		Com_Error( ERR_DROP, "SV_BotFreeClient: bad clientNum: %i", clientNum );
++	if ( playerNum < 0 || playerNum >= sv_maxclients->integer ) {
++		Com_Error( ERR_DROP, "SV_BotFreeClient: bad playerNum: %i", playerNum );
+ 	}
+-	cl = &svs.clients[clientNum];
+-	cl->state = CS_FREE;
+-	cl->name[0] = 0;
+-	if ( cl->gentity ) {
+-		cl->gentity->r.svFlags &= ~SVF_BOT;
++
++	player = &svs.players[playerNum];
++
++	client = player->client;
++	client->state = CS_FREE;
++	client->localPlayers[0] = NULL;
++
++	player->client = NULL;
++	player->name[0] = 0;
++	if ( player->gentity ) {
++		player->gentity->r.svFlags &= ~SVF_BOT;
+ 	}
+ }
+ 
+@@ -130,12 +145,12 @@
+ 		if (!bot_highlightarea) bot_highlightarea = Cvar_Get("bot_highlightarea", "0", 0);
+ 		//
+ 		parm0 = 0;
+-		if (svs.clients[0].lastUsercmd.buttons & BUTTON_ATTACK) parm0 |= 1;
++		if (svs.players[0].lastUsercmd.buttons & BUTTON_ATTACK) parm0 |= 1;
+ 		if (bot_reachability->integer) parm0 |= 2;
+ 		if (bot_groundonly->integer) parm0 |= 4;
+ 		botlib_export->BotLibVarSet("bot_highlightarea", bot_highlightarea->string);
+-		botlib_export->Test(parm0, NULL, svs.clients[0].gentity->r.currentOrigin, 
+-			svs.clients[0].gentity->r.currentAngles);
++		botlib_export->Test(parm0, NULL, svs.players[0].gentity->r.currentOrigin, 
++			svs.players[0].gentity->r.currentAngles);
+ 	} //end if
+ 	//draw all debug polys
+ 	for (i = 0; i < bot_maxdebugpolys; i++) {
+@@ -441,11 +456,30 @@
+ 
+ /*
+ ==================
++SV_ClientForPlayerNum
++
++ClientNum is for players array and we want client_t
++==================
++*/
++client_t *SV_ClientForPlayerNum( int playerNum ) {
++	if ( playerNum < 0 || playerNum >= sv_maxclients->integer )
++		return NULL;
++
++	return svs.players[playerNum].client;
++}
++
++/*
++==================
+ SV_BotClientCommand
+ ==================
+ */
+-static void BotClientCommand( int client, char *command ) {
+-	SV_ExecuteClientCommand( &svs.clients[client], command, qtrue );
++static void BotClientCommand( int playerNum, char *command ) {
++	client_t *client = SV_ClientForPlayerNum( playerNum );
++
++	if ( !client )
++		return;
++
++	SV_ExecuteClientCommand( client, command, qtrue );
+ }
+ 
+ /*
+@@ -596,7 +630,11 @@
+ 	client_t	*cl;
+ 	int			index;
+ 
+-	cl = &svs.clients[client];
++	cl = SV_ClientForPlayerNum( client );
++
++	if ( !cl )
++		return qfalse;
++
+ 	cl->lastPacketTime = svs.time;
+ 
+ 	if ( cl->reliableAcknowledge == cl->reliableSequence ) {
+@@ -620,12 +658,16 @@
+ EntityInPVS
+ ==================
+ */
+-int EntityInPVS( int client, int entityNum ) {
++int EntityInPVS( int playerNum, int entityNum ) {
+ 	client_t			*cl;
+ 	clientSnapshot_t	*frame;
+ 	int					i;
+ 
+-	cl = &svs.clients[client];
++	cl = SV_ClientForPlayerNum( playerNum );
++
++	if ( !cl )
++		return qfalse;
++
+ 	frame = &cl->frames[cl->netchan.outgoingSequence & PACKET_MASK];
+ 	for ( i = 0; i < frame->num_entities; i++ )	{
+ 		if ( svs.snapshotEntities[(frame->first_entity + i) % svs.numSnapshotEntities].number == entityNum ) {
+@@ -641,11 +683,15 @@
+ SV_BotGetSnapshotEntity
+ ==================
+ */
+-int SV_BotGetSnapshotEntity( int client, int sequence ) {
+-	client_t			*cl;
++int SV_BotGetSnapshotEntity( int playerNum, int sequence ) {
++	client_t *cl;
+ 	clientSnapshot_t	*frame;
+ 
+-	cl = &svs.clients[client];
++	cl = SV_ClientForPlayerNum( playerNum );
++
++	if ( !cl )
++		return -1;
++
+ 	frame = &cl->frames[cl->netchan.outgoingSequence & PACKET_MASK];
+ 	if (sequence < 0 || sequence >= frame->num_entities) {
+ 		return -1;
+Index: code/qcommon/q_shared.h
+===================================================================
+--- code/qcommon/q_shared.h	(revision 372)
++++ code/qcommon/q_shared.h	(revision 375)
+@@ -937,9 +937,9 @@
+ #define CVAR_SERVER_CREATED	0x0800	// cvar was created by a server the client connected to.
+ #define CVAR_VM_CREATED		0x1000	// cvar was created exclusively in one of the VMs.
+ #define CVAR_PROTECTED		0x2000	// prevent modifying this var from VMs or the server
+-#define CVAR_USERINFO2		0x4000 // userinfo for second local client
+-#define CVAR_USERINFO3		0x8000 // userinfo for third local client
+-#define CVAR_USERINFO4		0x10000 // userinfo for fourth local client
++#define CVAR_USERINFO2		0x4000 // userinfo for second local player
++#define CVAR_USERINFO3		0x8000 // userinfo for third local player
++#define CVAR_USERINFO4		0x10000 // userinfo for fourth local player
+ // These flags are only returned by the Cvar_Flags() function
+ #define CVAR_MODIFIED		0x40000000	// Cvar was modified
+ #define CVAR_NONEXISTENT	0x80000000	// Cvar doesn't exist.
+@@ -1256,7 +1256,7 @@
+ } playerState_t;
+ 
+ 
+-// Max local clients for splitscreen
++// Max players for splitscreen
+ // Also see CL_MAX_SPLITVIEW in client.h for lowering max supported splitview
+ // clients in client/renderer, while still keep network and mod compatibility.
+ #define MAX_SPLITVIEW 4
+Index: code/qcommon/qcommon.h
+===================================================================
+--- code/qcommon/qcommon.h	(revision 372)
++++ code/qcommon/qcommon.h	(revision 375)
+@@ -146,8 +146,6 @@
+ 
+ #define	PORT_ANY			-1
+ 
+-// ZTM: TODO: Have extra local clients use their own seperate reliableCommands.
+-//#define	MAX_RELIABLE_COMMANDS	64			// max string commands buffered for restransmit
+ #define	MAX_RELIABLE_COMMANDS	(64*MAX_SPLITVIEW) // max string commands buffered for restransmit
+ 
+ typedef enum {
+Index: code/game/g_syscalls.asm
+===================================================================
+--- code/game/g_syscalls.asm	(revision 372)
++++ code/game/g_syscalls.asm	(revision 375)
+@@ -58,7 +58,7 @@
+ 
+ equ	trap_LocateGameData					-101
+ equ	trap_DropClient						-102
+-equ	trap_SendServerCommand				-103
++equ	trap_SendServerCommandEx			-103
+ equ	trap_SetConfigstring				-104
+ equ	trap_GetConfigstring				-105
+ equ	trap_GetUserinfo					-106
+Index: code/game/g_syscalls.c
+===================================================================
+--- code/game/g_syscalls.c	(revision 372)
++++ code/game/g_syscalls.c	(revision 375)
+@@ -163,8 +163,8 @@
+ 	syscall( G_DROP_CLIENT, clientNum, reason );
+ }
+ 
+-void trap_SendServerCommand( int clientNum, const char *text ) {
+-	syscall( G_SEND_SERVER_COMMAND, clientNum, text );
++void trap_SendServerCommandEx( int connectionNum, int localPlayerNum, const char *text ) {
++	syscall( G_SEND_SERVER_COMMAND, connectionNum, localPlayerNum, text );
+ }
+ 
+ void trap_SetConfigstring( int num, const char *string ) {
+Index: code/game/g_local.h
+===================================================================
+--- code/game/g_local.h	(revision 372)
++++ code/game/g_local.h	(revision 375)
+@@ -196,8 +196,7 @@
+ 	SPECTATOR_NOT,
+ 	SPECTATOR_FREE,
+ 	SPECTATOR_FOLLOW,
+-	SPECTATOR_SCOREBOARD,
+-	SPECTATOR_LOCAL_HIDE
++	SPECTATOR_SCOREBOARD
+ } spectatorState_t;
+ 
+ typedef enum {
+@@ -243,6 +242,8 @@
+ // client data that stays across multiple respawns, but is cleared
+ // on each level change or team change at ClientBegin()
+ typedef struct {
++	int			connectionNum;		// index in level.connections
++	int			localPlayerNum;		// client's local player number in range of 0 to MAX_SPLITVIEW-1
+ 	clientConnected_t	connected;	
+ 	usercmd_t	cmd;				// we would lose angles if not persistant
+ 	qboolean	localClient;		// true if "ip" info key is "localhost"
+@@ -330,6 +331,13 @@
+ };
+ 
+ 
++// A single client can have multiple players, for splitscreen.
++typedef struct gconnection_s {
++	int			numLocalPlayers;				// for quick access, the players could be any indexes in localPlayers[].
++	int			localPlayerNums[MAX_SPLITVIEW];
++} gconnection_t;
++
++
+ //
+ // this structure is cleared as each map is entered
+ //
+@@ -343,12 +351,15 @@
+ 	int			gentitySize;
+ 	int			num_entities;		// MAX_CLIENTS <= num_entities <= ENTITYNUM_MAX_NORMAL
+ 
++	gconnection_t	*connections;
++
+ 	int			warmupTime;			// restart match at this time
+ 
+ 	fileHandle_t	logFile;
+ 
+ 	// store latched cvars here that we want to get at often
+ 	int			maxclients;
++	int			maxconnections;
+ 
+ 	int			framenum;
+ 	int			time;					// in msec
+@@ -468,6 +479,7 @@
+ //
+ int G_ModelIndex( char *name );
+ int		G_SoundIndex( char *name );
++void	trap_SendServerCommand( int clientNum, char *cmd );
+ void	G_TeamCommand( team_t team, char *cmd );
+ void	G_KillBox (gentity_t *ent);
+ gentity_t *G_Find (gentity_t *from, int fieldofs, const char *match);
+@@ -626,7 +638,7 @@
+ //
+ // g_client.c
+ //
+-char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
++char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot, int connectionNum, int localPlayerNum );
+ void ClientUserinfoChanged( int clientNum );
+ void ClientDisconnect( int clientNum );
+ void ClientBegin( int clientNum );
+@@ -765,7 +777,7 @@
+ 
+ void	trap_LocateGameData( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *gameClients, int sizeofGameClient );
+ void	trap_DropClient( int clientNum, const char *reason );
+-void	trap_SendServerCommand( int clientNum, const char *text );
++void	trap_SendServerCommandEx( int connectionNum, int localPlayerNum, const char *text );
+ void	trap_SetConfigstring( int num, const char *string );
+ void	trap_GetConfigstring( int num, char *buffer, int bufferSize );
+ void	trap_GetUserinfo( int num, char *buffer, int bufferSize );
+Index: code/game/bg_misc.h
+===================================================================
+--- code/game/bg_misc.h	(revision 372)
++++ code/game/bg_misc.h	(revision 375)
+@@ -159,7 +159,7 @@
+ #define	PMF_BACKWARDS_RUN	16		// coast down to backwards run
+ #define	PMF_TIME_LAND		32		// pm_time is time before rejump
+ #define	PMF_TIME_KNOCKBACK	64		// pm_time is an air-accelerate only time
+-#define PMF_LOCAL_HIDE		128
++
+ #define	PMF_TIME_WATERJUMP	256		// pm_time is waterjump
+ #define	PMF_RESPAWNED		512		// clear after attack and jump buttons come up
+ #define	PMF_USE_ITEM_HELD	1024
+Index: code/game/g_active.c
+===================================================================
+--- code/game/g_active.c	(revision 372)
++++ code/game/g_active.c	(revision 375)
+@@ -1091,12 +1091,6 @@
+ 		}
+ 	}
+ 
+-	if ( ent->client->sess.spectatorState == SPECTATOR_LOCAL_HIDE ) {
+-		ent->client->ps.pm_flags |= PMF_LOCAL_HIDE;
+-	} else {
+-		ent->client->ps.pm_flags &= ~PMF_LOCAL_HIDE;
+-	}
+-
+ 	if ( ent->client->sess.spectatorState == SPECTATOR_SCOREBOARD ) {
+ 		ent->client->ps.pm_flags |= PMF_SCOREBOARD;
+ 	} else {
+Index: code/game/g_public.h
+===================================================================
+--- code/game/g_public.h	(revision 372)
++++ code/game/g_public.h	(revision 375)
+@@ -50,10 +50,7 @@
+ #define	SVF_USE_CURRENT_ORIGIN	0x00000080	// entity->r.currentOrigin instead of entity->s.origin
+ 											// for link position (missiles and movers)
+ #define SVF_SINGLECLIENT		0x00000100	// only send to a single client (entityShared_t->singleClient)
+-#define SVF_NOSERVERINFO		0x00000200	// don't send CS_SERVERINFO updates to this client
+-											// so that it can be updated for ping tools without
+-											// lagging clients
+-#define SVF_NOTSINGLECLIENT		0x00000800	// send entity to everyone but one client
++#define SVF_NOTSINGLECLIENT		0x00000200	// send entity to everyone but one client
+ 											// (entityShared_t->singleClient)
+ 
+ 
+@@ -86,10 +83,6 @@
+ 	// ent->r.ownerNum == passEntityNum	(don't interact with your own missiles)
+ 	// entity[ent->r.ownerNum].r.ownerNum == passEntityNum	(don't interact with other missiles from owner)
+ 	int			ownerNum;
+-
+-	// Variables for game read access.
+-	int			mainClientNum; // If not -1 this client is splitscreen with mainClientNum
+-	int			localClientNums[MAX_SPLITVIEW-1]; // Extra local clients for splitscreen.
+ } entityShared_t;
+ 
+ 
+@@ -179,7 +172,7 @@
+ 	G_DROP_CLIENT,		// ( int clientNum, const char *reason );
+ 	// kick a client off the server with a message
+ 
+-	G_SEND_SERVER_COMMAND,	// ( int clientNum, const char *fmt, ... );
++	G_SEND_SERVER_COMMAND,	// ( int connectionNum, int localPlayerNum, const char *text );
+ 	// reliably sends a command string to be interpreted by the given
+ 	// client.  If clientNum is -1, it will be sent to all clients
+ 
+@@ -423,7 +416,7 @@
+ 
+ 	GAME_SHUTDOWN,	// (void);
+ 
+-	GAME_CLIENT_CONNECT,	// ( int clientNum, qboolean firstTime, qboolean isBot );
++	GAME_CLIENT_CONNECT,	// ( int clientNum, qboolean firstTime, qboolean isBot, int connectionNum, int localPlayerNum );
+ 	// return NULL if the client is allowed to connect, otherwise return
+ 	// a text string with the reason for denial
+ 
+@@ -433,7 +426,7 @@
+ 
+ 	GAME_CLIENT_DISCONNECT,			// ( int clientNum );
+ 
+-	GAME_CLIENT_COMMAND,			// ( int clientNum );
++	GAME_CLIENT_COMMAND,			// ( int connectionNum );
+ 
+ 	GAME_CLIENT_THINK,				// ( int clientNum );
+ 
+Index: code/game/g_bot.c
+===================================================================
+--- code/game/g_bot.c	(revision 372)
++++ code/game/g_bot.c	(revision 375)
+@@ -586,6 +586,8 @@
+ ===============
+ */
+ static void G_AddBot( const char *name, float skill, const char *team, int delay, char *altname) {
++	int				value;
++	int				connectionNum;
+ 	int				clientNum;
+ 	int				t;
+ 	char			*botinfo;
+@@ -599,13 +601,17 @@
+ 	qboolean		modelSet;
+ 
+ 	// have the server allocate a client slot
+-	clientNum = trap_BotAllocateClient();
+-	if ( clientNum == -1 ) {
++	value = trap_BotAllocateClient();
++	if ( value == -1 ) {
+ 		G_Printf( S_COLOR_RED "Unable to add bot. All player slots are in use.\n" );
+ 		G_Printf( S_COLOR_RED "Start server with more 'open' slots (or check setting of sv_maxclients cvar).\n" );
+ 		return;
+ 	}
+ 
++	// get connection and client numbers
++	connectionNum = value & 0xFFFF;
++	clientNum = value >> 16;
++
+ 	// set default team
+ 	if( !team || !*team ) {
+ 		if( g_gametype.integer >= GT_TEAM ) {
+@@ -727,7 +733,7 @@
+ 	trap_SetUserinfo( clientNum, userinfo );
+ 
+ 	// have it connect to the game as a normal client
+-	if ( ClientConnect( clientNum, qtrue, qtrue ) ) {
++	if ( ClientConnect( clientNum, qtrue, qtrue, connectionNum, 0 ) ) {
+ 		return;
+ 	}
+ 
+Index: code/game/g_main.c
+===================================================================
+--- code/game/g_main.c	(revision 372)
++++ code/game/g_main.c	(revision 375)
+@@ -45,6 +45,7 @@
+ 
+ gentity_t		g_entities[MAX_GENTITIES];
+ gclient_t		g_clients[MAX_CLIENTS];
++gconnection_t	g_connections[MAX_CLIENTS];
+ 
+ vmCvar_t	g_gametype;
+ vmCvar_t	g_dmflags;
+@@ -218,7 +219,7 @@
+ 		G_ShutdownGame( arg0 );
+ 		return 0;
+ 	case GAME_CLIENT_CONNECT:
+-		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
++		return (intptr_t)ClientConnect( arg0, arg1, arg2, arg3, arg4 );
+ 	case GAME_CLIENT_THINK:
+ 		ClientThink( arg0 );
+ 		return 0;
+@@ -439,7 +440,7 @@
+ ============
+ */
+ void G_InitGame( int levelTime, int randomSeed, int restart ) {
+-	int					i;
++	int					i, j;
+ 
+ 	G_DPrintf ("------- Game Initialization -------\n");
+ 	G_DPrintf ("gamename: %s\n", GAMEVERSION);
+@@ -488,6 +489,18 @@
+ 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );
+ 	level.gentities = g_entities;
+ 
++	// initialize all client connections for this game
++	level.maxconnections = g_maxclients.integer;
++	memset( g_connections, 0, MAX_CLIENTS * sizeof(g_connections[0]) );
++	level.connections = g_connections;
++
++	// clear local player nums
++	for ( i=0 ; i<level.maxconnections ; i++ ) {
++		for ( j=0; j<MAX_SPLITVIEW ; j++ ) {
++			level.connections[i].localPlayerNums[j] = -1;
++		}
++	}
++
+ 	// initialize all clients for this game
+ 	level.maxclients = g_maxclients.integer;
+ 	memset( g_clients, 0, MAX_CLIENTS * sizeof(g_clients[0]) );
+@@ -667,7 +680,6 @@
+ 		}
+ 		// never select the dedicated follow or scoreboard clients
+ 		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD || 
+-			client->sess.spectatorState == SPECTATOR_LOCAL_HIDE || 
+ 			client->sess.spectatorClient < 0  ) {
+ 			continue;
+ 		}
+@@ -1653,13 +1665,7 @@
+ ==================
+ */
+ void PrintTeam(int team, char *message) {
+-	int i;
+-
+-	for ( i = 0 ; i < level.maxclients ; i++ ) {
+-		if (level.clients[i].sess.sessionTeam != team)
+-			continue;
+-		trap_SendServerCommand( i, message );
+-	}
++	G_TeamCommand( team, message );
+ }
+ 
+ /*
+Index: code/game/g_utils.c
+===================================================================
+--- code/game/g_utils.c	(revision 372)
++++ code/game/g_utils.c	(revision 375)
+@@ -134,18 +134,49 @@
+ 
+ /*
+ ================
++trap_SendServerCommand
++
++Broadcasts a command to only a specific client.
++
++ZTM: NOTE: Function name kept to reduce source code changes.
++================
++*/
++void trap_SendServerCommand( int clientNum, char *cmd ) {
++	if ( clientNum == -1 ) {
++		trap_SendServerCommandEx( -1, -1, cmd );
++	} else {
++		trap_SendServerCommandEx( level.clients[clientNum].pers.connectionNum, level.clients[clientNum].pers.localPlayerNum, cmd );
++	}
++}
++
++
++/*
++================
+ G_TeamCommand
+ 
+ Broadcasts a command to only a specific team
+ ================
+ */
+ void G_TeamCommand( team_t team, char *cmd ) {
+-	int		i;
++	gconnection_t	*connection;
++	int				i, j, clientNum;
+ 
+-	for ( i = 0 ; i < level.maxclients ; i++ ) {
+-		if ( level.clients[i].pers.connected == CON_CONNECTED ) {
+-			if ( level.clients[i].sess.sessionTeam == team ) {
+-				trap_SendServerCommand( i, va("%s", cmd ));
++	for ( i = 0 ; i < level.maxconnections ; i++ ) {
++		connection = &level.connections[i];
++
++		for ( j = 0; j < MAX_SPLITVIEW; j++ ) {
++			clientNum = connection->localPlayerNums[j];
++
++			if ( level.clients[clientNum].sess.sessionTeam == team )
++				break;			
++		}
++
++		if ( j < MAX_SPLITVIEW ) {
++			// Include team when there are multiple local players
++			if ( connection->numLocalPlayers > 1 ) {
++				trap_SendServerCommandEx( i, -1, va( "[%s] %s", TeamName( team ), cmd ) );
++			} else {
++				trap_SendServerCommand( i, cmd );
+ 			}
+ 		}
+ 	}
+Index: code/game/g_client.c
+===================================================================
+--- code/game/g_client.c	(revision 372)
++++ code/game/g_client.c	(revision 375)
+@@ -927,41 +927,47 @@
+ restarts.
+ ============
+ */
+-char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
++char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot, int connectionNum, int localPlayerNum ) {
+ 	char		*value;
+ //	char		*areabits;
+ 	gclient_t	*client;
+ 	char		userinfo[MAX_INFO_STRING];
+ 	gentity_t	*ent;
++	qboolean	firstConnectionPlayer;
+ 
+ 	ent = &g_entities[ clientNum ];
+ 
+ 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+ 
+- 	// IP filtering
+- 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=500
+- 	// recommanding PB based IP / GUID banning, the builtin system is pretty limited
+- 	// check to see if they are on the banned IP list
+-	value = Info_ValueForKey (userinfo, "ip");
+-	if ( G_FilterPacket( value ) ) {
+-		return "You are banned from this server.";
+-	}
++	// Check if it's the first player on the client (i.e. not a splitscreen player)
++	firstConnectionPlayer = ( level.connections[connectionNum].numLocalPlayers == 0 );
+ 
+-  // we don't check password for bots and local client
+-  // NOTE: local client <-> "ip" "localhost"
+-  //   this means this client is not running in our current process
+-	if ( !isBot && (strcmp(value, "localhost") != 0)) {
+-		// check for a password
+-		value = Info_ValueForKey (userinfo, "password");
+-		if ( g_password.string[0] && Q_stricmp( g_password.string, "none" ) &&
+-			strcmp( g_password.string, value) != 0) {
+-			return "Invalid password";
++	if ( firstConnectionPlayer ) {
++		// IP filtering
++		// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=500
++		// recommanding PB based IP / GUID banning, the builtin system is pretty limited
++		// check to see if they are on the banned IP list
++		value = Info_ValueForKey (userinfo, "ip");
++		if ( G_FilterPacket( value ) ) {
++			return "You are banned from this server.";
+ 		}
+-	}
+ 
+-	// Don't allow extra splitscreen clients in single player.
+-	if (g_singlePlayer.integer && ent->r.mainClientNum != -1) {
+-		return "Splitscreen not allowed in single player.";
++		// we don't check password for bots and local client
++		// NOTE: local client <-> "ip" "localhost"
++		//   this means this client is not running in our current process
++		if ( !isBot && (strcmp(value, "localhost") != 0) ) {
++			// check for a password
++			value = Info_ValueForKey (userinfo, "password");
++			if ( g_password.string[0] && Q_stricmp( g_password.string, "none" ) &&
++				strcmp( g_password.string, value) != 0) {
++				return "Invalid password";
++			}
++		}
++	} else {
++		// Don't allow splitscreen players in single player.
++		if ( g_singlePlayer.integer ) {
++			return "Splitscreen not allowed in single player.";
++		}
+ 	}
+ 
+ 	// if a player reconnects quickly after a disconnect, the client disconnect may never be called, thus flag can get lost in the ether
+@@ -980,6 +986,12 @@
+ 
+ 	client->pers.connected = CON_CONNECTING;
+ 
++	// update client connection info
++	level.connections[connectionNum].numLocalPlayers++;
++	level.connections[connectionNum].localPlayerNums[localPlayerNum] = clientNum;
++	client->pers.connectionNum = connectionNum;
++	client->pers.localPlayerNum = localPlayerNum;
++
+ 	// read or initialize the session data
+ 	if ( firstTime || level.newSession ) {
+ 		G_InitSessionData( client, userinfo );
+@@ -999,11 +1011,9 @@
+ 	ClientUserinfoChanged( clientNum );
+ 
+ 	// don't do the "xxx connected" messages if they were caried over from previous level
+-	if ( firstTime ) {
+-		// Only show for main client.
+-		if (ent->r.mainClientNum == -1) {
+-			trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
+-		}
++	// or if they're an extra local player
++	if ( firstTime && firstConnectionPlayer ) {
++		trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
+ 	}
+ 
+ 	if ( g_gametype.integer >= GT_TEAM &&
+@@ -1066,8 +1076,7 @@
+ 
+ 	if ( client->sess.sessionTeam != TEAM_SPECTATOR ) {
+ 		if ( g_gametype.integer != GT_TOURNAMENT  ) {
+-			if (ent->r.mainClientNum != -1) {
+-				// Extra local clients show a different message.
++			if ( level.connections[client->pers.connectionNum].numLocalPlayers > 1 ) {
+ 				trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " dropped in\n\"", client->pers.netname) );
+ 			} else {
+ 				trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname) );
+@@ -1372,6 +1381,11 @@
+ 	if ( ent->r.svFlags & SVF_BOT ) {
+ 		BotAIShutdownClient( clientNum, qfalse );
+ 	}
++
++	// clear player connection info
++	level.connections[ent->client->pers.connectionNum].numLocalPlayers--;
++	level.connections[ent->client->pers.connectionNum].localPlayerNums[ent->client->pers.localPlayerNum] = -1;
++	ent->client->pers.localPlayerNum = ent->client->pers.connectionNum = -1;
+ }
+ 
+ 
+Index: code/game/g_cmds.c
+===================================================================
+--- code/game/g_cmds.c	(revision 372)
++++ code/game/g_cmds.c	(revision 375)
+@@ -523,7 +523,6 @@
+ 	spectatorState_t	specState;
+ 	int					specClient;
+ 	int					teamLeader;
+-	int					i;
+ 
+ 	//
+ 	// see what change is requested
+@@ -547,21 +546,6 @@
+ 	} else if ( !Q_stricmp( s, "spectator" ) || !Q_stricmp( s, "s" ) ) {
+ 		team = TEAM_SPECTATOR;
+ 		specState = SPECTATOR_FREE;
+-	} else if ( !Q_stricmp( s, "hide" ) || !Q_stricmp( s, "h" ) ) {
+-		team = TEAM_SPECTATOR;
+-		specState = SPECTATOR_LOCAL_HIDE;
+-
+-		// check if client has any splitscreen clients.
+-		for ( i = 0; i < MAX_SPLITVIEW-1; i++ ) {
+-			if ( ent->r.localClientNums[i] != -1 ) {
+-				break;
+-			}
+-		}
+-
+-		// Don't allow hiding viewport / fake disconnect if there are no splitscreen players.
+-		if ( i == MAX_SPLITVIEW-1 ) {
+-			return;
+-		}
+ 	} else if ( g_gametype.integer >= GT_TEAM ) {
+ 		// if running a team game, assign player to one of the teams
+ 		specState = SPECTATOR_NOT;
+@@ -621,12 +605,6 @@
+ 	// execute the team change
+ 	//
+ 
+-	// main client in splitscreen allow to fake drop out, as it currently not possible to drop main and keep splitscreen players
+-	if ( ent->client->pers.connected == CON_CONNECTED && specState == SPECTATOR_LOCAL_HIDE ) {
+-		ClientDisconnect( clientNum );
+-		ent->client->pers.connected = CON_CONNECTED;
+-	}
+-
+ 	// if the player was dead leave the body
+ 	if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
+ 		CopyToBodyQue(ent);
+@@ -634,7 +612,7 @@
+ 
+ 	// he starts at 'base'
+ 	client->pers.teamState.state = TEAM_BEGIN;
+-	if ( oldTeam != TEAM_SPECTATOR && specState != SPECTATOR_LOCAL_HIDE ) {
++	if ( oldTeam != TEAM_SPECTATOR ) {
+ 		// Kill him (makes sure he loses flags, etc)
+ 		ent->flags &= ~FL_GODMODE;
+ 		ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
+@@ -748,7 +726,6 @@
+ void Cmd_Follow_f( gentity_t *ent ) {
+ 	int		i;
+ 	char	arg[MAX_TOKEN_CHARS];
+-	int		lc;
+ 
+ 	if ( trap_Argc() != 2 ) {
+ 		if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
+@@ -773,22 +750,9 @@
+ 		return;
+ 	}
+ 
+-	// don't follow one of their local client
+-	if (ent->r.mainClientNum == -1) {
+-		for (lc = 0; lc < MAX_SPLITVIEW-1; ++lc) {
+-			if (i == ent->r.localClientNums[lc]) {
+-				return;
+-			}
+-		}
+-	} else {
+-		if (i == ent->r.mainClientNum) {
+-			return;
+-		}
+-		for (lc = 0; lc < MAX_SPLITVIEW-1; ++lc) {
+-			if (i == level.gentities[ent->r.mainClientNum].r.localClientNums[lc]) {
+-				return;
+-			}
+-		}
++	// don't follow one of their local players
++	if ( level.clients[ i ].pers.connectionNum == ent->client->pers.connectionNum ) {
++		return;
+ 	}
+ 
+ 	// if they are playing a tournement game, count as a loss
+@@ -814,7 +778,6 @@
+ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
+ 	int		clientnum;
+ 	int		original;
+-	int		lc;
+ 
+ 	// if they are playing a tournement game, count as a loss
+ 	if ( (g_gametype.integer == GT_TOURNAMENT )
+@@ -861,28 +824,9 @@
+ 			continue;
+ 		}
+ 
+-		// don't follow one of their local client
+-		if (ent->r.mainClientNum == -1) {
+-			for (lc = 0; lc < MAX_SPLITVIEW-1; ++lc) {
+-				if (clientnum == ent->r.localClientNums[lc]) {
+-					break;
+-				}
+-			}
+-			if (lc != MAX_SPLITVIEW-1) {
+-				continue;
+-			}
+-		} else {
+-			if (clientnum == ent->r.mainClientNum) {
+-				continue;
+-			}
+-			for (lc = 0; lc < MAX_SPLITVIEW-1; ++lc) {
+-				if (clientnum == level.gentities[ent->r.mainClientNum].r.localClientNums[lc]) {
+-					break;
+-				}
+-			}
+-			if (lc != MAX_SPLITVIEW-1) {
+-				continue;
+-			}
++		// don't follow one of their local players
++		if ( level.clients[ clientnum ].pers.connectionNum == ent->client->pers.connectionNum ) {
++			continue;
+ 		}
+ 
+ 		// this is good, we can use it
+@@ -901,63 +845,43 @@
+ ==================
+ */
+ 
+-static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message ) {
+-	const char *cmd;
+-
++static qboolean G_SayTo( gentity_t *ent, gentity_t *other, int mode ) {
+ 	if (!other) {
+-		return;
++		return qfalse;
+ 	}
+ 	if (!other->inuse) {
+-		return;
++		return qfalse;
+ 	}
+ 	if (!other->client) {
+-		return;
++		return qfalse;
+ 	}
+ 	if ( other->client->pers.connected != CON_CONNECTED ) {
+-		return;
++		return qfalse;
+ 	}
+ 	if ( mode == SAY_TEAM  && !OnSameTeam(ent, other) ) {
+-		return;
++		return qfalse;
+ 	}
+ 	// no chatting to players in tournements
+ 	if ( (g_gametype.integer == GT_TOURNAMENT )
+ 		&& other->client->sess.sessionTeam == TEAM_FREE
+ 		&& ent->client->sess.sessionTeam != TEAM_FREE ) {
+-		return;
++		return qfalse;
+ 	}
+ 
+-	switch ( mode ) {
+-		case SAY_ALL:
+-		default:
+-			// don't send global chats to splitscreen clients
+-			if ( other->r.mainClientNum != -1 ) {
+-				return;
+-			}
+-
+-			cmd = "chat";
+-			break;
+-		case SAY_TELL:
+-			cmd = "tell";
+-			break;
+-		case SAY_TEAM:
+-			cmd = "tchat";
+-			break;
+-	}
+-
+-	trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\"", 
+-		cmd, name, Q_COLOR_ESCAPE, color, message));
++	return qtrue;
+ }
+ 
+ #define EC		"\x19"
+ 
+ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) {
+-	int			j;
++	int			i, j;
+ 	gentity_t	*other;
+ 	int			color;
+ 	char		name[64];
+ 	// don't let text be too long for malicious reasons
+ 	char		text[MAX_SAY_TEXT];
+ 	char		location[64];
++	char		*cmd, *str;
+ 
+ 	if ( g_gametype.integer < GT_TEAM && mode == SAY_TEAM ) {
+ 		mode = SAY_ALL;
+@@ -969,6 +893,7 @@
+ 		G_LogPrintf( "say: %s: %s\n", ent->client->pers.netname, chatText );
+ 		Com_sprintf (name, sizeof(name), "%s%c%c"EC": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+ 		color = COLOR_GREEN;
++		cmd = "chat";
+ 		break;
+ 	case SAY_TEAM:
+ 		G_LogPrintf( "sayteam: %s: %s\n", ent->client->pers.netname, chatText );
+@@ -979,6 +904,7 @@
+ 			Com_sprintf (name, sizeof(name), EC"(%s%c%c"EC")"EC": ", 
+ 				ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+ 		color = COLOR_CYAN;
++		cmd = "tchat";
+ 		break;
+ 	case SAY_TELL:
+ 		if (target && target->inuse && target->client && g_gametype.integer >= GT_TEAM &&
+@@ -988,13 +914,20 @@
+ 		else
+ 			Com_sprintf (name, sizeof(name), EC"[%s%c%c"EC"]"EC": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+ 		color = COLOR_MAGENTA;
++		cmd = "tell";
+ 		break;
+ 	}
+ 
+ 	Q_strncpyz( text, chatText, sizeof(text) );
+ 
++	str = va( "%s \"%s%c%c%s\"", cmd, name, Q_COLOR_ESCAPE, color, text );
++
+ 	if ( target ) {
+-		G_SayTo( ent, target, mode, color, name, text );
++		if ( !G_SayTo( ent, target, mode ) ) {
++			return;
++		}
++
++		trap_SendServerCommand( target-g_entities, str );
+ 		return;
+ 	}
+ 
+@@ -1003,11 +936,28 @@
+ 		G_Printf( "%s%s\n", name, text);
+ 	}
+ 
++	// send to everyone on team
++	if ( mode == SAY_TEAM ) {
++		G_TeamCommand( ent->client->sess.sessionTeam, str );
++		return;
++	}
++
+ 	// send it to all the apropriate clients
+-	for (j = 0; j < level.maxclients; j++) {
+-		other = &g_entities[j];
++	for (i = 0; i < level.maxconnections; i++) {
++		for (  j = 0; j < MAX_SPLITVIEW; j++ ) {
++			if ( level.connections[i].localPlayerNums[j] == -1 )
++				continue;
+ 
+-		G_SayTo( ent, other, mode, color, name, text );
++			other = &g_entities[level.connections[i].localPlayerNums[j]];
++
++			if ( !G_SayTo( ent, other, mode ) ) {
++				break;
++			}
++		}
++
++		if ( j == MAX_SPLITVIEW ) {
++			trap_SendServerCommandEx( i, -1, str );
++		}
+ 	}
+ }
+ 
+@@ -1756,40 +1706,54 @@
+ ClientCommand
+ =================
+ */
+-void ClientCommand( int clientNum ) {
++void ClientCommand( int connectionNum ) {
+ 	gentity_t *ent;
++	gconnection_t *connection;
++	int		clientNum;
+ 	char	*cmd;
+ 	char	buf[MAX_TOKEN_CHARS];
+ 
+-	ent = g_entities + clientNum;
+-	if ( !ent->client ) {
+-		return;		// not fully in game yet
+-	}
++	connection = &level.connections[connectionNum];
+ 
+ 	trap_Argv( 0, buf, sizeof( buf ) );
+ 
+ 	cmd = &buf[0];
+ 
+-	// Commands for extra local clients.
++	// Commands for extra local players.
+ 	// 2team, 2give, 2teamtask, ...
+ 	if (cmd[0] >= '2' && cmd[0] <= '0'+MAX_SPLITVIEW) {
+-		int lc;
++		int num;
+ 
+-		lc = cmd[0]-'2';
++		num = cmd[0]-'1';
+ 
+ 		cmd++;
+ 
+-		if (ent->r.localClientNums[lc] == -1) {
+-			//G_Printf("Local client %d not connected.\n", lc+1);
++		if ( connection->localPlayerNums[num] == -1 ) {
++			//G_Printf("Client %d's local player %d not connected.\n", connectionNum, lc+1);
+ 			return;
+ 		}
+ 
+-		ent = g_entities + ent->r.localClientNums[lc];
+-		if ( !ent->client ) {
+-			return;		// not fully in game yet
++		clientNum = connection->localPlayerNums[num];
++	} else {
++		int i;
++
++		for ( i = 0; i < MAX_SPLITVIEW; i++ ) {
++			if ( connection->localPlayerNums[i] != -1 ) {
++				clientNum = connection->localPlayerNums[i];
++				break;
++			}
+ 		}
++		if ( i == MAX_SPLITVIEW ) {
++			//G_Printf("No Local player connected from connection %d!\n", connectionNum);
++			return;
++		}
+ 	}
+ 
++	ent = g_entities + clientNum;
++	if ( !ent->client ) {
++		return;		// not fully in game yet
++	}
++
+ 	if ( ent->client->pers.connected != CON_CONNECTED ) {
+ 		// Allow local clients to use team command before game finishes starting up,
+ 		// so team can be set by UI when starting a local game (without trying to have a wait command delay them).
+Index: code/game/ai_main.c
+===================================================================
+--- code/game/ai_main.c	(revision 372)
++++ code/game/ai_main.c	(revision 375)
+@@ -1013,7 +1013,7 @@
+ 			{ /*CenterPrintf*/ }
+ 		else if (!Q_stricmp(buf, "cs"))
+ 			{ /*ConfigStringModified*/ }
+-		else if (!Q_stricmp(buf, "gprint") || !Q_stricmp(buf, "print")) {
++		else if (!Q_stricmp(buf, "print")) {
+ 			//remove first and last quote from the chat message
+ 			memmove(args, args+1, strlen(args));
+ 			args[strlen(args)-1] = '\0';
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 372)
++++ code/cgame/cg_local.h	(revision 375)
+@@ -1286,6 +1286,7 @@
+ void QDECL CG_Error( const char *msg, ... ) __attribute__ ((noreturn, format (printf, 1, 2)));
+ 
+ void QDECL CG_NotifyPrintf( int localClientNum, const char *msg, ... ) __attribute__ ((format (printf, 2, 3)));
++void QDECL CG_NotifyBitsPrintf( int localClientNum, const char *msg, ... ) __attribute__ ((format (printf, 2, 3)));
+ 
+ void CG_LocalClientAdded(int localClientNum, int clientNum);
+ void CG_LocalClientRemoved(int localClientNum);
+Index: code/cgame/cg_view.c
+===================================================================
+--- code/cgame/cg_view.c	(revision 372)
++++ code/cgame/cg_view.c	(revision 375)
+@@ -1033,7 +1033,7 @@
+ 		cg.cur_ps = &cg.snap->pss[cg.snap->lcIndex[i]];
+ 
+ 		// Check if viewport should be drawn.
+-		if ((cg.singleCamera && cg.numViewports >= 1) || (cg.cur_ps->persistant[PERS_TEAM] == TEAM_SPECTATOR && (cg.cur_ps->pm_flags & PMF_LOCAL_HIDE))) {
++		if ( cg.singleCamera && cg.numViewports >= 1 ) {
+ 			renderClientViewport[i] = qfalse;
+ 		} else {
+ 			cg.numViewports++;
+Index: code/cgame/cg_servercmds.c
+===================================================================
+--- code/cgame/cg_servercmds.c	(revision 372)
++++ code/cgame/cg_servercmds.c	(revision 375)
+@@ -1014,6 +1014,38 @@
+ 
+ /*
+ =================
++CG_LocalClientBitsForTeam
++=================
++*/
++int CG_LocalClientBitsForTeam( team_t team ) {
++	clientInfo_t	*ci;
++	int				clientNum;
++	int				bits;
++	int				i;
++	
++	bits = 0;
++	
++	for ( i = 0; i < CG_MaxSplitView(); i++ ) {
++		clientNum = cg.localClients[i].clientNum;
++		if ( clientNum == -1 ) {
++			continue;
++		}
++		
++		ci = &cgs.clientinfo[clientNum];
++		if ( !ci->infoValid ) {
++			continue;
++		}
++		
++		if ( ci->team == team ) {
++			bits |= ( 1 << i );
++		}
++	}
++
++	return bits;
++}
++
++/*
++=================
+ CG_ServerCommand
+ 
+ The string has been tokenized and can be retrieved with
+@@ -1024,7 +1056,8 @@
+ 	const char	*cmd;
+ 	char		text[MAX_SAY_TEXT];
+ 	int			start = 0;
+-	int			lc = 0;
++	int			localPlayerBits = -1;
++	int			i;
+ 
+ 	cmd = CG_Argv(start);
+ 
+@@ -1033,26 +1066,54 @@
+ 		return;
+ 	}
+ 
+-	// Commands for splitscreen clients begin "lc# "
+-	if (cmd[0] == 'l' && cmd[1] =='c' && isdigit(cmd[2])) {
+-		lc = atoi(&cmd[2]);
++	// Commands for team
++	if ( !Q_stricmp( cmd, "[RED]" ) ) {
++		localPlayerBits = CG_LocalClientBitsForTeam( TEAM_RED );
+ 
+-		if (lc > CG_MaxSplitView()) {
++		// Get command
++		start++;
++		cmd = CG_Argv(start);
++	}
++	else if ( !Q_stricmp( cmd, "[BLUE]" ) ) {
++		localPlayerBits = CG_LocalClientBitsForTeam( TEAM_BLUE );
++
++		// Get command
++		start++;
++		cmd = CG_Argv(start);
++	}
++	else if ( !Q_stricmp( cmd, "[SPECTATOR]" ) ) {
++		localPlayerBits = CG_LocalClientBitsForTeam( TEAM_SPECTATOR );
++
++		// Get command
++		start++;
++		cmd = CG_Argv(start);
++	}
++	// Commands for specific player begin "lc# "
++	else if ( cmd[0] == 'l' && cmd[1] =='c' && isdigit(cmd[2]) ) {
++		int num = atoi( &cmd[2] );
++
++		if ( num > CG_MaxSplitView() ) {
+ 			return;
+ 		}
+ 
++		localPlayerBits = ( 1 << num );
++
+ 		// Get command
+ 		start++;
+ 		cmd = CG_Argv(start);
+ 	}
+ 
+ 	if ( !strcmp( cmd, "cp" ) ) {
+-		CG_CenterPrint( lc, CG_Argv(start+1), SCREEN_HEIGHT * 0.30, 0.5 );
++		for ( i = 0; i < CG_MaxSplitView(); i++ ) {
++			if ( localPlayerBits == -1 || ( localPlayerBits & ( 1 << i ) ) ) {
++				CG_CenterPrint( i, CG_Argv( start + 1 ), SCREEN_HEIGHT * 0.30, 0.5 );
++			}
++		}
+ 		return;
+ 	}
+ 
+ 	if ( !strcmp( cmd, "cs" ) ) {
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+@@ -1061,7 +1122,7 @@
+ 	}
+ 
+ 	// global print to all clients
+-	if ( !strcmp( cmd, "gprint" ) ) {
++	if ( !strcmp( cmd, "print" ) && localPlayerBits == -1 ) {
+ #ifdef MISSIONPACK
+ 		cmd = CG_Argv(start+1);			// yes, this is obviously a hack, but so is the way we hear about
+ 									// votes passing or failing
+@@ -1077,7 +1138,7 @@
+ 	}
+ 
+ 	if ( !strcmp( cmd, "print" ) ) {
+-		CG_NotifyPrintf( lc, "%s", CG_Argv( start+1 ) );
++		CG_NotifyBitsPrintf( localPlayerBits, "%s", CG_Argv( start+1 ) );
+ 		return;
+ 	}
+ 
+@@ -1099,11 +1160,10 @@
+ 		Q_strncpyz( text, CG_Argv(start+1), MAX_SAY_TEXT );
+ 
+ 		CG_RemoveChatEscapeChar( text );
+-		CG_NotifyPrintf( lc, "%s\n", text );
++		CG_NotifyBitsPrintf( localPlayerBits, "%s\n", text );
+ 		return;
+ 	}
+ 
+-	// ZTM: FIXME: only send each tchat message once for each team (if a local client is on the team).
+ 	if ( !strcmp( cmd, "tchat" ) ) {
+ 		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+ 
+@@ -1111,13 +1171,13 @@
+ 
+ 		CG_RemoveChatEscapeChar( text );
+ 		CG_AddToTeamChat( text );
+-		CG_NotifyPrintf( lc, "%s\n", text );
++		CG_NotifyBitsPrintf( localPlayerBits, "%s\n", text );
+ 		return;
+ 	}
+ 
+ #ifdef MISSIONPACK
+ 	if ( !strcmp( cmd, "vchat" ) ) {
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+@@ -1126,7 +1186,7 @@
+ 	}
+ 
+ 	if ( !strcmp( cmd, "vtchat" ) ) {
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+@@ -1135,7 +1195,7 @@
+ 	}
+ 
+ 	if ( !strcmp( cmd, "vtell" ) ) {
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+@@ -1155,7 +1215,7 @@
+ 	}
+ 
+ 	if ( !strcmp( cmd, "map_restart" ) ) {
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+@@ -1165,7 +1225,7 @@
+ 
+ 	if ( Q_stricmp (cmd, "remapShader") == 0 )
+ 	{
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+@@ -1187,7 +1247,7 @@
+ 
+ 	// loaddeferred can be both a servercmd and a consolecmd
+ 	if ( !strcmp( cmd, "loaddeferred" ) ) {
+-		if (lc != 0) {
++		if ( localPlayerBits != -1 ) {
+ 			return;
+ 		}
+ 
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 372)
++++ code/cgame/cg_main.c	(revision 375)
+@@ -601,6 +601,29 @@
+ 	trap_Print( text );
+ }
+ 
++/*
++=================
++CG_NotifyBitsPrintf
++
++Only printed in notify area for players specified in localClientBits (and client console)
++=================
++*/
++void QDECL CG_NotifyBitsPrintf( int localClientBits, const char *msg, ... ) {
++	va_list		argptr;
++	char		text[1024];
++	int i;
++
++	va_start (argptr, msg);
++	Q_vsnprintf (text, sizeof(text), msg, argptr);
++	va_end (argptr);
++
++	for ( i = 0; i < CG_MaxSplitView(); i++ ) {
++		if ( localClientBits & ( 1 << i ) ) {
++			CG_NotifyPrintf( i, "%s", text );
++		}
++	}
++}
++
+ void QDECL CG_DPrintf( const char *msg, ... ) {
+ 	va_list		argptr;
+ 	char		text[1024];
+Index: code/client/cl_input.c
+===================================================================
+--- code/client/cl_input.c	(revision 372)
++++ code/client/cl_input.c	(revision 375)
+@@ -1023,9 +1023,13 @@
+ #ifdef USE_VOIP
+ 	if (clc.voipOutgoingDataSize > 0)
+ 	{
+-		if((clc.voipFlags & VOIP_SPATIAL) || Com_IsVoipTarget(clc.voipTargets, sizeof(clc.voipTargets), -1))
++		// ZTM: TODO: Allow each local player to use voip, or at least allow using voip when player 1 isn't present.
++		const int voipLocalClientNum = 0;
++
++		if(clc.clientNums[voipLocalClientNum] != -1 && ((clc.voipFlags & VOIP_SPATIAL) || Com_IsVoipTarget(clc.voipTargets, sizeof(clc.voipTargets), -1)))
+ 		{
+ 			MSG_WriteByte (&buf, clc_voip);
++			MSG_WriteByte (&buf, voipLocalClientNum);
+ 			MSG_WriteByte (&buf, clc.voipOutgoingGeneration);
+ 			MSG_WriteLong (&buf, clc.voipOutgoingSequence);
+ 			MSG_WriteByte (&buf, clc.voipOutgoingDataFrames);
+@@ -1047,7 +1051,7 @@
+ 				MSG_Bitstream (&fakemsg);
+ 				MSG_WriteLong (&fakemsg, clc.reliableAcknowledge);
+ 				MSG_WriteByte (&fakemsg, svc_voip);
+-				MSG_WriteShort (&fakemsg, clc.clientNums[0]);
++				MSG_WriteShort (&fakemsg, clc.clientNums[voipLocalClientNum]);
+ 				MSG_WriteByte (&fakemsg, clc.voipOutgoingGeneration);
+ 				MSG_WriteLong (&fakemsg, clc.voipOutgoingSequence);
+ 				MSG_WriteByte (&fakemsg, clc.voipOutgoingDataFrames);
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 372)
++++ code/client/cl_main.c	(revision 375)
+@@ -1712,6 +1712,14 @@
+ 	CL_AddReliableCommand(va("dropout%d", localClientNum+1), qfalse);
+ }
+ 
++void CL_DropIn_f( void ) {
++	CL_DropIn(0);
++}
++
++void CL_DropOut_f( void ) {
++	CL_DropOut(0);
++}
++
+ void CL_2DropIn_f( void ) {
+ 	CL_DropIn(1);
+ }
+@@ -2416,7 +2424,6 @@
+ 
+ 			Q_strncpyz( info, Cvar_InfoString( cl_userinfoFlags[i] ), sizeof( info ) );
+ 
+-			// ZTM: FIXME: Do we need to set these for more than the first client?
+ 			Info_SetValueForKey( info, "protocol", va("%i", protocol ) );
+ 			Info_SetValueForKey( info, "qport", va("%i", port ) );
+ 			Info_SetValueForKey( info, "challenge", va("%i", clc.challenge ) );
+@@ -2937,9 +2944,7 @@
+ ==================
+ */
+ void CL_CheckUserinfo( void ) {
+-#if CL_MAX_SPLITVIEW > 1
+ 	int i;
+-#endif
+ 
+ 	// don't add reliable commands when not yet connected
+ 	if(clc.state < CA_CONNECTED)
+@@ -2950,21 +2955,12 @@
+ 		return;
+ 
+ 	// send a reliable userinfo update if needed
+-	if(cvar_modifiedFlags & CVAR_USERINFO)
+-	{
+-		cvar_modifiedFlags &= ~CVAR_USERINFO;
+-		CL_AddReliableCommand(va("userinfo \"%s\"", Cvar_InfoString( CVAR_USERINFO ) ), qfalse);
+-	}
+-#if CL_MAX_SPLITVIEW > 1
+-	for (i = 1; i < CL_MAX_SPLITVIEW; i++)
+-	{
+-		if(cvar_modifiedFlags & cl_userinfoFlags[i])
+-		{
++	for(i = 0; i < CL_MAX_SPLITVIEW; i++) {
++		if(cvar_modifiedFlags & cl_userinfoFlags[i]) {
+ 			cvar_modifiedFlags &= ~cl_userinfoFlags[i];
+ 			CL_AddReliableCommand(va("userinfo%d \"%s\"", i+1, Cvar_InfoString( cl_userinfoFlags[i] ) ), qfalse);
+ 		}
+ 	}
+-#endif
+ }
+ 
+ /*
+@@ -3704,7 +3700,7 @@
+ 	cl_voipVADThreshold = Cvar_Get ("cl_voipVADThreshold", "0.25", CVAR_ARCHIVE);
+ 
+ 	// This is a protocol version number.
+-	cl_voip = Cvar_Get ("cl_voip", "1", CVAR_USERINFO | CVAR_ARCHIVE);
++	cl_voip = Cvar_Get ("cl_voip", "1", CVAR_USERINFO_ALL | CVAR_ARCHIVE);
+ 	Cvar_CheckRange( cl_voip, 0, 1, qtrue );
+ #endif
+ 
+@@ -3713,6 +3709,8 @@
+ 	//
+ 	Cmd_AddCommand ("cmd", CL_ForwardToServer_f);
+ #if CL_MAX_SPLITVIEW > 1
++	Cmd_AddCommand ("dropin", CL_DropIn_f);
++	Cmd_AddCommand ("dropout", CL_DropOut_f);
+ 	Cmd_AddCommand ("2dropin", CL_2DropIn_f);
+ 	Cmd_AddCommand ("2dropout", CL_2DropOut_f);
+ #endif
+@@ -3796,10 +3794,12 @@
+ 	CL_Snd_Shutdown();
+ 
+ 	Cmd_RemoveCommand ("cmd");
+-	for (i = 1; i < CL_MAX_SPLITVIEW; i++) {
++#if CL_MAX_SPLITVIEW > 1
++	for (i = 0; i < CL_MAX_SPLITVIEW; i++) {
+ 		Cmd_RemoveCommand (Com_LocalClientCvarName(i, "dropout"));
+ 		Cmd_RemoveCommand (Com_LocalClientCvarName(i, "dropin"));
+ 	}
++#endif
+ 	Cmd_RemoveCommand ("configstrings");
+ 	Cmd_RemoveCommand ("clientinfo");
+ 	Cmd_RemoveCommand ("snd_restart");
