@@ -1,0 +1,460 @@
+Index: make-macosx-ub.sh
+===================================================================
+--- make-macosx-ub.sh	(revision 375)
++++ make-macosx-ub.sh	(revision 378)
+@@ -12,36 +12,48 @@
+ BIN_OBJ="
+ 	build/release-darwin-x86_64/spearmint.x86_64
+ 	build/release-darwin-i386/spearmint.i386
++	build/release-darwin-ppc/spearmint.ppc
+ "
+ BIN_DEDOBJ="
+ 	build/release-darwin-x86_64/spearmint-server.x86_64
+ 	build/release-darwin-i386/spearmint-server.i386
++	build/release-darwin-ppc/spearmint-server.ppc
+ "
+ BASE_OBJ="
+ 	build/release-darwin-x86_64/$BASEDIR/cgamex86_64.dylib
+ 	build/release-darwin-i386/$BASEDIR/cgamei386.dylib
++	build/release-darwin-ppc/$BASEDIR/cgameppc.dylib
+ 	build/release-darwin-x86_64/$BASEDIR/uix86_64.dylib
+ 	build/release-darwin-i386/$BASEDIR/uii386.dylib
++	build/release-darwin-ppc/$BASEDIR/uippc.dylib
+ 	build/release-darwin-x86_64/$BASEDIR/gamex86_64.dylib
+ 	build/release-darwin-i386/$BASEDIR/gamei386.dylib
++	build/release-darwin-ppc/$BASEDIR/gameppc.dylib
+ "
+ MPACK_OBJ="
+ 	build/release-darwin-x86_64/$MPACKDIR/cgamex86_64.dylib
+ 	build/release-darwin-i386/$MPACKDIR/cgamei386.dylib
++	build/release-darwin-ppc/$MPACKDIR/cgameppc.dylib
+ 	build/release-darwin-x86_64/$MPACKDIR/uix86_64.dylib
+ 	build/release-darwin-i386/$MPACKDIR/uii386.dylib
++	build/release-darwin-ppc/$MPACKDIR/uippc.dylib
+ 	build/release-darwin-x86_64/$MPACKDIR/gamex86_64.dylib
+ 	build/release-darwin-i386/$MPACKDIR/gamei386.dylib
++	build/release-darwin-ppc/$MPACKDIR/gameppc.dylib
+ "
+ RENDER_OBJ="
+ 	build/release-darwin-x86_64/renderer_opengl1_smp_x86_64.dylib
+ 	build/release-darwin-i386/renderer_opengl1_smp_i386.dylib
++	build/release-darwin-ppc/renderer_opengl1_smp_ppc.dylib
+ 	build/release-darwin-x86_64/renderer_opengl1_x86_64.dylib
+ 	build/release-darwin-i386/renderer_opengl1_i386.dylib
++	build/release-darwin-ppc/renderer_opengl1_ppc.dylib
+ 	build/release-darwin-x86_64/renderer_rend2_smp_x86_64.dylib
+ 	build/release-darwin-i386/renderer_rend2_smp_i386.dylib
++	build/release-darwin-ppc/renderer_rend2_smp_ppc.dylib
+ 	build/release-darwin-x86_64/renderer_rend2_x86_64.dylib
+ 	build/release-darwin-i386/renderer_rend2_i386.dylib
++	build/release-darwin-ppc/renderer_rend2_ppc.dylib
+ "
+ 
+ cd `dirname $0`
+@@ -60,6 +72,7 @@
+ # can not build 64bit binaries, making 10.5 the minimum version.   This has been tested 
+ # with xcode 3.1 (xcode31_2199_developerdvd.dmg).  It contains the 10.5 SDK and a decent
+ # enough gcc to actually compile ioquake3
++# For PPC macs, G4's or better are required to run ioquake3.
+ 
+ unset X86_64_SDK
+ unset X86_64_CFLAGS
+@@ -67,6 +80,9 @@
+ unset X86_SDK
+ unset X86_CFLAGS
+ unset X86_LDFLAGS
++unset PPC_64_SDK
++unset PPC_CFLAGS
++unset PPC_LDFLAGS
+ 
+ if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+ 	X86_64_SDK=/Developer/SDKs/MacOSX10.5.sdk
+@@ -78,9 +94,14 @@
+ 	X86_CFLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk \
+ 			-DMAC_OS_X_VERSION_MIN_REQUIRED=1050"
+ 	X86_LDFLAGS=" -mmacosx-version-min=10.5"
++
++	PPC_SDK=/Developer/SDKs/MacOSX10.5.sdk
++	PPC_CFLAGS="-arch ppc -isysroot /Developer/SDKs/MacOSX10.5.sdk \
++			-DMAC_OS_X_VERSION_MIN_REQUIRED=1050"
++	PPC_LDFLAGS=" -mmacosx-version-min=10.5"
+ fi
+ 
+-if [ -z $X86_64_SDK ] || [ -z $X86_SDK ]; then
++if [ -z $X86_64_SDK ] || [ -z $X86_SDK ] || [ -z $PPC_SDK ]; then
+ 	echo "\
+ ERROR: This script is for building a Universal Binary.  You cannot build
+        for a different architecture unless you have the proper Mac OS X SDKs
+@@ -91,6 +112,7 @@
+ 
+ echo "Building X86_64 Client/Dedicated Server against \"$X86_64_SDK\""
+ echo "Building X86 Client/Dedicated Server against \"$X86_SDK\""
++echo "Building PPC Client/Dedicated Server against \"$PPC_SDK\""
+ echo
+ 
+ if [ "$X86_64_SDK" != "/Developer/SDKs/MacOSX10.5.sdk" ] || \
+@@ -123,6 +145,16 @@
+ fi
+ (ARCH=i386 CC=gcc-4.0 CFLAGS=$X86_CFLAGS LDFLAGS=$X86_LDFLAGS make -j$NCPU) || exit 1;
+ 
++echo;echo
++
++# PPC client and server
++if [ -d build/release-darwin-ppc ]; then
++	rm -r build/release-darwin-ppc
++fi
++(ARCH=ppc CC=gcc-4.0 CFLAGS=$PPC_CFLAGS LDFLAGS=$PPC_LDFLAGS make -j$NCPU) || exit 1;
++
++echo;echo
++
+ echo "Creating .app bundle $DESTDIR/$APPBUNDLE"
+ if [ ! -d $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR ]; then
+ 	mkdir -p $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR || exit 1;
+@@ -172,25 +204,10 @@
+ 	</plist>
+ 	" > $DESTDIR/$APPBUNDLE/Contents/Info.plist
+ 
+-# Change the path of the SDL Framework in both arches for the executables and renderer dylib's
+-# This removes the need for players to have the SDL.Framework installed on their machines.
+-for i in $BIN_OBJ $BIN_DEDOBJ $RENDER_OBJ
+-do
+-        install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $i
+-done
+-
+-# Make UB's from previous builds of 1386 and x86_64 binaries
++# Make UB's from previous builds of i386, x86_64 and ppc binaries
+ lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY $BIN_OBJ
+ lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN $BIN_DEDOBJ
+ 
+-# Embed the SDL framework into the .app so players done need to install it on their systems.
+-mkdir $DESTDIR/$APPBUNDLE/Contents/Frameworks
+-unzip -d $DESTDIR/$APPBUNDLE/Contents/Frameworks code/libs/macosx/SDL-1.2.15.framework.zip
+-
+-# Change the path in the UB, just in case
+-install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY
+-install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN
+-
+ cp $RENDER_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/
+ cp $BASE_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR/
+ cp $MPACK_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$MPACKDIR/
+Index: code/libs/macosx/SDL-1.2.15.framework.zip
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: code/libs/macosx/libSDL-1.2.0.dylib
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: code/libs/macosx/libSDLmain.a
+===================================================================
+Cannot display: file marked as a binary type.
+svn:mime-type = application/octet-stream
+Index: code/game/g_svcmds.c
+===================================================================
+--- code/game/g_svcmds.c	(revision 375)
++++ code/game/g_svcmds.c	(revision 378)
+@@ -477,6 +477,7 @@
+   { "abort_podium", qfalse, Svcmd_AbortPodium_f },
+   { "addbot", qfalse, Svcmd_AddBot_f },
+   { "addip", qfalse, Svcmd_AddIP_f },
++  { "botlist", qfalse, Svcmd_BotList_f },
+   { "entityList", qfalse, Svcmd_EntityList_f },
+   { "forceTeam", qfalse, Svcmd_ForceTeam_f },
+   { "game_memory", qfalse, Svcmd_GameMem_f },
+Index: code/game/g_bot.c
+===================================================================
+--- code/game/g_bot.c	(revision 375)
++++ code/game/g_bot.c	(revision 378)
+@@ -254,7 +254,7 @@
+ 			if ( cl->pers.connected != CON_CONNECTED ) {
+ 				continue;
+ 			}
+-			if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
++			if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
+ 				continue;
+ 			}
+ 			if ( team >= 0 && cl->sess.sessionTeam != team ) {
+@@ -277,7 +277,7 @@
+ 			if ( cl->pers.connected != CON_CONNECTED ) {
+ 				continue;
+ 			}
+-			if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
++			if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
+ 				continue;
+ 			}
+ 			if ( team >= 0 && cl->sess.sessionTeam != team ) {
+@@ -338,13 +338,13 @@
+ 		if ( cl->pers.connected != CON_CONNECTED ) {
+ 			continue;
+ 		}
+-		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
++		if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
+ 			continue;
+ 		}
+ 		if ( team >= 0 && cl->sess.sessionTeam != team ) {
+ 			continue;
+ 		}
+-		trap_Cmd_ExecuteText( EXEC_INSERT, va("kicknum %d\n", cl->ps.clientNum) );
++		trap_Cmd_ExecuteText( EXEC_INSERT, va("kicknum %d\n", i) );
+ 		return qtrue;
+ 	}
+ 	return qfalse;
+@@ -365,7 +365,7 @@
+ 		if ( cl->pers.connected != CON_CONNECTED ) {
+ 			continue;
+ 		}
+-		if ( g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT ) {
++		if ( g_entities[i].r.svFlags & SVF_BOT ) {
+ 			continue;
+ 		}
+ 		if ( team >= 0 && cl->sess.sessionTeam != team ) {
+@@ -391,7 +391,7 @@
+ 		if ( cl->pers.connected != CON_CONNECTED ) {
+ 			continue;
+ 		}
+-		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
++		if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
+ 			continue;
+ 		}
+ 		if ( team >= 0 && cl->sess.sessionTeam != team ) {
+@@ -591,7 +591,6 @@
+ 	int				clientNum;
+ 	int				t;
+ 	char			*botinfo;
+-	gentity_t		*bot;
+ 	char			*key;
+ 	char			*s;
+ 	char			*botname;
+@@ -664,7 +663,8 @@
+ 	Info_SetValueForKey( userinfo, "name", botname );
+ 	Info_SetValueForKey( userinfo, "rate", "25000" );
+ 	Info_SetValueForKey( userinfo, "snaps", "20" );
+-	Info_SetValueForKey( userinfo, "skill", va("%1.2f", skill) );
++	Info_SetValueForKey( userinfo, "skill", va("%.2f", skill) );
++	Info_SetValueForKey( userinfo, "team", team );
+ 
+ 	if ( skill >= 1 && skill < 2 ) {
+ 		Info_SetValueForKey( userinfo, "handicap", "50" );
+@@ -719,16 +719,8 @@
+ 		trap_BotFreeClient(clientNum);
+ 		return;
+ 	}
++	Info_SetValueForKey( userinfo, "characterfile", s );
+ 
+-	// initialize the bot settings
+-	Info_SetValueForKey( userinfo, "characterfile", Info_ValueForKey( botinfo, "aifile" ) );
+-	Info_SetValueForKey( userinfo, "skill", va( "%5.2f", skill ) );
+-	Info_SetValueForKey( userinfo, "team", team );
+-
+-	bot = &g_entities[ clientNum ];
+-	bot->r.svFlags |= SVF_BOT;
+-	bot->inuse = qtrue;
+-
+ 	// register the userinfo
+ 	trap_SetUserinfo( clientNum, userinfo );
+ 
+Index: code/game/g_main.c
+===================================================================
+--- code/game/g_main.c	(revision 375)
++++ code/game/g_main.c	(revision 378)
+@@ -1313,7 +1313,7 @@
+ 		if ( cl->pers.connected != CON_CONNECTED ) {
+ 			continue;
+ 		}
+-		if ( g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT ) {
++		if ( g_entities[i].r.svFlags & SVF_BOT ) {
+ 			continue;
+ 		}
+ 
+Index: code/game/g_client.c
+===================================================================
+--- code/game/g_client.c	(revision 375)
++++ code/game/g_client.c	(revision 378)
+@@ -1285,8 +1285,11 @@
+ 	client->ps.commandTime = level.time - 100;
+ 	ent->client->pers.cmd.serverTime = level.time;
+ 	ClientThink( ent-g_entities );
+-	// run the presend to set anything else
+-	ClientEndFrame( ent );
++	// run the presend to set anything else, follow spectators wait
++	// until all clients have been reconnected after map_restart
++	if ( ent->client->sess.spectatorState != SPECTATOR_FOLLOW ) {
++		ClientEndFrame( ent );
++	}
+ 
+ 	// clear entity state values
+ 	BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
+Index: Makefile
+===================================================================
+--- Makefile	(revision 375)
++++ Makefile	(revision 378)
+@@ -5,7 +5,7 @@
+ #
+ 
+ # ioquake3 svn version that this is based on
+-IOQ3_REVISION = 2392
++IOQ3_REVISION = 2398
+ 
+ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
+ 
+@@ -432,7 +432,7 @@
+ 
+ ifeq ($(PLATFORM),darwin)
+   HAVE_VM_COMPILED=true
+-  LIBS = -framework Cocoa -framework SDL
++  LIBS = -framework Cocoa
+   CLIENT_LIBS=
+   RENDERER_LIBS=
+   OPTIMIZEVM=
+@@ -487,8 +487,8 @@
+   LIBSDLMAIN=$(B)/libSDLmain.a
+   LIBSDLMAINSRC=$(LIBSDIR)/macosx/libSDLmain.a
+   CLIENT_LIBS += -framework IOKit \
+-    -framework SDL
+-  RENDERER_LIBS += -framework OpenGL -framework SDL
++    $(LIBSDIR)/macosx/libSDL-1.2.0.dylib
++  RENDERER_LIBS += -framework OpenGL $(LIBSDIR)/macosx/libSDL-1.2.0.dylib
+ 
+   OPTIMIZEVM += -falign-loops=16
+   OPTIMIZE = $(OPTIMIZEVM) -ffast-math
+Index: make-macosx.sh
+===================================================================
+--- make-macosx.sh	(revision 375)
++++ make-macosx.sh	(revision 378)
+@@ -1,35 +1,60 @@
+ #!/bin/sh
++#
++
+ CC=gcc-4.0
+ APPBUNDLE=spearmint.app
+-BINARY=spearmint.x86_64
+-DEDBIN=spearmint-server.x86_64
++BINARY=spearmint.${BUILDARCH}
++DEDBIN=spearmint-server.${BUILDARCH}
+ PKGINFO=APPLIOQ3
+ ICNS=misc/quake3.icns
+-DESTDIR=build/release-darwin-x86_64
++DESTDIR=build/release-darwin-${BUILDARCH}
+ BASEDIR=baseq3
+ MPACKDIR=missionpack
+ 
++# Lets make the user give us a target build system
++
++if [ $# -ne 1 ]; then
++	echo "Usage:   $0 target_architecture"
++	echo "Example: $0 i386"
++	echo "other valid options are x86_64 or ppc"
++	echo
++	echo "If you don't know or care about architectures please consider using make-macosx-ub.sh instead of this script."
++	exit 1
++fi
++
++if [ "$1" == "i386" ]; then
++	BUILDARCH=i386
++elif [ "$1" == "x86_64" ]; then
++	BUILDARCH=x86_64
++elif [ "$1" == "ppc" ]; then
++	BUILDARCH=ppc
++else
++	echo "Invalid architecture: $1"
++	echo "Valid architectures are i386, x86_64 or ppc"
++	exit 1
++fi
++
+ BIN_OBJ="
+-	build/release-darwin-x86_64/spearmint.x86_64
++	build/release-darwin-${BUILDARCH}/spearmint.${BUILDARCH}
+ "
+ BIN_DEDOBJ="
+-	build/release-darwin-x86_64/spearmint-server.x86_64
++	build/release-darwin-${BUILDARCH}/spearmint-server.${BUILDARCH}
+ "
+ BASE_OBJ="
+-	build/release-darwin-x86_64/$BASEDIR/cgamex86_64.dylib
+-	build/release-darwin-x86_64/$BASEDIR/uix86_64.dylib
+-	build/release-darwin-x86_64/$BASEDIR/gamex86_64.dylib
++	build/release-darwin-${BUILDARCH}/$BASEDIR/cgame${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/$BASEDIR/ui${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/$BASEDIR/game${BUILDARCH}.dylib
+ "
+ MPACK_OBJ="
+-	build/release-darwin-x86_64/$MPACKDIR/cgamex86_64.dylib
+-	build/release-darwin-x86_64/$MPACKDIR/uix86_64.dylib
+-	build/release-darwin-x86_64/$MPACKDIR/gamex86_64.dylib
++	build/release-darwin-${BUILDARCH}/$MPACKDIR/cgame${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/$MPACKDIR/ui${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/$MPACKDIR/game${BUILDARCH}.dylib
+ "
+ RENDER_OBJ="
+-	build/release-darwin-x86_64/renderer_opengl1_smp_x86_64.dylib
+-	build/release-darwin-x86_64/renderer_opengl1_x86_64.dylib
+-	build/release-darwin-x86_64/renderer_rend2_smp_x86_64.dylib
+-	build/release-darwin-x86_64/renderer_rend2_x86_64.dylib
++	build/release-darwin-${BUILDARCH}/renderer_opengl1_smp_${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/renderer_opengl1_${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/renderer_rend2_smp_${BUILDARCH}.dylib
++	build/release-darwin-${BUILDARCH}/renderer_rend2_${BUILDARCH}.dylib
+ "
+ 
+ cd `dirname $0`
+@@ -48,19 +73,21 @@
+ # can not build 64bit binaries, making 10.5 the minimum version.   This has been tested 
+ # with xcode 3.1 (xcode31_2199_developerdvd.dmg).  It contains the 10.5 SDK and a decent
+ # enough gcc to actually compile ioquake3
++# For PPC macs, G4's or better are required to run ioquake3.
+ 
+-unset X86_SDK
+-unset X86_CFLAGS
+-unset X86_LDFLAGS
++unset ARCH_SDK
++unset ARCH_CFLAGS
++unset ARCH_LDFLAGS
++
+ if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+-	X86_SDK=/Developer/SDKs/MacOSX10.5.sdk
+-	X86_CFLAGS="-arch x86_64 -isysroot /Developer/SDKs/MacOSX10.5.sdk \
++	ARCH_SDK=/Developer/SDKs/MacOSX10.5.sdk
++	ARCH_CFLAGS="-arch ${BUILDARCH} -isysroot /Developer/SDKs/MacOSX10.5.sdk \
+ 			-DMAC_OS_X_VERSION_MIN_REQUIRED=1050"
+-	X86_LDFLAGS=" -mmacosx-version-min=10.5"
++	ARCH_LDFLAGS=" -mmacosx-version-min=10.5"
+ fi
+ 
+ 
+-echo "Building X86 Client/Dedicated Server against \"$X86_SDK\""
++echo "Building ${BUILDARCH} Client/Dedicated Server against \"$ARCH_SDK\""
+ sleep 3
+ 
+ if [ ! -d $DESTDIR ]; then
+@@ -72,10 +99,10 @@
+ 
+ 
+ # intel client and server
+-if [ -d build/release-darwin-x86_64 ]; then
+-	rm -r build/release-darwin-x86_64
++if [ -d build/release-darwin-${BUILDARCH} ]; then
++	rm -r build/release-darwin-${BUILDARCH}
+ fi
+-(ARCH=x86_64 CFLAGS=$X86_CFLAGS LDFLAGS=$X86_LDFLAGS make -j$NCPU) || exit 1;
++(ARCH=${BUILDARCH} CFLAGS=$ARCH_CFLAGS LDFLAGS=$ARCH_LDFLAGS make -j$NCPU) || exit 1;
+ 
+ echo "Creating .app bundle $DESTDIR/$APPBUNDLE"
+ if [ ! -d $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR ]; then
+@@ -126,16 +153,12 @@
+ 	</plist>
+ 	" > $DESTDIR/$APPBUNDLE/Contents/Info.plist
+ 
+-for i in $BIN_OBJ $BIN_DEDOBJ $RENDER_OBJ
+-do
+-        install_name_tool -change "@rpath/SDL.framework/Versions/A/SDL" "@executable_path/../Frameworks/SDL.framework/Versions/A/SDL" $i
+-done
+ 
+-
+ cp $BIN_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY
+ cp $BIN_DEDOBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN
+ cp $RENDER_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/
+ cp $BASE_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR/
+ cp $MPACK_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$MPACKDIR/
+ cp code/libs/macosx/*.dylib $DESTDIR/$APPBUNDLE/Contents/MacOS/
++cp code/libs/macosx/*.dylib $DESTDIR
+ 

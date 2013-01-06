@@ -5,7 +5,7 @@
 #
 
 # ioquake3 svn version that this is based on
-IOQ3_REVISION = 2392
+IOQ3_REVISION = 2398
 
 COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
 
@@ -440,7 +440,7 @@ else # ifeq Linux
 
 ifeq ($(PLATFORM),darwin)
   HAVE_VM_COMPILED=true
-  LIBS = -framework Cocoa -framework SDL
+  LIBS = -framework Cocoa
   CLIENT_LIBS=
   RENDERER_LIBS=
   OPTIMIZEVM=
@@ -495,8 +495,8 @@ ifeq ($(PLATFORM),darwin)
   LIBSDLMAIN=$(B)/libSDLmain.a
   LIBSDLMAINSRC=$(LIBSDIR)/macosx/libSDLmain.a
   CLIENT_LIBS += -framework IOKit \
-    -framework SDL
-  RENDERER_LIBS += -framework OpenGL -framework SDL
+    $(LIBSDIR)/macosx/libSDL-1.2.0.dylib
+  RENDERER_LIBS += -framework OpenGL $(LIBSDIR)/macosx/libSDL-1.2.0.dylib
 
   OPTIMIZEVM += -falign-loops=16
   OPTIMIZE = $(OPTIMIZEVM) -ffast-math

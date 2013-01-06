@@ -2,7 +2,7 @@
 
 make
 
-./make-macosx.sh
+./make-macosx.sh x86_64
 
 cd build/release-darwin-i386/baseq3/
 
