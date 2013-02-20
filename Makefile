@@ -269,7 +269,7 @@ Q3LCCETCDIR=$(MOUNT_DIR)/tools/lcc/etc
 Q3LCCSRCDIR=$(MOUNT_DIR)/tools/lcc/src
 LOKISETUPDIR=misc/setup
 NSISDIR=misc/nsis
-SDLHDIR=$(MOUNT_DIR)/SDL12
+SDLHDIR=$(MOUNT_DIR)/SDL11
 LIBSDIR=$(MOUNT_DIR)/libs
 OGGDIR=$(MOUNT_DIR)/libogg
 VORBISDIR=$(MOUNT_DIR)/libvorbis
@@ -349,6 +349,9 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
   endif
   endif
   endif
+
+  SDL_CFLAGS=$(shell sdl-config --cflags)
+  SDL_LIBS=$(shell sdl-config --libs)
 
   BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
     -pipe -DUSE_ICON
